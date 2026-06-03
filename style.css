@@ -105,12 +105,21 @@
   overflow: hidden;
 }
 .carousel-track {
-  display: flex;
-  transition: transform 0.55s var(--ease-out);
-  will-change: transform;
+  position: relative;
+  min-height: 360px;
 }
-.carousel-item { min-width: 100%; opacity: 0; transition: opacity 0.55s; }
-.carousel-item.active { opacity: 1; }
+.carousel-item {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.55s;
+  pointer-events: none;
+}
+.carousel-item.active {
+  opacity: 1;
+  position: relative;
+  pointer-events: auto;
+}
 .carousel-content {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
