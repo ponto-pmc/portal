@@ -95,8 +95,9 @@
   to   { transform: translateX(-50%); }
 }
 
-/* ===== CAROUSEL ===== */
+/* ===== CAROUSEL (AJUSTADO) ===== */
 .modern-carousel { padding: var(--sp-16) 0 var(--sp-6); }
+
 .carousel-wrapper {
   position: relative;
   background: var(--surface);
@@ -104,28 +105,41 @@
   border-radius: var(--radius-xl);
   overflow: hidden;
 }
+
+/* 1. O Track agora detém a altura obrigatória */
 .carousel-track {
   position: relative;
-  min-height: 360px;
+  min-height: 360px; /* Altura para desktop */
+  width: 100%;
 }
+
+/* 2. Todos os itens são absolutos, o tempo todo */
 .carousel-item {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
   opacity: 0;
-  transition: opacity 0.55s;
+  z-index: 1;
+  transition: opacity 0.55s ease-in-out;
   pointer-events: none;
 }
+
+/* 3. O item ativo apenas ganha opacidade e interação, sem mudar o fluxo (position) */
 .carousel-item.active {
   opacity: 1;
-  position: relative;
+  z-index: 2;
   pointer-events: auto;
 }
+
 .carousel-content {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
   align-items: stretch;
-  min-height: 360px;
+  height: 100%; /* Ocupa a altura total do track */
 }
+
+/* ... Restante do CSS de imagem e texto permanece igual ... */
 .carousel-image {
   position: relative;
   overflow: hidden;
@@ -139,6 +153,7 @@
 }
 .carousel-wrapper:hover .carousel-image img { transform: scale(1.04); }
 .app-download-image { cursor: pointer; }
+
 .download-overlay {
   position: absolute; inset: 0;
   background: rgba(0,0,0,0.55);
@@ -161,7 +176,6 @@
   border-left: 1.5px solid var(--border);
   background: var(--surface);
 }
-.carousel-text .eyebrow { margin-bottom: var(--sp-2); }
 .carousel-text h3 {
   font-family: var(--font-display);
   font-size: clamp(1.3rem, 2.5vw, 2rem);
@@ -170,8 +184,8 @@
   text-transform: uppercase;
 }
 .carousel-text p { color: var(--text-secondary); line-height: 1.7; font-size: var(--text-sm); font-weight: 400; }
-.os-detection small { color: var(--text-secondary); font-size: var(--text-xs); font-family: var(--font-mono); }
 
+/* Navegação e Dots */
 .carousel-nav {
   position: absolute; top: 50%; transform: translateY(-50%);
   width: 44px; height: 44px; border-radius: var(--radius-full);
@@ -184,34 +198,41 @@
   transition: opacity var(--dur-fast), box-shadow var(--dur-fast), transform var(--dur-fast);
   font-size: 0.8rem;
   box-shadow: var(--shadow-md);
-  touch-action: manipulation;
 }
 [data-theme="dark"] .carousel-nav { background: var(--surface-2); color: var(--white); }
 .carousel-wrapper:hover .carousel-nav { opacity: 1; }
-@media (hover: none) { .carousel-nav { opacity: 0.8; } }
-.carousel-nav:hover { transform: translateY(-50%) scale(1.08); box-shadow: var(--shadow-lg); }
 .carousel-nav.prev { left: var(--sp-4); }
 .carousel-nav.next { right: var(--sp-4); }
+
 .carousel-dots { display: flex; justify-content: center; gap: var(--sp-2); margin-top: var(--sp-5); }
 .dot {
   width: 6px; height: 6px; border-radius: var(--radius-full);
   background: var(--mid-gray); border: none; cursor: pointer;
   transition: all var(--dur-med) var(--ease-out);
-  touch-action: manipulation;
 }
 .dot.active { background: var(--near-black); width: 24px; }
 [data-theme="dark"] .dot.active { background: var(--white); }
-.dot:hover { background: var(--dark-gray); }
 
+/* 4. Ajustes Responsivos: Como os itens são absolute, 
+      precisamos definir a altura do track manualmente nas quebras */
 @media (max-width: 768px) {
-  .carousel-content { grid-template-columns: 1fr; min-height: auto; }
+  .carousel-track {
+    min-height: 520px; /* Aumentado para caber imagem + texto empilhados */
+  }
+  .carousel-content { 
+    grid-template-columns: 1fr; 
+    grid-template-rows: 220px 1fr;
+  }
   .carousel-image { height: 220px; }
   .carousel-text { padding: var(--sp-6); border-left: none; border-top: 1.5px solid var(--border); }
 }
+
 @media (max-width: 480px) {
+  .carousel-track {
+    min-height: 480px;
+  }
   .carousel-image { height: 180px; }
   .carousel-text { padding: var(--sp-5); }
-  .carousel-text h3 { font-size: var(--text-xl); }
 }
 
 /* ===== SECTION HEADER ROW ===== */
