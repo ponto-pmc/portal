@@ -5,18 +5,22 @@
 'use strict';
 
 // ── THEME ──────────────────────────────────────────────
-const THEME_KEY = 'pp-theme';
-
-function applyTheme(isDark) {
-  document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
-  const icon = document.getElementById('themeIcon');
-  if (icon) icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+// Usa var para evitar conflito de re-declaração quando faq.js
+// é carregado junto com calculadora.js / script.js (que também declaram THEME_KEY)
+/* globals THEME_KEY, applyTheme */
+if (typeof window._ppThemeInit === 'undefined') {
+  window._ppThemeInit = true;
+  window.THEME_KEY = 'pp-theme';
+  window.applyTheme = function(isDark) {
+    document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+  };
+  (function () {
+    const s = localStorage.getItem(window.THEME_KEY);
+    window.applyTheme(s === 'dark');
+  })();
 }
-
-(function () {
-  const s = localStorage.getItem(THEME_KEY);
-  applyTheme(s === 'dark');
-})();
 
 // ── STATE ──────────────────────────────────────────────
 let currentProfile = null;
@@ -762,8 +766,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Tema
   document.getElementById('themeToggle')?.addEventListener('click', () => {
     const isDark = document.documentElement.dataset.theme !== 'dark';
-    applyTheme(isDark);
-    localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
+    window.applyTheme(isDark);
+    localStorage.setItem(window.THEME_KEY, isDark ? 'dark' : 'light');
   }, { passive: true });
 
   // Navbar scroll
