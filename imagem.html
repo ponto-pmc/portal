@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Processador de Imagens — Portal Ponto Eletrônico</title>
+  <link rel="stylesheet" href="imagem.css" />
+  <link rel="stylesheet" href="faq.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <script type="importmap">
+    { "imports": { "pica": "https://esm.sh/pica@9.0.1", "jszip": "https://esm.sh/jszip@3.10.1" } }
+  </script>
+</head>
+<body class="page-wrapper">
+
+  <!-- NAVBAR -->
+  <nav class="site-nav" role="navigation" aria-label="Navegação principal">
+    <div class="inner">
+      <a class="nav-logo" href="index.html" aria-label="Voltar ao início">
+        <img src="https://legislacao.contagem.mg.gov.br/imgs/Marca-PMC-cor.png" alt="Prefeitura de Contagem" />
+        <span class="nav-logo-text">Ponto<span>.</span>PMC</span>
+      </a>
+      <ul class="nav-links" id="navLinks" role="list">
+        <li><a href="index.html">Início</a></li>
+        <li><a href="calculadora.html">Calculadora</a></li>
+        <li><a href="imagem.html" class="active">Imagens</a></li>
+        <li><a href="faq.html">Ajuda</a></li>
+        <li>
+          <a href="https://pontopmc.contagem.mg.gov.br/forpontoweb/login.aspx"
+             target="_blank" rel="noopener"
+             class="btn btn-primary btn-sm">
+            Acessar
+          </a>
+        </li>
+      </ul>
+      <div class="nav-actions">
+        <button class="theme-toggle-btn" id="themeToggle" aria-label="Alternar tema">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+        <button class="nav-hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container">
+
+      <button class="btn-back-page" onclick="history.back()">
+        <i class="fas fa-arrow-left"></i> Voltar
+      </button>
+
+      <div class="page-hero">
+        <span class="eyebrow">Sistema Automatizado</span>
+        <h1><i class="fas fa-image"></i> Processador de Imagens</h1>
+        <p>Redimensione múltiplas imagens automaticamente para 200×200 px em formato JPG. Receba um arquivo ZIP com todas as fotos otimizadas.</p>
+      </div>
+
+      <div class="info-card">
+        <div class="info-icon"><i class="fas fa-info-circle"></i></div>
+        <div class="info-content">
+          <h3>Como funciona?</h3>
+          <p>Faça upload de múltiplas imagens (PNG, JPG, WEBP, BMP) e o sistema redimensiona tudo automaticamente para 200×200 pixels no formato JPG, gerando um arquivo ZIP para download.</p>
+        </div>
+      </div>
+
+      <div class="upload-zone" id="uploadArea">
+        <i class="fas fa-cloud-upload-alt up-icon"></i>
+        <h3>Arraste suas imagens aqui</h3>
+        <p>ou clique para selecionar arquivos</p>
+        <div class="format-badges">
+          <span class="fmt-badge">PNG</span>
+          <span class="fmt-badge">JPG</span>
+          <span class="fmt-badge">JPEG</span>
+          <span class="fmt-badge">WEBP</span>
+          <span class="fmt-badge">BMP</span>
+        </div>
+        <input type="file" id="fileInput" multiple accept="image/*" hidden />
+        <button id="selectButton" class="btn btn-primary">
+          <i class="fas fa-folder-open"></i> Selecionar Arquivos
+        </button>
+      </div>
+
+      <div class="file-panel" id="fileList">
+        <div class="file-panel-header">
+          <div class="file-panel-title"><i class="fas fa-images"></i> Pré-visualização</div>
+          <span class="count-badge" id="filesCount">0 arquivos</span>
+        </div>
+        <div class="preview-grid" id="previewImages"></div>
+        <div class="file-panel-actions">
+          <button id="processButton" class="btn btn-primary">
+            <i class="fas fa-bolt"></i> Processar Imagens
+          </button>
+          <button id="addMoreButton" class="btn btn-outline">
+            <i class="fas fa-plus"></i> Adicionar Mais
+          </button>
+          <button id="clearButton" class="btn btn-ghost" style="color:var(--error); border-color:rgba(208,0,0,0.3)">
+            <i class="fas fa-trash-alt"></i> Limpar
+          </button>
+        </div>
+      </div>
+
+      <div class="progress-panel" id="progressSection">
+        <div class="progress-header">
+          <div class="progress-title">
+            <i class="fas fa-cog progress-spin"></i> Processando imagens
+          </div>
+          <div class="progress-pct" id="progressPercentage">0%</div>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+        <p class="progress-text" id="progressText">Iniciando processamento...</p>
+      </div>
+
+      <div class="result-panel" id="resultSection">
+        <i class="fas fa-check-circle result-icon"></i>
+        <h3>Processamento Concluído</h3>
+        <p>Suas imagens foram processadas e redimensionadas com sucesso. Clique abaixo para baixar o arquivo ZIP.</p>
+        <div class="btn-row" style="display:flex">
+          <a id="downloadLink" class="btn btn-primary btn-lg" download="imagens_processadas.zip">
+            <i class="fas fa-download"></i> Baixar ZIP
+          </a>
+          <button id="clearButtonResult" class="btn btn-outline btn-lg">
+            <i class="fas fa-redo-alt"></i> Processar Novamente
+          </button>
+        </div>
+      </div>
+
+      <div class="error-panel" id="errorSection">
+        <i class="fas fa-times-circle error-icon"></i>
+        <h3>Erro no Processamento</h3>
+        <p id="errorText">Ocorreu um erro ao processar as imagens. Verifique os arquivos e tente novamente.</p>
+        <div class="btn-row" style="display:flex">
+          <button id="retryButton" class="btn btn-primary">
+            <i class="fas fa-redo-alt"></i> Tentar Novamente
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-logo">
+          <img src="https://legislacao.contagem.mg.gov.br/imgs/Marca-PMC-cor.png" alt="Logo Prefeitura de Contagem" />
+        </div>
+        <div>
+          <p class="footer-copy">© 2026 Equipe Ponto Eletrônico — Prefeitura Municipal de Contagem</p>
+          <p class="footer-dev">Desenvolvido por <a href="https://www.linkedin.com/in/italo-junio/" target="_blank" rel="noopener">Italo Junio</a> — SEAD</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- PapaParse & Fuse (needed by chat/FAQ) -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+  <script src="faq.js"></script>
+
+  <script type="module" src="imagem.js"></script>
+
+  <!-- CHAT (from faq.html) -->
+  <button id="chatFab" class="chat-fab" aria-label="Abrir assistente de ajuda" aria-expanded="false">
+    <i class="fas fa-comment-dots chat-fab-icon"></i>
+    <i class="fas fa-times chat-fab-close"></i>
+    <span class="chat-fab-badge" id="chatBadge" style="display:none">1</span>
+  </button>
+
+  <div id="chatModal" class="chat-modal" role="dialog" aria-modal="true" aria-label="Assistente de Ajuda" style="display:none">
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="chat-avatar"><i class="fas fa-robot"></i></div>
+        <div>
+          <p class="chat-header-name">Assistente Ponto.PMC</p>
+          <p class="chat-header-status"><span class="chat-status-dot"></span> Online</p>
+        </div>
+      </div>
+      <div class="chat-header-actions">
+        <button class="chat-header-btn" id="chatClearBtn" title="Limpar conversa" aria-label="Limpar conversa">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+        <button class="chat-header-btn" id="chatCloseBtn" aria-label="Fechar chat">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <div id="chatProfilePicker" class="chat-profile-picker">
+      <p class="chat-profile-label">Qual é o seu perfil?</p>
+      <div class="chat-profile-btns">
+        <button class="chat-profile-btn" data-chat-profile="gestor">
+          <i class="fas fa-user-tie"></i> Gestor
+        </button>
+        <button class="chat-profile-btn" data-chat-profile="usuario">
+          <i class="fas fa-user"></i> Servidor
+        </button>
+      </div>
+    </div>
+
+    <div id="chatMessages" class="chat-messages" role="log" aria-live="polite"></div>
+
+    <div class="chat-input-area">
+      <div class="chat-input-wrap">
+        <textarea
+          id="chatInput"
+          class="chat-input"
+          placeholder="Digite sua dúvida…"
+          rows="1"
+          aria-label="Digite sua mensagem"
+          disabled
+        ></textarea>
+        <button id="chatSendBtn" class="chat-send-btn" aria-label="Enviar" disabled>
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+      <p class="chat-disclaimer">Respostas baseadas no manual oficial · busca local</p>
+    </div>
+  </div>
+</body>
+</html>

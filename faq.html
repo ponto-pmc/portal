@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Central de Ajuda — Portal Ponto Eletrônico</title>
+  <link rel="stylesheet" href="faq.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="site-nav" role="navigation" aria-label="Navegação principal">
+    <div class="inner">
+      <a class="nav-logo" href="index.html" aria-label="Voltar ao início">
+        <img src="https://legislacao.contagem.mg.gov.br/imgs/Marca-PMC-cor.png" alt="Prefeitura de Contagem" />
+        <span class="nav-logo-text">Ponto<span>.</span>PMC</span>
+      </a>
+      <ul class="nav-links" id="navLinks" role="list">
+        <li><a href="index.html">Início</a></li>
+        <li><a href="calculadora.html">Calculadora</a></li>
+        <li><a href="imagem.html">Imagens</a></li>
+        <li><a href="faq.html" class="active">Ajuda</a></li>
+        <li>
+          <a href="https://pontopmc.contagem.mg.gov.br/forpontoweb/login.aspx"
+             target="_blank" rel="noopener"
+             class="btn btn-primary btn-sm">
+            Acessar
+          </a>
+        </li>
+      </ul>
+      <div class="nav-actions">
+        <button class="theme-toggle-btn" id="themeToggle" aria-label="Alternar tema">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+        <button class="nav-hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN VIEW -->
+  <div id="mainView">
+    <section class="hero-band faq-hero">
+      <div class="container">
+        <span class="eyebrow">Atendimento Especializado</span>
+        <h1 class="display-1" style="margin-top:var(--sp-5); max-width: 600px;">
+          Como Podemos<br>Ajudar Você?
+        </h1>
+        <p class="lead">Selecione seu perfil para acessar informações específicas.</p>
+
+        <div class="profile-grid">
+          <div class="profile-card view-transition" id="cardGestor" data-profile="gestor"
+               tabindex="0" role="button" aria-label="Sou Gestor">
+            <div class="profile-icon"><i class="fas fa-user-tie"></i></div>
+            <h3>Gestor</h3>
+            <p>Gestão de servidores, abono de ponto e relatórios de equipe.</p>
+            <span class="card-cta">Acessar <i class="fas fa-arrow-right"></i></span>
+          </div>
+          <div class="profile-card view-transition" id="cardUsuario" data-profile="usuario"
+               tabindex="0" role="button" aria-label="Sou Usuário">
+            <div class="profile-icon"><i class="fas fa-user"></i></div>
+            <h3>Servidor</h3>
+            <p>Configurar o app, fazer login, consultar ponto e redefinir senha.</p>
+            <span class="card-cta">Acessar <i class="fas fa-arrow-right"></i></span>
+          </div>
+        </div>
+
+        <div class="main-back-section">
+          <a href="index.html" class="btn btn-ghost">
+            <i class="fas fa-arrow-left"></i> Voltar ao Portal
+          </a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- CONTENT AREA -->
+  <div id="contentArea" style="display:none">
+    <div class="container" style="padding-top: var(--sp-16); padding-bottom: var(--sp-24);">
+
+      <nav class="back-nav">
+        <button class="btn-back-simple" id="backButton">
+          <i class="fas fa-arrow-left"></i> Voltar à seleção
+        </button>
+      </nav>
+
+      <!-- BARRA DE BUSCA FUZZY -->
+      <div id="faqSearchWrap" class="faq-search-wrap" style="display:none" role="search" aria-label="Buscar perguntas">
+        <div class="faq-search-inner">
+          <i class="fas fa-search faq-search-icon" aria-hidden="true"></i>
+          <input
+            type="search"
+            id="faqSearchInput"
+            class="faq-search-input"
+            placeholder="Buscar pergunta…"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+            aria-label="Buscar pergunta"
+          />
+          <button id="faqSearchClear" class="faq-search-clear" aria-label="Limpar busca" style="display:none">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <span id="searchResultInfo" class="search-result-info" aria-live="polite"></span>
+      </div>
+
+      <!-- GESTOR -->
+      <div id="gestorContent" class="content-section">
+        <div class="content-section-header">
+          <div class="content-section-icon"><i class="fas fa-briefcase"></i></div>
+          <span class="eyebrow">Gestores</span>
+          <h2>Dúvidas Frequentes — Gestor</h2>
+          <p class="lead">Gerencie sua equipe com eficiência e acesse as informações necessárias.</p>
+        </div>
+        <div class="faq-accordion" id="gestorAccordion">
+          <!-- preenchido dinamicamente via faq.js -->
+          <div class="faq-loading">
+            <span class="faq-spinner"></span> Carregando perguntas…
+          </div>
+        </div>
+      </div>
+
+      <!-- USUÁRIO -->
+      <div id="usuarioContent" class="content-section">
+        <div class="content-section-header">
+          <div class="content-section-icon"><i class="fas fa-user"></i></div>
+          <span class="eyebrow">Servidores</span>
+          <h2>Dúvidas Frequentes — Servidor</h2>
+          <p class="lead">Configure e utilize o sistema de ponto eletrônico com facilidade.</p>
+        </div>
+        <div class="faq-accordion" id="usuarioAccordion">
+          <!-- preenchido dinamicamente via faq.js -->
+          <div class="faq-loading">
+            <span class="faq-spinner"></span> Carregando perguntas…
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-logo">
+          <img src="https://legislacao.contagem.mg.gov.br/imgs/Marca-PMC-cor.png" alt="Logo Prefeitura de Contagem" />
+        </div>
+        <div>
+          <p class="footer-copy">© 2026 Equipe Ponto Eletrônico — Prefeitura Municipal de Contagem</p>
+          <p class="footer-dev">Sistema desenvolvido para facilitar o controle de ponto eletrônico</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- CHAT FLUTUANTE -->
+  <button id="chatFab" class="chat-fab" aria-label="Abrir assistente de ajuda" aria-expanded="false">
+    <i class="fas fa-comment-dots chat-fab-icon"></i>
+    <i class="fas fa-times chat-fab-close"></i>
+    <span class="chat-fab-badge" id="chatBadge" style="display:none">1</span>
+  </button>
+
+  <!-- MODAL DO CHAT -->
+  <div id="chatModal" class="chat-modal" role="dialog" aria-modal="true" aria-label="Assistente de Ajuda" style="display:none">
+    <!-- CABEÇALHO -->
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="chat-avatar"><i class="fas fa-robot"></i></div>
+        <div>
+          <p class="chat-header-name">Assistente Ponto.PMC</p>
+          <p class="chat-header-status"><span class="chat-status-dot"></span> Online</p>
+        </div>
+      </div>
+      <div class="chat-header-actions">
+        <button class="chat-header-btn" id="chatClearBtn" title="Limpar conversa" aria-label="Limpar conversa">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+        <button class="chat-header-btn" id="chatCloseBtn" aria-label="Fechar chat">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- SELEÇÃO DE PERFIL NO CHAT (mostrada antes de qualquer mensagem) -->
+    <div id="chatProfilePicker" class="chat-profile-picker">
+      <p class="chat-profile-label">Qual é o seu perfil?</p>
+      <div class="chat-profile-btns">
+        <button class="chat-profile-btn" data-chat-profile="gestor">
+          <i class="fas fa-user-tie"></i> Gestor
+        </button>
+        <button class="chat-profile-btn" data-chat-profile="usuario">
+          <i class="fas fa-user"></i> Servidor
+        </button>
+      </div>
+    </div>
+
+    <!-- ÁREA DE MENSAGENS -->
+    <div id="chatMessages" class="chat-messages" role="log" aria-live="polite"></div>
+
+    <!-- INPUT -->
+    <div class="chat-input-area">
+      <div class="chat-input-wrap">
+        <textarea
+          id="chatInput"
+          class="chat-input"
+          placeholder="Digite sua dúvida…"
+          rows="1"
+          aria-label="Digite sua mensagem"
+          disabled
+        ></textarea>
+        <button id="chatSendBtn" class="chat-send-btn" aria-label="Enviar" disabled>
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+      <p class="chat-disclaimer">Respostas baseadas no manual oficial · busca local</p>
+    </div>
+  </div>
+
+  <!-- PapaParse — leitura de CSV sem CORS -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <!-- Fuse.js — busca fuzzy local, offline, zero custo -->
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+  <script src="faq.js"></script>
+</body>
+</html>

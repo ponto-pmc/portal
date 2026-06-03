@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Calculadora de Desconto — Portal Ponto Eletrônico</title>
+  <link rel="stylesheet" href="calculadora.css" />
+  <link rel="stylesheet" href="faq.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="page-wrapper">
+
+  <!-- NAVBAR -->
+  <nav class="site-nav" role="navigation" aria-label="Navegação principal">
+    <div class="inner">
+      <a class="nav-logo" href="index.html" aria-label="Voltar ao início">
+        <img src="https://legislacao.contagem.mg.gov.br/imgs/Marca-PMC-cor.png" alt="Prefeitura de Contagem" />
+        <span class="nav-logo-text">Ponto<span>.</span>PMC</span>
+      </a>
+      <ul class="nav-links" id="navLinks" role="list">
+        <li><a href="index.html">Início</a></li>
+        <li><a href="calculadora.html" class="active">Calculadora</a></li>
+        <li><a href="imagem.html">Imagens</a></li>
+        <li><a href="faq.html">Ajuda</a></li>
+        <li>
+          <a href="https://pontopmc.contagem.mg.gov.br/forpontoweb/login.aspx"
+             target="_blank" rel="noopener"
+             class="btn btn-primary btn-sm">
+            Acessar
+          </a>
+        </li>
+      </ul>
+      <div class="nav-actions">
+        <button class="theme-toggle-btn" id="themeToggle" aria-label="Alternar tema">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+        <button class="nav-hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container">
+
+      <button class="btn-back-page" onclick="window.history.back()">
+        <i class="fas fa-arrow-left"></i> Voltar
+      </button>
+
+      <div class="calc-card">
+
+        <div class="calc-header">
+          <span class="eyebrow">Gestão de Frequência</span>
+          <h1><i class="fas fa-calculator"></i> Calculadora de Desconto</h1>
+          <p>Calcule o desconto por ausências em dias ou horas com precisão.</p>
+        </div>
+
+        <div class="calc-body">
+          <div class="acc-stack">
+
+            <!-- Step 1 -->
+            <div class="acc-item" id="acc1">
+              <button class="acc-trigger" type="button" onclick="toggleAcc('acc1')">
+                <span class="acc-num">1</span>
+                <span class="acc-label">Selecionar Tipo de Falta</span>
+                <i class="fas fa-chevron-down acc-arrow"></i>
+              </button>
+              <div class="acc-body" id="acc1Body">
+                <div class="acc-body-inner">
+                  <div class="form-group">
+                    <label class="field-label" for="tipoFalta">Tipo de Falta</label>
+                    <select class="field-select" id="tipoFalta">
+                      <option value="">Selecione...</option>
+                      <option value="dia">Falta — Dias</option>
+                      <option value="hora">Falta — Horas</option>
+                    </select>
+                  </div>
+
+                  <div id="campoDias" style="display:none">
+                    <div class="form-group">
+                      <label class="field-label" for="diasFalta">Quantidade de Dias</label>
+                      <input class="field-input" type="number" id="diasFalta" min="0" placeholder="0" />
+                    </div>
+                  </div>
+
+                  <div id="campoHoras" style="display:none">
+                    <div class="form-group">
+                      <label class="field-label" for="jornada">Jornada Mensal (horas)</label>
+                      <select class="field-select" id="jornada">
+                        <option value="">Selecione...</option>
+                        <option>20</option><option>100</option><option>111</option>
+                        <option>120</option><option>125</option><option>150</option>
+                        <option>160</option><option>168</option><option>200</option>
+                        <option>220</option>
+                      </select>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label class="field-label" for="horaInput">Horas</label>
+                        <input class="field-input" type="number" id="horaInput" min="0" placeholder="0" />
+                      </div>
+                      <div class="form-group">
+                        <label class="field-label" for="minutoInput">Minutos</label>
+                        <input class="field-input" type="number" id="minutoInput" min="0" placeholder="0" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="acc-item" id="acc2">
+              <button class="acc-trigger" type="button" onclick="toggleAcc('acc2')">
+                <span class="acc-num">2</span>
+                <span class="acc-label">Informar Remuneração</span>
+                <i class="fas fa-chevron-down acc-arrow"></i>
+              </button>
+              <div class="acc-body" id="acc2Body">
+                <div class="acc-body-inner">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="field-label" for="vencimento">Vencimento (R$)</label>
+                      <input class="field-input" type="text" id="vencimento" placeholder="0,00" />
+                    </div>
+                    <div class="form-group">
+                      <label class="field-label" for="quinquenio">Quinquênio (R$)</label>
+                      <input class="field-input" type="text" id="quinquenio" placeholder="0,00" />
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="field-label" for="funcao">Função / Gratificação (R$)</label>
+                    <input class="field-input" type="text" id="funcao" placeholder="0,00" />
+                  </div>
+
+                  <div class="outros-panel">
+                    <div class="outros-head">
+                      <span class="outros-title">Outros vencimentos</span>
+                      <button type="button" id="btnAdicionarOutros" class="btn-add-outro" aria-label="Adicionar">+</button>
+                    </div>
+                    <div id="outrosFields"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="btn-row">
+            <button id="btnCalcular" class="btn btn-primary">
+              <i class="fas fa-equals"></i> Calcular
+            </button>
+            <button id="btnLimpar" class="btn btn-outline">
+              <i class="fas fa-redo-alt"></i> Limpar
+            </button>
+            <button id="btnPDF" class="btn btn-ghost" style="display:none">
+              <i class="fas fa-file-pdf"></i> Exportar PDF
+            </button>
+          </div>
+
+          <div id="resultado" class="result-box" role="status" aria-live="polite">
+            <p class="result-label">Total do Desconto</p>
+            <p class="result-value" id="resultValue">R$ 0,00</p>
+          </div>
+          <div id="resumo" class="result-summary" role="status" aria-live="polite"></div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-logo">
+          <img src="https://legislacao.contagem.mg.gov.br/imgs/Marca-PMC-cor.png" alt="Logo Prefeitura de Contagem" />
+        </div>
+        <div>
+          <p class="footer-copy">© 2026 Equipe Ponto Eletrônico — Prefeitura Municipal de Contagem</p>
+          <p class="footer-dev">Desenvolvido por <a href="https://www.linkedin.com/in/italo-junio/" target="_blank" rel="noopener">Italo Junio</a> — SEAD</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- PapaParse & Fuse (needed by chat/FAQ) -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+  <script src="faq.js"></script>
+
+  <script src="calculadora.js"></script>
+
+  <!-- CHAT (from faq.html) -->
+  <button id="chatFab" class="chat-fab" aria-label="Abrir assistente de ajuda" aria-expanded="false">
+    <i class="fas fa-comment-dots chat-fab-icon"></i>
+    <i class="fas fa-times chat-fab-close"></i>
+    <span class="chat-fab-badge" id="chatBadge" style="display:none">1</span>
+  </button>
+
+  <div id="chatModal" class="chat-modal" role="dialog" aria-modal="true" aria-label="Assistente de Ajuda" style="display:none">
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="chat-avatar"><i class="fas fa-robot"></i></div>
+        <div>
+          <p class="chat-header-name">Assistente Ponto.PMC</p>
+          <p class="chat-header-status"><span class="chat-status-dot"></span> Online</p>
+        </div>
+      </div>
+      <div class="chat-header-actions">
+        <button class="chat-header-btn" id="chatClearBtn" title="Limpar conversa" aria-label="Limpar conversa">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+        <button class="chat-header-btn" id="chatCloseBtn" aria-label="Fechar chat">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <div id="chatProfilePicker" class="chat-profile-picker">
+      <p class="chat-profile-label">Qual é o seu perfil?</p>
+      <div class="chat-profile-btns">
+        <button class="chat-profile-btn" data-chat-profile="gestor">
+          <i class="fas fa-user-tie"></i> Gestor
+        </button>
+        <button class="chat-profile-btn" data-chat-profile="usuario">
+          <i class="fas fa-user"></i> Servidor
+        </button>
+      </div>
+    </div>
+
+    <div id="chatMessages" class="chat-messages" role="log" aria-live="polite"></div>
+
+    <div class="chat-input-area">
+      <div class="chat-input-wrap">
+        <textarea
+          id="chatInput"
+          class="chat-input"
+          placeholder="Digite sua dúvida…"
+          rows="1"
+          aria-label="Digite sua mensagem"
+          disabled
+        ></textarea>
+        <button id="chatSendBtn" class="chat-send-btn" aria-label="Enviar" disabled>
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+      <p class="chat-disclaimer">Respostas baseadas no manual oficial · busca local</p>
+    </div>
+  </div>
+</body>
+</html>
