@@ -41,14 +41,52 @@ const FUSE_OPTS = {
     { name: 'resposta',   weight: 0.3 },
     { name: 'observacao', weight: 0.1 },
   ],
-  threshold:        0.6,
+  threshold:          0.45,   // mais restrito na busca principal (mais preciso)
   minMatchCharLength: 2,
-  distance:         1000,
-  useExtendedSearch: false,
-  includeScore:     true,
-  includeMatches:   true,
-  ignoreLocation:   true,
+  distance:           1200,
+  useExtendedSearch:  false,
+  includeScore:       true,
+  includeMatches:     true,
+  ignoreLocation:     true,
 };
+// Opts mais permissivo p/ fallback com erros ortográficos
+const FUSE_OPTS_FUZZY = { ...FUSE_OPTS, threshold: 0.70 };
+
+// ── LEVENSHTEIN (distância de edição simples) ──────────
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, (_, i) => [i]);
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1]
+        : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+  return dp[m][n];
+}
+
+// Corrige palavras isoladas por proximidade no vocabulário do FAQ
+function corrigeTokens(text, vocab) {
+  return text.split(/\s+/).map(token => {
+    if (token.length < 4) return token;
+    const norm = t => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const nt = norm(token);
+    let best = token, bestDist = 2; // tolera até 2 edições
+    for (const w of vocab) {
+      const nw = norm(w);
+      if (Math.abs(nw.length - nt.length) > 3) continue;
+      const d = levenshtein(nt, nw);
+      if (d < bestDist) { bestDist = d; best = w; }
+    }
+    return best;
+  }).join(' ');
+}
+
+// Extrai vocabulário único das perguntas do FAQ (palavras ≥4 letras)
+function buildVocab(items) {
+  const set = new Set();
+  items.forEach(it => it.pergunta.split(/\s+/).filter(w => w.length >= 4).forEach(w => set.add(w)));
+  return [...set];
+}
 
 
 // ── NORMALIZA CHAVE DO HEADER ──────────────────────────
@@ -633,6 +671,8 @@ function chatSend(text) {
   setTimeout(() => {
     removeTyping();
 
+    const docs = fuseChat._docs || [];
+
     // busca principal
     let results = fuseChat.search(text);
 
@@ -642,20 +682,34 @@ function chatSend(text) {
       results = fuseChat.search(semAcento);
     }
 
-    // fallback 2: busca por palavras individuais (≥4 letras)
-    if (!results.length) {
+    // fallback 2: correção ortográfica via levenshtein no vocabulário do FAQ
+    if (!results.length && docs.length) {
+      const vocab     = buildVocab(docs);
+      const corrigido = corrigeTokens(text, vocab);
+      if (corrigido.toLowerCase() !== text.toLowerCase()) {
+        const fuseP = new Fuse(docs, FUSE_OPTS_FUZZY);
+        results = fuseP.search(corrigido);
+      }
+    }
+
+    // fallback 3: palavras individuais (≥4 letras) com threshold permissivo
+    if (!results.length && docs.length) {
       const palavras = text.split(/\s+/).filter(w => w.length >= 4);
+      const fuseP    = new Fuse(docs, FUSE_OPTS_FUZZY);
       for (const p of palavras) {
-        const r = fuseChat.search(p);
+        const r = fuseP.search(p);
         if (r.length) { results = r; break; }
       }
     }
 
     if (!results.length) {
+      // sem resultado: mostra perguntas frequentes do perfil como sugestão
+      const sugestoes = docs.slice(0, 4).map(i => i.pergunta);
       chatAddMsg('bot',
         `Não encontrei nada sobre <strong>"${escHtml(text)}"</strong> no manual. ` +
-        `Tente reformular ou consulte a aba <strong>FAQ</strong> acima.`
+        `Veja perguntas frequentes ou tente reformular:`
       );
+      if (sugestoes.length) chatAddSuggestions(sugestoes);
       return;
     }
 
@@ -669,11 +723,12 @@ function chatSend(text) {
       formatResposta(top.resposta) + obs
     );
 
-    // sugestões relacionadas (próximos 2 resultados)
-    if (results.length > 1) {
+    // até 4 perguntas relacionadas
+    const relacionadas = results.slice(1, 5).map(r => r.item.pergunta);
+    if (relacionadas.length) {
       setTimeout(() => {
-        chatAddMsg('bot', 'Veja também:');
-        chatAddSuggestions(results.slice(1, 3).map(r => r.item.pergunta));
+        chatAddMsg('bot', 'Perguntas relacionadas:');
+        chatAddSuggestions(relacionadas);
       }, 200);
     }
   }, 600 + Math.random() * 300);
