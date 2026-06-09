@@ -3,27 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Central de Ajuda — Portal Ponto Eletrônico</title>
+  <title>Portal do Ponto Eletrônico — Prefeitura de Contagem</title>
+  <!-- Necessário para imagens do Google Drive não serem bloqueadas por política de referrer -->
+  <meta name="referrer" content="no-referrer-when-downgrade" />
   <link rel="icon" type="image/png" href="https://i.ibb.co/HLdwT1Lr/files-removebg-preview.png" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="faq.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
 </head>
-<body class="page-wrapper">
+<body>
 
   <!-- NAVBAR -->
   <nav class="site-nav" role="navigation" aria-label="Navegação principal">
     <div class="inner">
-      <a class="nav-logo" href="index.html" aria-label="Voltar ao início">
+      <a class="nav-logo" href="index.html" aria-label="Ir para página inicial">
         <img src="https://legislacao.contagem.mg.gov.br/imgs/Marca-PMC-cor.png" alt="Prefeitura de Contagem" />
         <span class="nav-logo-text">Ponto<span>.</span>PMC</span>
       </a>
       <ul class="nav-links" id="navLinks" role="list">
-        <li><a href="index.html">Início</a></li>
+        <li><a href="index.html" class="active">Início</a></li>
         <li><a href="calculadora.html">Calculadora</a></li>
         <li><a href="imagem.html">Imagens</a></li>
-        <li><a href="faq.html" class="active">Ajuda</a></li>
+        <li><a href="faq.html">Ajuda</a></li>
         <li>
-          <a href="https://pontopmc.contagem.mg.gov.br/forpontoweb/login.aspx"
+          <a href="https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx"
              target="_blank" rel="noopener"
              class="btn btn-primary btn-sm">
             Acessar
@@ -41,106 +44,299 @@
     </div>
   </nav>
 
-  <!-- MAIN VIEW -->
-  <div id="mainView">
-    <section class="hero-band faq-hero">
-      <div class="container">
-        <span class="eyebrow">Atendimento Especializado</span>
-        <h1 class="display-1" style="margin-top:var(--sp-5); max-width: 600px;">
-          Como Podemos<br>Ajudar Você?
-        </h1>
-        <p class="lead">Selecione seu perfil para acessar informações específicas.</p>
-
-        <div class="profile-grid">
-          <div class="profile-card view-transition" id="cardGestor" data-profile="gestor"
-               tabindex="0" role="button" aria-label="Sou Gestor">
-            <div class="profile-icon"><i class="fas fa-user-tie"></i></div>
-            <h3>Gestor</h3>
-            <p>Gestão de servidores, abono de ponto e relatórios de equipe.</p>
-            <span class="card-cta">Acessar <i class="fas fa-arrow-right"></i></span>
-          </div>
-          <div class="profile-card view-transition" id="cardUsuario" data-profile="usuario"
-               tabindex="0" role="button" aria-label="Sou Usuário">
-            <div class="profile-icon"><i class="fas fa-user"></i></div>
-            <h3>Servidor</h3>
-            <p>Configurar o app, fazer login, consultar ponto e redefinir senha.</p>
-            <span class="card-cta">Acessar <i class="fas fa-arrow-right"></i></span>
-          </div>
-        </div>
-
-        <div class="main-back-section">
-          <a href="index.html" class="btn btn-ghost">
-            <i class="fas fa-arrow-left"></i> Voltar ao Portal
-          </a>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <!-- CONTENT AREA -->
-  <div id="contentArea" style="display:none">
-    <div class="container" style="padding-top: var(--sp-16); padding-bottom: var(--sp-24);">
-
-      <nav class="back-nav">
-        <button class="btn-back-simple" id="backButton">
-          <i class="fas fa-arrow-left"></i> Voltar à seleção
-        </button>
-      </nav>
-
-      <!-- BARRA DE BUSCA FUZZY -->
-      <div id="faqSearchWrap" class="faq-search-wrap" style="display:none" role="search" aria-label="Buscar perguntas">
-        <div class="faq-search-inner">
-          <i class="fas fa-search faq-search-icon" aria-hidden="true"></i>
-          <input
-            type="search"
-            id="faqSearchInput"
-            class="faq-search-input"
-            placeholder="Buscar pergunta…"
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-            aria-label="Buscar pergunta"
-          />
-          <button id="faqSearchClear" class="faq-search-clear" aria-label="Limpar busca" style="display:none">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        <span id="searchResultInfo" class="search-result-info" aria-live="polite"></span>
+  <!-- HERO -->
+  <section class="hero-band main-hero" aria-label="Bem-vindo">
+    <div class="container">
+      <p class="hero-tagline">Prefeitura Municipal de Contagem · SEAD</p>
+      <h1 class="display-1">
+        Portal do<br>Ponto<br>Eletrônico
+      </h1>
+      <p class="lead" style="margin-top: var(--sp-6); max-width: 440px;">
+        Central de acesso ao sistema de controle de frequência da Prefeitura de Contagem.
+      </p>
+      <div class="hero-cta-row">
+        <a href="https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx"
+           target="_blank" rel="noopener" class="btn btn-primary btn-lg">
+          Acessar Sistema
+        </a>
+        <a href="faq.html" class="btn btn-outline btn-lg">
+          Central de Ajuda
+        </a>
       </div>
 
-      <!-- GESTOR -->
-      <div id="gestorContent" class="content-section">
-        <div class="content-section-header">
-          <div class="content-section-icon"><i class="fas fa-briefcase"></i></div>
-          <span class="eyebrow">Gestores</span>
-          <h2>Dúvidas Frequentes — Gestor</h2>
-          <p class="lead">Gerencie sua equipe com eficiência e acesse as informações necessárias.</p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-value">25<span>+</span></div>
+          <div class="hero-stat-label">Secretarias</div>
         </div>
-        <div class="faq-accordion" id="gestorAccordion">
-          <div class="faq-loading">
-            <span class="faq-spinner"></span> Carregando perguntas…
-          </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value">24<span>/7</span></div>
+          <div class="hero-stat-label">Acesso Online</div>
         </div>
-      </div>
-
-      <!-- USUÁRIO -->
-      <div id="usuarioContent" class="content-section">
-        <div class="content-section-header">
-          <div class="content-section-icon"><i class="fas fa-user"></i></div>
-          <span class="eyebrow">Servidores</span>
-          <h2>Dúvidas Frequentes — Servidor</h2>
-          <p class="lead">Configure e utilize o sistema de ponto eletrônico com facilidade.</p>
-        </div>
-        <div class="faq-accordion" id="usuarioAccordion">
-          <div class="faq-loading">
-            <span class="faq-spinner"></span> Carregando perguntas…
-          </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value">100<span>%</span></div>
+          <div class="hero-stat-label">Digital</div>
         </div>
       </div>
+    </div>
+  </section>
 
+  <!-- TICKER -->
+  <div class="ticker-band" aria-hidden="true">
+    <div class="ticker-track" id="tickerTrack">
+      <span>Controle de Frequência</span><span class="sep"> · </span>
+      <span>Sistema Digital</span><span class="sep"> · </span>
+      <span>Ponto Eletrônico</span><span class="sep"> · </span>
+      <span>Prefeitura de Contagem</span><span class="sep"> · </span>
+      <span>SEAD</span><span class="sep"> · </span>
+      <span>Acesso 24/7</span><span class="sep"> · </span>
+      <span>100% Online</span><span class="sep"> · </span>
+      <span>Controle de Frequência</span><span class="sep"> · </span>
+      <span>Sistema Digital</span><span class="sep"> · </span>
+      <span>Ponto Eletrônico</span><span class="sep"> · </span>
+      <span>Prefeitura de Contagem</span><span class="sep"> · </span>
+      <span>SEAD</span><span class="sep"> · </span>
+      <span>Acesso 24/7</span><span class="sep"> · </span>
+      <span>100% Online</span><span class="sep"> · </span>
     </div>
   </div>
 
+  <!-- MAIN CONTENT -->
+  <main>
+    <div class="container">
+
+      <!-- CAROUSEL -->
+      <section class="modern-carousel" aria-label="Carrossel de informações">
+        <div class="carousel-wrapper">
+          <div class="carousel-track" id="carouselTrack">
+
+            <div class="carousel-item active">
+              <div class="carousel-content">
+                <div class="carousel-image">
+                  <img src="https://lh3.googleusercontent.com/d/1boR5geD3cC2OT7HCd71V7aV7h6JuxRzr" alt="Sistema de Ponto Eletrônico" loading="lazy"/>
+                </div>
+                <div class="carousel-text">
+                  <span class="eyebrow">Digital &amp; Seguro</span>
+                  <h3>Sistema de Ponto Moderno</h3>
+                  <p>Controle de frequência digital seguro e eficiente para todos os servidores da Prefeitura de Contagem.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="carousel-item">
+              <div class="carousel-content">
+                <div class="carousel-image">
+                  <a href="https://drive.google.com/uc?id=19SWZsRNQ-8Bsw2WJKbl1MmO6sEXyFOXp" target="_self">
+                    <img src="https://lh3.googleusercontent.com/d/1CUlh1LubDzA6FD3umnxBwYyg--aT_yEx" alt="Legislação do Ponto Eletrônico" loading="lazy"/>
+                  </a>
+                </div>
+                <div class="carousel-text">
+                  <span class="eyebrow">Legislação</span>
+                  <h3>Marco Legal do Controle de Ponto</h3>
+                  <p>Decreto Nº 1237, de 06 de Junho de 2024</p>
+                  <p>Portaria SEAD Nº. 13, de 04 de Junho de 2025</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="carousel-item">
+              <div class="carousel-content">
+                <div class="carousel-image app-download-image" onclick="redirectToAppStore()">
+                  <img src="https://lh3.googleusercontent.com/d/1h_pU8L-ES1XYBt2Xg-W1vllGnlDdbgXD" alt="Aplicativo Forponto" loading="lazy"/>
+                  <div class="download-overlay">
+                    <i class="fas fa-download"></i>
+                    <span>Baixar App</span>
+                  </div>
+                </div>
+                <div class="carousel-text">
+                  <span class="eyebrow">Mobile</span>
+                  <h3>Acesso via Smartphone</h3>
+                  <p>Consulte registros, baixe relatórios e acompanhe sua frequência diretamente pelo celular.</p>
+                  <div class="os-detection" id="osDetection"><small>Detectando plataforma...</small></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="carousel-item">
+              <div class="carousel-content">
+                <div class="carousel-image">
+                  <img src="https://lh3.googleusercontent.com/d/1dtRwEeJxICbb_ubb5tHD4nhTMYv47X8U" alt="Suporte Técnico" loading="lazy"/>
+                </div>
+                <div class="carousel-text">
+                  <span class="eyebrow">Suporte</span>
+                  <h3>Atendimento Especializado</h3>
+                  <p>Nossa equipe está pronta para ajudar com dúvidas, problemas técnicos e orientações sobre o sistema.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="carousel-item">
+              <div class="carousel-content">
+                <div class="carousel-image">
+                  <img src="https://lh3.googleusercontent.com/d/1odnmFB0usfYO13DNaLhBCLWtjs7AmWb0" alt="Relatórios" loading="lazy"/>
+                </div>
+                <div class="carousel-text">
+                  <span class="eyebrow">Relatórios</span>
+                  <h3>Histórico Detalhado</h3>
+                  <p>Acesso completo ao histórico de frequência com relatórios organizados e fáceis de entender.</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <button class="carousel-nav prev" onclick="moveCarousel(-1)" aria-label="Anterior">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <button class="carousel-nav next" onclick="moveCarousel(1)" aria-label="Próximo">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+
+        <div class="carousel-dots" role="tablist" aria-label="Slides">
+          <button class="dot active" onclick="currentSlide(1)" role="tab" aria-label="Slide 1"></button>
+          <button class="dot" onclick="currentSlide(2)" role="tab" aria-label="Slide 2"></button>
+          <button class="dot" onclick="currentSlide(3)" role="tab" aria-label="Slide 3"></button>
+          <button class="dot" onclick="currentSlide(4)" role="tab" aria-label="Slide 4"></button>
+          <button class="dot" onclick="currentSlide(5)" role="tab" aria-label="Slide 5"></button>
+        </div>
+      </section>
+
+      <!-- ACTION CARDS -->
+      <section class="section-sm" aria-label="Acesso rápido">
+        <div class="section-header-row">
+          <div>
+            <span class="eyebrow">Acesso Rápido</span>
+            <h2 class="display-2" style="margin-top:var(--sp-3)">O Que Você Precisa?</h2>
+          </div>
+        </div>
+
+        <div class="card-grid">
+
+          <div class="action-card" role="button" tabindex="0"
+            onclick="abrirLink('https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx')"
+            onkeypress="if(event.key==='Enter')abrirLink('https://pontopmc.contagem.mg.gov.br/forpontoweb/login.aspx')">
+            <h2><i class="fas fa-user-check"></i> Consultar Ponto</h2>
+            <p>Acesse o sistema oficial e consulte seus registros de frequência.</p>
+          </div>
+
+          <div class="action-card" role="button" tabindex="0"
+            onclick="abrirLink('https://docs.google.com/forms/d/1m0rTgm5ouxhic6TAlXV-KwEM3y44AXZzSZkRV71ARn4/viewform?ts=686ea610&edit_requested=true')"
+            onkeypress="if(event.key==='Enter')abrirLink('https://docs.google.com/forms/d/1m0rTgm5ouxhic6TAlXV-KwEM3y44AXZzSZkRV71ARn4/viewform?ts=686ea610&edit_requested=true')">
+            <h2><i class="fas fa-file-alt"></i> Formulário de Cadastro</h2>
+            <p>Preencha o formulário para se cadastrar no sistema de ponto eletrônico.</p>
+          </div>
+
+          <div class="action-card" role="button" tabindex="0"
+            onclick="abrirLink('calculadora.html')"
+            onkeypress="if(event.key==='Enter')abrirLink('calculadora.html')">
+            <h2><i class="fas fa-calculator"></i> Calculadora de Desconto</h2>
+            <p>Calcule descontos por faltas e ausências com facilidade.</p>
+          </div>
+
+          <div class="action-card" role="button" tabindex="0"
+            onclick="abrirLink('imagem.html')"
+            onkeypress="if(event.key==='Enter')abrirLink('imagem.html')">
+            <h2><i class="fas fa-image"></i> Processador de Imagem</h2>
+            <p>Redimensione e ajuste imagens para o Help Desk automaticamente.</p>
+          </div>
+
+          <div class="action-card" role="button" tabindex="0"
+            onclick="abrirLink('faq.html')"
+            onkeypress="if(event.key==='Enter')abrirLink('faq.html')">
+            <h2><i class="fas fa-question-circle"></i> Dúvidas Frequentes</h2>
+            <p>Central de ajuda para as dúvidas mais comuns do sistema.</p>
+          </div>
+
+          <div class="action-card" role="button" tabindex="0"
+            onclick="abrirLink('http://egcontagemead.contagem.mg.gov.br/course/view.php?id=274')">
+            <h2><i class="fas fa-graduation-cap"></i> Curso do Ponto Eletrônico</h2>
+            <p>Capacitação da Escola de Governo sobre o sistema de ponto eletrônico.</p>
+          </div>
+
+          <!-- DEPARTMENTS -->
+          <section class="departments" aria-label="Secretarias contempladas">
+            <span class="eyebrow">Abrangência</span>
+            <h2 class="departments-title" style="margin-top:var(--sp-3)">Secretarias Integradas</h2>
+            <p class="departments-subtitle">Com a implantação e ampliação do sistema de ponto eletrônico no âmbito da Prefeitura Municipal de Contagem, diversas secretarias da administração direta já se encontram integradas ou em processo de inclusão.</p>
+            <ul>
+              <li>SEGOV — Secretaria Municipal de Governo e Participação Popular</li>
+              <li>PGM — Procuradoria Geral do Município</li>
+              <li>CGM — Controladoria Geral do Município</li>
+              <li>SEAD — Secretaria Municipal de Administração</li>
+              <li>SEFAZ — Secretaria Municipal de Fazenda</li>
+              <li>SEPLAN — Secretaria Municipal de Planejamento, Orçamento e Gestão</li>
+              <li>SMDSSA — Secretaria Municipal de Desenvolvimento Social e Segurança Alimentar</li>
+              <li>SEDUC — Secretaria Municipal de Educação (Administrativo)</li>
+              <li>SMS — Secretaria Municipal de Saúde (Administrativo)</li>
+              <li>SEDECON — Secretaria Municipal de Desenvolvimento Econômico</li>
+              <li>STI — Secretaria Municipal de Tecnologia da Informação</li>
+              <li>SG — Secretaria Geral</li>
+              <li>SLC — Secretaria Municipal de Licitação e Contratos</li>
+              <li>SETGER — Secretaria Municipal de Trabalho e Geração de Renda</li>
+              <li>SECOM — Secretaria Municipal de Comunicação</li>
+              <li>SMDU — Secretaria Municipal de Desenvolvimento Urbano</li>
+              <li>SEMOBS — Secretaria Municipal de Obras</li>
+            
+              <li>SMDHC — Secretaria Municipal de Direitos Humanos e Cidadania</li>
+              <li>SEMEL — Secretaria Municipal de Esporte e Lazer</li>
+              <li>SEMAD — Secretaria Municipal de Meio Ambiente e Desenvolvimento Sustentável</li>
+              <li>SECULT — Secretaria Municipal de Cultura</li>
+              <li>SEHAB — Secretaria Municipal de Habitação</li>
+              <li>SSU — Secretaria Municipal de Serviços Urbanos</li>
+              <li>SMUJ — Secretaria Municipal da Mulher e da Juventude</li>
+            </ul>
+          </section>
+
+          <!-- POWER BI -->
+          <section class="powerbi-section" aria-label="Painel Gerencial">
+            <div class="powerbi-label">
+              <i class="fas fa-chart-bar"></i>
+              Painel Ponto Eletrônico — Gerencial
+            </div>
+            <div class="powerbi-embed">
+              <iframe title="Ponto Eletrônico Gerencial"
+                src="https://app.powerbi.com/view?r=eyJrIjoiOTc1ZWMxOGItNDBjNy00NDVkLWJiYjItMzQxODNiMDljZmFhIiwidCI6IjdhMzMwYjczLTZjMWQtNDA1My1hNmZmLWUzNzliZWZjODA1YiJ9"
+                allowfullscreen loading="lazy"></iframe>
+            </div>
+          </section>
+
+          <!-- SUPPORT -->
+          <section class="support-section" aria-labelledby="suporte-title">
+            <div class="support-left">
+              <h2 id="suporte-title"><i class="fas fa-headset"></i> Suporte e Contato</h2>
+              <p>Nossa equipe está disponível para ajudar com dúvidas técnicas, cadastros e orientações sobre o sistema de ponto eletrônico.</p>
+              <div class="support-links">
+                <a href="mailto:pontoeletronico@contagem.mg.gov.br" target="_blank" rel="noopener noreferrer" class="support-button email-link">
+                  <i class="fas fa-envelope"></i> Enviar E-mail
+                </a>
+                <a href="https://wa.me/553175130029" target="_blank" rel="noopener noreferrer" class="support-button whatsapp-link">
+                  <i class="fab fa-whatsapp"></i> WhatsApp
+                </a>
+              </div>
+            </div>
+            <div class="support-right">
+              <p class="store-title">Baixar Aplicativo Forponto</p>
+              <div class="store-buttons" aria-label="Baixar aplicativo">
+                <a class="store-btn" href="https://apps.apple.com/br/app/forponto-mobile/id6754690842" target="_blank" rel="noopener noreferrer" aria-label="App Store">
+                  <i class="fa-brands fa-apple"></i>
+                  <span><small>Disponível na</small> App Store</span>
+                </a>
+                <a class="store-btn" href="https://play.google.com/store/apps/details?id=br.com.tasksistemas.forpontomobile" target="_blank" rel="noopener noreferrer" aria-label="Google Play">
+                  <i class="fa-brands fa-google-play"></i>
+                  <span><small>Disponível no</small> Google Play</span>
+                </a>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
   <footer class="site-footer">
     <div class="container">
       <div class="footer-inner">
@@ -149,27 +345,33 @@
         </div>
         <div>
           <p class="footer-copy">© 2026 Equipe Ponto Eletrônico — Prefeitura Municipal de Contagem</p>
-          <p class="footer-dev">Sistema desenvolvido para facilitar o controle de ponto eletrônico</p>
+          <p class="footer-dev">Desenvolvido por <a href="https://www.linkedin.com/in/italo-junio/" target="_blank" rel="noopener noreferrer">Italo Junio</a> — SEAD</p>
         </div>
       </div>
     </div>
   </footer>
 
-  <!-- CHAT FLUTUANTE -->
+  <!-- PapaParse & Fuse (needed by chat/FAQ) -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+  <script src="faq.js"></script>
+
+  <script src="script.js"></script>
+
+  <!-- CHAT (from faq.html) -->
   <button id="chatFab" class="chat-fab" aria-label="Abrir assistente de ajuda" aria-expanded="false">
     <i class="fas fa-comment-dots chat-fab-icon"></i>
     <i class="fas fa-times chat-fab-close"></i>
     <span class="chat-fab-badge" id="chatBadge" style="display:none">1</span>
   </button>
 
-  <!-- MODAL DO CHAT -->
   <div id="chatModal" class="chat-modal" role="dialog" aria-modal="true" aria-label="Assistente de Ajuda" style="display:none">
     <div class="chat-header">
       <div class="chat-header-info">
         <div class="chat-avatar"><i class="fas fa-robot"></i></div>
         <div>
-          <p class="chat-header-name">Antônio · Ponto.PMC</p>
-          <p class="chat-header-status"><span class="chat-status-dot"></span> Online — busca no manual oficial</p>
+          <p class="chat-header-name">Assistente Ponto.PMC</p>
+          <p class="chat-header-status"><span class="chat-status-dot"></span> Online</p>
         </div>
       </div>
       <div class="chat-header-actions">
@@ -210,12 +412,69 @@
           <i class="fas fa-paper-plane"></i>
         </button>
       </div>
-      <p class="chat-disclaimer"><i class="fas fa-lock" style="font-size:9px"></i> Respostas do manual oficial · busca local · sem IA externa</p>
+      <p class="chat-disclaimer">Respostas baseadas no manual oficial · busca local</p>
+    </div>
+  </div>
+  <!-- MODAL DOWNLOAD APP -->
+  <div id="appDownloadModal" class="app-modal-overlay" style="display:none" role="dialog" aria-modal="true" aria-label="Baixar aplicativo Forponto">
+    <div class="app-modal-box">
+      <button class="app-modal-close" onclick="closeAppModal()" aria-label="Fechar">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="app-modal-icon"><i class="fas fa-mobile-alt"></i></div>
+      <h3 class="app-modal-title">Baixar Forponto</h3>
+      <p class="app-modal-desc">Escolha a plataforma do seu celular:</p>
+      <div class="app-modal-btns">
+        <a id="appModalIosBtn" href="#" target="_blank" rel="noopener noreferrer" class="store-btn" onclick="closeAppModal()">
+          <i class="fa-brands fa-apple"></i>
+          <span><small>Disponível na</small> App Store</span>
+        </a>
+        <a id="appModalAndBtn" href="#" target="_blank" rel="noopener noreferrer" class="store-btn" onclick="closeAppModal()">
+          <i class="fa-brands fa-google-play"></i>
+          <span><small>Disponível no</small> Google Play</span>
+        </a>
+      </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
-  <script src="faq.js"></script>
+  <style>
+  .app-modal-overlay {
+    position: fixed; inset: 0; z-index: 9000;
+    background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+    opacity: 0; transition: opacity .26s ease;
+  }
+  .app-modal--open { opacity: 1 !important; }
+  .app-modal--open .app-modal-box { transform: translateY(0) !important; }
+  .app-modal-box {
+    background: var(--surface, #fff);
+    border: 1.5px solid var(--border, #e5e5e5);
+    border-radius: var(--radius-xl, 20px);
+    padding: 2.5rem 2rem 2rem;
+    max-width: 380px; width: 100%;
+    text-align: center; position: relative;
+    transform: translateY(18px); transition: transform .26s ease;
+  }
+  [data-theme="dark"] .app-modal-box { background: var(--surface-2, #1a1a1a); }
+  .app-modal-close {
+    position: absolute; top: 1rem; right: 1rem;
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1.5px solid var(--border, #e5e5e5); background: transparent;
+    color: var(--text-muted, #999); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .8rem; transition: all .15s;
+  }
+  .app-modal-close:hover { background: var(--surface-3, #f0f0f0); color: var(--text-primary, #111); }
+  .app-modal-icon { font-size: 2.4rem; color: var(--text-muted, #aaa); margin-bottom: .8rem; }
+  .app-modal-title {
+    font-family: var(--font-display, sans-serif); font-weight: 900;
+    font-size: 1.5rem; text-transform: uppercase;
+    color: var(--text-primary, #111); margin-bottom: .4rem;
+  }
+  .app-modal-desc { color: var(--text-secondary, #666); font-size: .875rem; margin-bottom: 1.5rem; }
+  .app-modal-btns { display: flex; flex-direction: column; gap: .75rem; }
+  </style>
+
 </body>
 </html>
