@@ -227,11 +227,52 @@ function escHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
-// Converte \n e **negrito** para HTML
+// Converte \n, **negrito**, URLs e e-mails para HTML com quebras inteligentes
 function formatResposta(text) {
-  return escHtml(text)
-    .replace(/\n/g, '<br>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // 1. escapa HTML
+  let t = escHtml(text);
+
+  // 2. negrito **...**
+  t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+  // 3. links — URL
+  t = t.replace(
+    /(https?:\/\/[^\s<>"]+)/g,
+    '<a class="chat-link" href="$1" target="_blank" rel="noopener">$1</a>'
+  );
+
+  // 4. e-mails
+  t = t.replace(
+    /([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/g,
+    '<a class="chat-link" href="mailto:$1">$1</a>'
+  );
+
+  // 5. telefones no padrão BR (ex: (31) 3391-8000 ou 31 3391-8000)
+  t = t.replace(
+    /(\(?\d{2}\)?\s?\d{4,5}[-\s]?\d{4})/g,
+    '<a class="chat-link" href="tel:$1">$1</a>'
+  );
+
+  // 6. lista com bullet "• item" ou "- item" no início da linha → <ul>
+  const lines = t.split(/\n/);
+  const out = [];
+  let inList = false;
+  for (const line of lines) {
+    const isBullet = /^[•\-]\s+/.test(line.trim());
+    if (isBullet) {
+      if (!inList) { out.push('<ul class="resp-list">'); inList = true; }
+      out.push('<li>' + line.trim().replace(/^[•\-]\s+/, '') + '</li>');
+    } else {
+      if (inList) { out.push('</ul>'); inList = false; }
+      out.push(line);
+    }
+  }
+  if (inList) out.push('</ul>');
+
+  // 7. parágrafos: duas quebras de linha seguidas viram separador de parágrafo
+  return out.join('\n')
+    .replace(/\n{2,}/g, '</p><p class="resp-p">')
+    .replace(/\n/g, '<br>');
 }
 
 // ── LOADING / ERROR STATES ─────────────────────────────
@@ -556,7 +597,17 @@ function toggleChat() {
 function chatWelcome() {
   const picker = document.getElementById('chatProfilePicker');
   if (picker) picker.style.display = 'flex';
-  chatAddMsg('bot', 'Olá! 👋 Sou o Antonio, o assistente do <strong>Ponto.PMC</strong>. Antes de começar, selecione o seu perfil acima para que eu possa buscar as informações corretas.');
+  chatAddMsg('bot',
+    'Olá! 👋 Sou o <strong>Antonio</strong>, assistente virtual do <strong>Ponto.PMC</strong>.<br><br>' +
+    'Posso te ajudar com:<br>' +
+    '<ul class="resp-list">' +
+      '<li>Dúvidas sobre o <strong>ForPonto Web</strong></li>' +
+      '<li>Registro e abono de ponto</li>' +
+      '<li>Configuração do app e senha</li>' +
+      '<li>Relatórios e gestão de equipe</li>' +
+    '</ul>' +
+    'Selecione seu <strong>perfil abaixo</strong> para começar. 👆'
+  );
 }
 
 /* ---- seleção de perfil no chat ---- */
@@ -706,8 +757,8 @@ function chatSend(text) {
       // sem resultado: mostra perguntas frequentes do perfil como sugestão
       const sugestoes = docs.slice(0, 4).map(i => i.pergunta);
       chatAddMsg('bot',
-        `Não encontrei nada sobre <strong>"${escHtml(text)}"</strong> no manual. ` +
-        `Veja perguntas frequentes ou tente reformular:`
+        `Não encontrei nada exato sobre <strong>"${escHtml(text)}"</strong> no manual. 🔍<br><br>` +
+        `Tente reformular a pergunta ou clique em uma das sugestões abaixo:`
       );
       if (sugestoes.length) chatAddSuggestions(sugestoes);
       return;
