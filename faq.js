@@ -572,6 +572,19 @@ let fuseChat     = null;   // índice Fuse ativo para o chat
 let chatOpen     = false;
 let chatGreeted  = false;
 
+// Comandos e respostas rápidas — reconhecidos antes da busca no FAQ
+const RE_SWITCH_PROFILE = /\b(trocar|mudar|alterar|selecionar)\s+(de\s+)?perfil\b|\boutro\s+perfil\b/i;
+const CHAT_SMALLTALK = [
+  { re: /^(oi+|ol[aá]|bom\s+dia|boa\s+tarde|boa\s+noite|e[ai]+|hey|hello)[\s!.,?]*$/i,
+    reply: 'Olá! 😊 Pode digitar sua dúvida ou tocar em uma das sugestões abaixo.' },
+  { re: /^(muito\s+)?(obrigad[oa]o?s?|grato|valeu|vlw)[\s!.,?]*$/i,
+    reply: 'De nada! 🙌 Posso ajudar com mais alguma coisa?' },
+  { re: /^(tchau|at[eé]\s+(mais|logo)|falou|adeus|bye)[\s!.,?]*$/i,
+    reply: 'Até mais! 👋 Estou por aqui se precisar de algo.' },
+  { re: /\b(atendente|humano|pessoa\s+real|falar\s+com\s+algu[eé]m)\b/i,
+    reply: 'Para atendimento humano, contate a equipe SEAD ou acesse o <a class="chat-link" href="https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx" target="_blank" rel="noopener">ForPonto Web</a>. Enquanto isso, me diga sua dúvida que eu tento ajudar por aqui. 🙂' },
+];
+
 /* ---- abertura/fechamento ---- */
 function toggleChat() {
   chatOpen = !chatOpen;
@@ -717,6 +730,16 @@ function chatSend(text) {
   }
 
   chatAddMsg('user', escHtml(text));
+
+  // comandos e conversas rápidas — respondem direto, sem acionar busca no FAQ
+  if (RE_SWITCH_PROFILE.test(text)) { promptSwitchProfile(); return; }
+  const smalltalk = CHAT_SMALLTALK.find(r => r.re.test(text));
+  if (smalltalk) {
+    chatTyping();
+    setTimeout(() => { removeTyping(); chatAddMsg('bot', smalltalk.reply); }, 450 + Math.random() * 200);
+    return;
+  }
+
   chatTyping();
 
   setTimeout(() => {
@@ -754,8 +777,13 @@ function chatSend(text) {
     }
 
     if (!results.length) {
-      // sem resultado: mostra perguntas frequentes do perfil como sugestão
-      const sugestoes = docs.slice(0, 4).map(i => i.pergunta);
+      // sem resultado: tenta uma busca bem permissiva antes de cair nas perguntas genéricas
+      let sugestoes = [];
+      if (docs.length) {
+        const fuseLoose = new Fuse(docs, { ...FUSE_OPTS_FUZZY, threshold: 0.9 });
+        sugestoes = fuseLoose.search(text).slice(0, 4).map(r => r.item.pergunta);
+      }
+      if (!sugestoes.length) sugestoes = docs.slice(0, 4).map(i => i.pergunta);
       chatAddMsg('bot',
         `Não encontrei nada exato sobre <strong>"${escHtml(text)}"</strong> no manual. 🔍<br><br>` +
         `Tente reformular a pergunta ou clique em uma das sugestões abaixo:`
@@ -764,13 +792,15 @@ function chatSend(text) {
       return;
     }
 
-    const top = results[0].item;
+    const top   = results[0].item;
+    const score = typeof results[0].score === 'number' ? results[0].score : 0;
+    const lead  = score > 0.4 ? 'Não achei uma correspondência exata, mas isso talvez ajude:<br><br>' : '';
     const obs = top.observacao
       ? `<div class="chat-obs"><i class="fas fa-info-circle"></i> ${escHtml(top.observacao)}</div>`
       : '';
 
     chatAddMsg('bot',
-      `<strong>${escHtml(top.pergunta)}</strong><br><br>` +
+      lead + `<strong>${escHtml(top.pergunta)}</strong><br><br>` +
       formatResposta(top.resposta) + obs
     );
 
@@ -797,6 +827,21 @@ function chatTyping() {
 }
 function removeTyping() {
   document.querySelector('.chat-typing')?.remove();
+}
+
+/* ---- troca de perfil sem perder o histórico da conversa ---- */
+function promptSwitchProfile() {
+  chatProfile = null;
+  fuseChat    = null;
+
+  const input   = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('chatSendBtn');
+  if (input)   input.disabled   = true;
+  if (sendBtn) sendBtn.disabled = true;
+
+  chatAddMsg('bot', 'Sem problemas! Selecione o novo perfil abaixo. 👇');
+  const picker = document.getElementById('chatProfilePicker');
+  if (picker) picker.style.display = 'flex';
 }
 
 /* ---- limpar conversa ---- */
