@@ -229,9 +229,11 @@ function loadFaqData() {
       return; // mantém cache anterior se fetch falhar
     }
 
-    // Atualiza só se os dados mudaram (comparação leve por tamanho + última pergunta)
-    const changed = fresh.length !== faqDB.length ||
-      fresh[fresh.length - 1]?.pergunta !== faqDB[faqDB.length - 1]?.pergunta;
+    // Atualiza sempre que o CONTEÚDO mudar — antes só comparava quantidade
+    // de linhas + última pergunta, o que não detectava edição no texto de
+    // uma resposta já existente (ex.: acrescentar o link de vídeo entre
+    // aspas simples numa pergunta que já existia na planilha)
+    const changed = JSON.stringify(fresh) !== JSON.stringify(faqDB);
 
     if (changed) {
       faqDB = fresh;
