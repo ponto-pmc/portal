@@ -1124,12 +1124,17 @@ function setupChat() {
 // ── INIT ───────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
 
-  // Tema
-  document.getElementById('themeToggle')?.addEventListener('click', () => {
-    const isDark = document.documentElement.dataset.theme !== 'dark';
-    window.applyTheme(isDark);
-    localStorage.setItem(window.THEME_KEY, isDark ? 'dark' : 'light');
-  }, { passive: true });
+  // Tema — registra o clique só uma vez mesmo quando faq.js é carregado
+  // junto com outro script da página (calculadora.js/imagem.js/script.js),
+  // evitando dois listeners no mesmo botão (o que cancelava o clique)
+  if (!window._ppThemeListenerSet) {
+    window._ppThemeListenerSet = true;
+    document.getElementById('themeToggle')?.addEventListener('click', () => {
+      const isDark = document.documentElement.dataset.theme !== 'dark';
+      window.applyTheme(isDark);
+      localStorage.setItem(window.THEME_KEY, isDark ? 'dark' : 'light');
+    }, { passive: true });
+  }
 
   // Navbar scroll
   const nav = document.querySelector('.site-nav');
