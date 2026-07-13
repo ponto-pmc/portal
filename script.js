@@ -21,7 +21,8 @@ if (typeof window._ppThemeInit === 'undefined') {
 document.addEventListener('DOMContentLoaded', () => {
 
   // ── THEME TOGGLE ───────────────────────────────────
-  // Apenas registra se faq.js ainda não registrou (faq.js carrega antes)
+  // Apenas registra se faq.js ainda não registrou (faq.js carrega antes
+  // e agora também seta essa mesma flag — ver faq.js)
   if (!window._ppThemeListenerSet) {
     window._ppThemeListenerSet = true;
     document.getElementById('themeToggle')?.addEventListener('click', () => {
