@@ -406,7 +406,9 @@ function animateOnScroll() {
 
 // ── CONTENT BLOCKER ────────────────────────────────────
 function setupContentBlocker() {
-  const ALLOWED_IFRAMES = ['drive.google.com', 'app.powerbi.com'];
+  // drive.google.com e app.powerbi.com já eram permitidos; youtube/vimeo
+  // liberados para os vídeos embutidos gerados por formatResposta() (faq.js)
+  const ALLOWED_IFRAMES = ['drive.google.com', 'app.powerbi.com', 'www.youtube.com', 'www.youtube-nocookie.com', 'player.vimeo.com'];
 
   function cleanNode(node) {
     if (node.nodeType !== 1) return;
