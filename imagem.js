@@ -32,12 +32,16 @@ const picaInst = pica();
 // ── DOM READY ──────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
 
-  // Theme toggle
-  document.getElementById('themeToggle')?.addEventListener('click', () => {
-    const isDark = document.documentElement.dataset.theme !== 'dark';
-    window.applyTheme(isDark);
-    localStorage.setItem(window.THEME_KEY, isDark ? 'dark' : 'light');
-  }, { passive: true });
+  // Theme toggle — faq.js carrega antes e já registra o clique — evita
+  // registrar de novo (dois listeners cancelavam o efeito do clique)
+  if (!window._ppThemeListenerSet) {
+    window._ppThemeListenerSet = true;
+    document.getElementById('themeToggle')?.addEventListener('click', () => {
+      const isDark = document.documentElement.dataset.theme !== 'dark';
+      window.applyTheme(isDark);
+      localStorage.setItem(window.THEME_KEY, isDark ? 'dark' : 'light');
+    }, { passive: true });
+  }
 
   // Navbar scroll
   const nav = document.querySelector('.site-nav');
