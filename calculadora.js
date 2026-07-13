@@ -53,11 +53,15 @@ let ultimoCalculo = null;
 document.addEventListener('DOMContentLoaded', () => {
 
   // ── THEME TOGGLE ─────────────────────────────────────
-  document.getElementById('themeToggle')?.addEventListener('click', () => {
-    const isDark = document.documentElement.dataset.theme !== 'dark';
-    window.applyTheme(isDark);
-    localStorage.setItem(window.THEME_KEY, isDark ? 'dark' : 'light');
-  }, { passive: true });
+  // faq.js carrega antes e já registra o clique — evita registrar de novo
+  if (!window._ppThemeListenerSet) {
+    window._ppThemeListenerSet = true;
+    document.getElementById('themeToggle')?.addEventListener('click', () => {
+      const isDark = document.documentElement.dataset.theme !== 'dark';
+      window.applyTheme(isDark);
+      localStorage.setItem(window.THEME_KEY, isDark ? 'dark' : 'light');
+    }, { passive: true });
+  }
 
   // ── NAVBAR SCROLL ─────────────────────────────────────
   const nav = document.querySelector('.site-nav');
