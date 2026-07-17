@@ -321,14 +321,15 @@ function injectAccordions(containerId, items) {
     const body = grpItems.map((item, idx) => accordionItemHtml(item, `${gidx}-${idx}`)).join('');
     return `
       <div class="theme-group">
-        <button class="theme-group-header" aria-expanded="true">
+        <button class="theme-group-header" aria-expanded="false">
           <span class="theme-group-title"><i class="fas fa-layer-group"></i> ${escHtml(tema)}</span>
           <span class="theme-group-meta">
             <span class="theme-group-count">${grpItems.length}</span>
+            <span class="theme-group-hint"><i class="fas fa-hand-pointer"></i> Clique para ver</span>
             <i class="fas fa-chevron-down theme-group-arrow"></i>
           </span>
         </button>
-        <div class="theme-group-body">${body}</div>
+        <div class="theme-group-body collapsed">${body}</div>
       </div>`;
   }).join('');
 }
@@ -341,9 +342,19 @@ function bindThemeGroups() {
   });
 }
 function toggleThemeGroup(e) {
-  const header = e.currentTarget;
-  const body   = header.nextElementSibling;
-  const isOpen = header.getAttribute('aria-expanded') === 'true';
+  const header    = e.currentTarget;
+  const body      = header.nextElementSibling;
+  const isOpen    = header.getAttribute('aria-expanded') === 'true';
+  const container = header.closest('.faq-accordion');
+
+  // fecha e desmarca os demais temas (só um tema em destaque por vez)
+  container?.querySelectorAll('.theme-group-header').forEach(h => {
+    if (h !== header) {
+      h.setAttribute('aria-expanded', 'false');
+      h.nextElementSibling?.classList.add('collapsed');
+    }
+  });
+
   header.setAttribute('aria-expanded', String(!isOpen));
   if (body) body.classList.toggle('collapsed', isOpen);
 }
