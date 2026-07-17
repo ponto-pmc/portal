@@ -263,8 +263,44 @@ function renderFaqSections() {
   injectAccordions('gestorAccordion',  gestorItems);
   injectAccordions('usuarioAccordion', usuarioItems);
 
-  // re-bind accordion triggers (DOM foi atualizado)
+  // re-bind accordion triggers e grupos de tema (DOM foi atualizado)
   bindAccordions();
+  bindThemeGroups();
+}
+
+// Agrupa os itens do perfil pela coluna "tema" da planilha, preservando
+// a ordem de primeira aparição. Itens sem tema caem em "Geral".
+function groupByTema(items) {
+  const order = [];
+  const map = new Map();
+  items.forEach(item => {
+    const tema = (item.tema || '').trim() || 'Geral';
+    if (!map.has(tema)) { map.set(tema, []); order.push(tema); }
+    map.get(tema).push(item);
+  });
+  return order.map(tema => ({ tema, items: map.get(tema) }));
+}
+
+function accordionItemHtml(item, key) {
+  const obs = item.observacao
+    ? `<div class="accordion-obs"><i class="fas fa-info-circle"></i> ${escHtml(item.observacao)}</div>`
+    : '';
+  const shared = isSharedPerfil(item.perfil)
+    ? '<span class="badge accordion-badge"><i class="fas fa-users"></i> Ambos os perfis</span>'
+    : '';
+  return `
+    <div class="accordion-item" data-index="${key}">
+      <button class="accordion-trigger" aria-expanded="false">
+        <span class="accordion-question">${escHtml(item.pergunta)}${shared}</span>
+        <span class="accordion-icon"><i class="fas fa-plus"></i></span>
+      </button>
+      <div class="accordion-body">
+        <div class="accordion-body-inner">
+          ${formatResposta(item.resposta)}
+          ${obs}
+        </div>
+      </div>
+    </div>`;
 }
 
 function injectAccordions(containerId, items) {
@@ -279,27 +315,37 @@ function injectAccordions(containerId, items) {
     return;
   }
 
-  container.innerHTML = items.map((item, idx) => {
-    const obs = item.observacao
-      ? `<div class="accordion-obs"><i class="fas fa-info-circle"></i> ${escHtml(item.observacao)}</div>`
-      : '';
-    const shared = isSharedPerfil(item.perfil)
-      ? '<span class="badge accordion-badge"><i class="fas fa-users"></i> Ambos os perfis</span>'
-      : '';
+  const groups = groupByTema(items);
+
+  container.innerHTML = groups.map(({ tema, items: grpItems }, gidx) => {
+    const body = grpItems.map((item, idx) => accordionItemHtml(item, `${gidx}-${idx}`)).join('');
     return `
-      <div class="accordion-item" data-index="${idx}">
-        <button class="accordion-trigger" aria-expanded="false">
-          <span class="accordion-question">${escHtml(item.pergunta)}${shared}</span>
-          <span class="accordion-icon"><i class="fas fa-plus"></i></span>
+      <div class="theme-group">
+        <button class="theme-group-header" aria-expanded="true">
+          <span class="theme-group-title"><i class="fas fa-layer-group"></i> ${escHtml(tema)}</span>
+          <span class="theme-group-meta">
+            <span class="theme-group-count">${grpItems.length}</span>
+            <i class="fas fa-chevron-down theme-group-arrow"></i>
+          </span>
         </button>
-        <div class="accordion-body">
-          <div class="accordion-body-inner">
-            ${formatResposta(item.resposta)}
-            ${obs}
-          </div>
-        </div>
+        <div class="theme-group-body">${body}</div>
       </div>`;
   }).join('');
+}
+
+// ── GRUPOS DE TEMA: expandir/recolher ───────────────────
+function bindThemeGroups() {
+  document.querySelectorAll('.theme-group-header').forEach(btn => {
+    btn.removeEventListener('click', toggleThemeGroup);
+    btn.addEventListener('click', toggleThemeGroup);
+  });
+}
+function toggleThemeGroup(e) {
+  const header = e.currentTarget;
+  const body   = header.nextElementSibling;
+  const isOpen = header.getAttribute('aria-expanded') === 'true';
+  header.setAttribute('aria-expanded', String(!isOpen));
+  if (body) body.classList.toggle('collapsed', isOpen);
 }
 
 function escHtml(str) {
@@ -589,10 +635,13 @@ function runSearch(query) {
     const shared = isSharedPerfil(item.perfil)
       ? '<span class="badge accordion-badge"><i class="fas fa-users"></i> Ambos os perfis</span>'
       : '';
+    const temaBadge = item.tema
+      ? `<span class="badge accordion-badge accordion-badge-tema"><i class="fas fa-layer-group"></i> ${escHtml(item.tema)}</span>`
+      : '';
     return `
       <div class="accordion-item search-result" data-index="${idx}">
         <button class="accordion-trigger" aria-expanded="${idx === 0 ? 'true' : 'false'}">
-          <span class="accordion-question">${perguntaHL}${shared}</span>
+          <span class="accordion-question">${perguntaHL}${temaBadge}${shared}</span>
           <span class="accordion-icon"><i class="fas fa-plus"></i></span>
         </button>
         <div class="accordion-body ${idx === 0 ? 'active' : ''}">
