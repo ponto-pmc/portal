@@ -291,6 +291,7 @@ function closeGlobalSearch() {
 const SITE_INDEX = [
   { label: 'Consultar Ponto',       desc: 'Acesse o sistema oficial de frequência',          url: 'https://pontopmc.contagem.mg.gov.br/forpontoweb/login.aspx', external: true,  icon: 'fa-user-check' },
   { label: 'Calculadora de Desconto', desc: 'Calcule descontos por faltas e ausências',      url: 'calculadora.html',  external: false, icon: 'fa-calculator' },
+  { label: 'Controle mensal',        desc: 'Registre horários e acompanhe o saldo da jornada', url: 'controle.html',      external: false, icon: 'fa-clock' },
   { label: 'Processador de Imagens', desc: 'Redimensione imagens para 200×200 px em ZIP',    url: 'imagem.html',       external: false, icon: 'fa-image' },
   { label: 'Central de Ajuda / FAQ', desc: 'Dúvidas frequentes para gestores e servidores',  url: 'faq.html',          external: false, icon: 'fa-question-circle' },
   { label: 'Ajuda — Gestor',         desc: 'FAQ específico para gestores de equipe',          url: 'faq.html#gestor',   external: false, icon: 'fa-user-tie' },

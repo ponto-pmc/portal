@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Controle</title>
+  <link rel="icon" type="image/png" href="https://i.ibb.co/fVRw238j/Ponto-removebg-preview.png" />
+  <link rel="stylesheet" href="controle.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+</head>
+<body class="control-page page-wrapper">
+  <nav class="site-nav" role="navigation" aria-label="Navegação principal">
+    <div class="inner">
+      <a class="nav-logo" href="index.html" aria-label="Voltar ao início">
+        <img src="https://legislacao.contagem.mg.gov.br/imgs/Marca-PMC-cor.png" alt="Prefeitura de Contagem" />
+        <span class="nav-logo-text">Ponto<span>.</span>PMC</span>
+      </a>
+      <ul class="nav-links" id="navLinks" role="list">
+        <li><a href="index.html">Início</a></li>
+        <li><a href="calculadora.html">Calculadora</a></li>
+        <li><a href="controle.html" class="active">Controle</a></li>
+        <li><a href="imagem.html">Imagens</a></li>
+        <li><a href="faq.html">Ajuda</a></li>
+        <li>
+          <a href="https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx"
+             target="_blank" rel="noopener" class="btn btn-primary btn-sm">Acessar</a>
+        </li>
+      </ul>
+      <div class="nav-actions">
+        <button class="theme-toggle-btn" id="themeToggle" aria-label="Alternar tema">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+        <button class="nav-hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <div class="control-container">
+      <section class="control-heading" aria-labelledby="controle-title">
+        <span class="eyebrow">Ferramenta do portal</span>
+        <h1 id="controle-title">Controle mensal</h1>
+        <p>Organize seus horários, acompanhe o saldo da jornada e gere uma relação para consulta.</p>
+      </section>
+
+      <section class="app-shell" aria-label="Controle mensal de jornada">
+        <header class="topbar">
+          <div class="brand-block">
+            <div class="brand-mark" aria-hidden="true">⌁</div>
+            <div>
+              <p class="section-kicker">Controle mensal</p>
+              <h2>Jornada</h2>
+            </div>
+          </div>
+          <div class="header-controls">
+            <div class="header-fields">
+              <label class="header-field">
+                <span>Servidor</span>
+                <input id="server-name" type="text" maxlength="100" autocomplete="name" placeholder="Nome do servidor" />
+              </label>
+              <label class="header-field month-field">
+                <span>Mês de referência</span>
+                <input id="reference-month" type="month" />
+              </label>
+            </div>
+            <div class="rules-note"><span class="status-dot"></span> cálculo automático</div>
+          </div>
+        </header>
+
+        <div class="production-banner" role="status">
+          <span class="production-icon" aria-hidden="true">●</span>
+          <span><strong>Site em produção</strong> · seus registros ficam salvos neste dispositivo.</span>
+        </div>
+
+        <section class="import-card" id="import-dropzone" aria-label="Importar espelho de ponto">
+          <div class="import-symbol" aria-hidden="true">↥</div>
+          <div class="import-copy">
+            <p class="section-kicker">Importar espelho</p>
+            <h3>Preencha a jornada a partir do PDF</h3>
+            <p id="import-status">Arraste o espelho de ponto até aqui ou selecione um arquivo</p>
+          </div>
+          <button class="import-button" id="choose-file" type="button">Selecionar arquivo</button>
+          <input id="file-input" type="file" accept=".pdf,application/pdf,image/png,image/jpeg" hidden />
+        </section>
+
+        <section class="workspace" aria-label="Calculadora de jornada">
+          <div class="sheet-card">
+            <div class="sheet-heading">
+              <div>
+                <p class="section-kicker">Registro diário</p>
+                <h3>Horários do mês</h3>
+              </div>
+              <div class="sheet-actions">
+                <p class="sheet-hint">Preencha os quatro horários para calcular o dia</p>
+                <button class="download-button" id="download-pdf" type="button">Baixar PDF</button>
+                <button class="clear-button" id="clear-schedule" type="button">Limpar registros</button>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col" class="day-column">Dia</th>
+                    <th scope="col"><span class="col-number">01</span>Entrada</th>
+                    <th scope="col"><span class="col-number">02</span>Saída</th>
+                    <th scope="col"><span class="col-number">03</span>Entrada</th>
+                    <th scope="col"><span class="col-number">04</span>Saída</th>
+                    <th scope="col" class="occurrence-column">Ocorrência</th>
+                    <th scope="col" class="result-column">Resultado</th>
+                  </tr>
+                </thead>
+                <tbody id="days-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <aside class="summary-card" aria-label="Resumo da jornada">
+            <div class="summary-topline">
+              <span class="section-kicker">Fechamento</span>
+              <span class="summary-month">mês atual</span>
+            </div>
+            <div class="summary-list">
+              <div class="summary-row">
+                <span class="summary-label"><span class="summary-icon positive">↗</span>Positivas</span>
+                <strong id="positive-total" class="positive-text">00:00</strong>
+              </div>
+              <div class="summary-row">
+                <span class="summary-label"><span class="summary-icon negative">↘</span>Negativas</span>
+                <strong id="negative-total" class="negative-text">00:00</strong>
+              </div>
+            </div>
+            <div class="balance-row">
+              <span>Saldo</span>
+              <strong id="balance-total">00:00</strong>
+            </div>
+            <p class="summary-footnote">O saldo considera 8 horas trabalhadas e 1 hora de intervalo.</p>
+          </aside>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-logo">
+          <img src="https://legislacao.contagem.mg.gov.br/imgs/Marca-PMC-cor.png" alt="Logo Prefeitura de Contagem" />
+        </div>
+        <div>
+          <p class="footer-copy">© 2026 Equipe Ponto Eletrônico — Prefeitura Municipal de Contagem</p>
+          <p class="footer-dev">Desenvolvido por <a href="https://www.linkedin.com/in/italo-junio/" target="_blank" rel="noopener">Italo Junio</a> — SEAD</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="controle.js"></script>
+</body>
+</html>
