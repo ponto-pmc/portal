@@ -3,8 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    (function(){
+      const target = 'https://ponto-pmc.github.io/portal/';
+      try {
+        if (!location.href.startsWith(target)) location.replace(target);
+      } catch (e) { /* silent */ }
+    })();
+  </script>
   <title>Processador de Imagens — Portal Ponto Eletrônico</title>
-  <link rel="icon" type="image/png" href="https://i.ibb.co/fVRw238j/Ponto-removebg-preview.png" />
   <link rel="stylesheet" href="imagem.css" />
   <link rel="stylesheet" href="faq.css" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
@@ -24,10 +31,11 @@
       <ul class="nav-links" id="navLinks" role="list">
         <li><a href="index.html">Início</a></li>
         <li><a href="calculadora.html">Calculadora</a></li>
+        <li><a href="controle-mensal.html">Controle mensal</a></li>
         <li><a href="imagem.html" class="active">Imagens</a></li>
         <li><a href="faq.html">Ajuda</a></li>
         <li>
-          <a href="https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx"
+          <a href="https://pontopmc.contagem.mg.gov.br/forpontoweb/login.aspx"
              target="_blank" rel="noopener"
              class="btn btn-primary btn-sm">
             Acessar

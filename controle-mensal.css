@@ -1,0 +1,16 @@
+/* Shared portal frame for the monthly control tab. */
+.monthly-page {
+  background: var(--bg, #f5f6f8);
+}
+
+.monthly-page #monthly-root {
+  min-height: calc(100vh - 76px);
+}
+
+.monthly-page .site-footer {
+  margin-top: 0;
+}
+
+[data-theme="dark"] .monthly-page {
+  background: var(--bg, #111);
+}
