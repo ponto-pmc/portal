@@ -8,18 +8,20 @@ import pica   from 'pica';
 import JSZip  from 'jszip';
 
 // ── THEME ──────────────────────────────────────────────
-const THEME_KEY = 'pp-theme';
-
-function applyTheme(isDark) {
-  document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
-  const icon = document.getElementById('themeIcon');
-  if (icon) icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+// faq.js já pode ter definido estas funções — reutiliza se existir
+if (typeof window._ppThemeInit === 'undefined') {
+  window._ppThemeInit = true;
+  window.THEME_KEY = 'pp-theme';
+  window.applyTheme = function(isDark) {
+    document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+  };
+  (function () {
+    const s = localStorage.getItem(window.THEME_KEY);
+    window.applyTheme(s === 'dark');
+  })();
 }
-
-(function () {
-  const s = localStorage.getItem(THEME_KEY);
-  applyTheme(s === 'dark');
-})();
 
 // ── STATE ──────────────────────────────────────────────
 let selectedFiles = [];
@@ -30,12 +32,16 @@ const picaInst = pica();
 // ── DOM READY ──────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
 
-  // Theme toggle
-  document.getElementById('themeToggle')?.addEventListener('click', () => {
-    const isDark = document.documentElement.dataset.theme !== 'dark';
-    applyTheme(isDark);
-    localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
-  }, { passive: true });
+  // Theme toggle — faq.js carrega antes e já registra o clique — evita
+  // registrar de novo (dois listeners cancelavam o efeito do clique)
+  if (!window._ppThemeListenerSet) {
+    window._ppThemeListenerSet = true;
+    document.getElementById('themeToggle')?.addEventListener('click', () => {
+      const isDark = document.documentElement.dataset.theme !== 'dark';
+      window.applyTheme(isDark);
+      localStorage.setItem(window.THEME_KEY, isDark ? 'dark' : 'light');
+    }, { passive: true });
+  }
 
   // Navbar scroll
   const nav = document.querySelector('.site-nav');
@@ -170,32 +176,48 @@ async function processImages() {
   setProgress(0, 'Iniciando processamento...');
 
   try {
-    const zip = new JSZip();
-    const total = selectedFiles.length;
+    const total  = selectedFiles.length;
+    const single = total === 1;
+    const zip    = single ? null : new JSZip();
+    let singleBlob = null, singleName = null;
 
     for (let i = 0; i < total; i++) {
       const file = selectedFiles[i];
       setProgress((i / total) * 90, `Processando ${i + 1} de ${total}: ${file.name}`);
 
       const blob = await resizeImage(file);
-      const ext  = 'jpg';
       const base = file.name.replace(/\.[^.]+$/, '');
-      zip.file(`${base}.${ext}`, blob);
+
+      if (single) {
+        singleBlob = blob;
+        singleName = `${base}.jpg`;
+      } else {
+        zip.file(`${base}.jpg`, blob);
+      }
     }
 
-    setProgress(92, 'Gerando arquivo ZIP...');
-    const zipBlob = await zip.generateAsync({ type: 'blob' }, (meta) => {
-      setProgress(92 + (meta.percent / 100) * 8, `Compactando... ${Math.round(meta.percent)}%`);
-    });
+    const link = document.getElementById('downloadLink');
+    let finalUrl, finalName;
+
+    if (single) {
+      finalUrl  = URL.createObjectURL(singleBlob);
+      finalName = singleName;
+    } else {
+      setProgress(92, 'Gerando arquivo ZIP...');
+      const zipBlob = await zip.generateAsync({ type: 'blob' }, (meta) => {
+        setProgress(92 + (meta.percent / 100) * 8, `Compactando... ${Math.round(meta.percent)}%`);
+      });
+      finalUrl  = URL.createObjectURL(zipBlob);
+      finalName = `imagens_processadas_${Date.now()}.zip`;
+    }
 
     setProgress(100, 'Concluído!');
 
-    const url  = URL.createObjectURL(zipBlob);
-    const link = document.getElementById('downloadLink');
     if (link) {
-      link.href = url;
-      link.download = `imagens_processadas_${Date.now()}.zip`;
+      link.href = finalUrl;
+      link.download = finalName;
     }
+    updateResultTexts(single);
 
     setTimeout(() => showPanel('result'), 300);
 
@@ -205,6 +227,22 @@ async function processImages() {
     if (errText) errText.textContent = err.message || 'Erro desconhecido. Verifique os arquivos e tente novamente.';
     showPanel('error');
   }
+}
+
+// ── RESULT TEXT (single image vs ZIP) ──────────────────
+function updateResultTexts(single) {
+  const panel = document.getElementById('resultSection');
+  if (!panel) return;
+  const title = panel.querySelector('h3');
+  const desc  = panel.querySelector('p');
+  const btn   = document.getElementById('downloadLink');
+  if (title) title.textContent = single ? 'Imagem Processada' : 'Processamento Concluído';
+  if (desc)  desc.textContent  = single
+    ? 'Sua imagem foi redimensionada com sucesso. Clique abaixo para baixá-la.'
+    : 'Suas imagens foram processadas e redimensionadas com sucesso. Clique abaixo para baixar o arquivo ZIP.';
+  if (btn)   btn.innerHTML = single
+    ? '<i class="fas fa-download"></i> Baixar Imagem'
+    : '<i class="fas fa-download"></i> Baixar ZIP';
 }
 
 // ── RESIZE ─────────────────────────────────────────────

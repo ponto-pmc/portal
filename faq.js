@@ -96,6 +96,86 @@ function normKey(str) {
     .replace(/\s+/g, '_');
 }
 
+// ── PERFIL: normalização e correspondência ─────────────
+// Suporta perguntas exclusivas de "Gestor", exclusivas de
+// "Servidor/Usuário" e perguntas compartilhadas marcadas na
+// planilha como "Ambos" / "Todos" / "Geral" (aparecem nos dois perfis).
+function normPerfilStr(v) {
+  return String(v || '').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+function isSharedPerfil(perfilRaw) {
+  return /\b(ambos|todos|geral|all|both)\b/.test(normPerfilStr(perfilRaw));
+}
+function matchesProfile(perfilRaw, profile) {
+  const p = normPerfilStr(perfilRaw);
+  if (!p) return false;
+  if (isSharedPerfil(perfilRaw)) return true;
+  return profile === 'gestor'
+    ? p.includes('gestor')
+    : (p.includes('usuario') || p.includes('servidor'));
+}
+
+// ── ÍCONES SVG (contato) ────────────────────────────────
+// Usados em formatResposta() para destacar links, e-mails e
+// telefones encontrados no texto das respostas.
+const ICON_LINK  = '<svg class="resp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
+const ICON_MAIL  = '<svg class="resp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>';
+const ICON_PHONE = '<svg class="resp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"/></svg>';
+const ICON_PLAY  = '<svg class="resp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>';
+
+// ── VÍDEO EMBUTIDO A PARTIR DE LINK ENTRE ASPAS SIMPLES ─
+// Convenção da planilha: quando a coluna "resposta" contém um trecho
+// entre aspas simples 'https://...', esse trecho é sempre o link de um
+// vídeo explicativo. Ele nunca deve aparecer como texto cru — em vez
+// disso vira um player embutido (YouTube/Vimeo) ou um botão de play
+// para outros formatos, exibido apenas quando esse padrão existir.
+function extractVideoLink(text) {
+  // percorre TODOS os pares de aspas simples do texto — a planilha pode ter
+  // aspas simples usadas para outra coisa antes do link (ex.: protocolo
+  // 'https'), então não basta pegar o primeiro par, precisa achar o que
+  // realmente parece uma URL
+  const re = /'([^']+)'/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const candidate = m[1].trim();
+    const looksLikeUrl = /^https?:\/\//i.test(candidate) || /^www\./i.test(candidate);
+    if (!looksLikeUrl) continue;
+
+    const cleaned = (text.slice(0, m.index) + text.slice(m.index + m[0].length))
+      .replace(/[ \t]{2,}/g, ' ')
+      .replace(/\s+([.,;:!?])/g, '$1')
+      .trim();
+
+    return { text: cleaned, videoUrl: /^https?:\/\//i.test(candidate) ? candidate : `https://${candidate}` };
+  }
+  return { text, videoUrl: null };
+}
+
+function buildVideoEmbed(url) {
+  const safe  = escHtml(url);
+  const yt    = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/i);
+  const vimeo = url.match(/vimeo\.com\/(\d+)/i);
+  // Google Drive: aceita os formatos /file/d/ID/view, /file/d/ID/preview,
+  // /open?id=ID e /uc?id=ID, e normaliza todos para o formato de embed /preview
+  const drive = url.match(/drive\.google\.com\/(?:file\/d\/([a-zA-Z0-9_-]+)|open\?id=([a-zA-Z0-9_-]+)|uc\?(?:export=download&)?id=([a-zA-Z0-9_-]+))/i);
+
+  if (drive) {
+    const fileId = drive[1] || drive[2] || drive[3];
+    return `<div class="resp-video-wrap"><iframe class="resp-video-frame" src="https://drive.google.com/file/d/${fileId}/preview" title="Vídeo explicativo" loading="lazy" allow="autoplay" allowfullscreen></iframe></div>`;
+  }
+  if (yt) {
+    return `<div class="resp-video-wrap"><iframe class="resp-video-frame" src="https://www.youtube.com/embed/${yt[1]}" title="Vídeo explicativo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+  }
+  if (vimeo) {
+    return `<div class="resp-video-wrap"><iframe class="resp-video-frame" src="https://player.vimeo.com/video/${vimeo[1]}" title="Vídeo explicativo" loading="lazy" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>`;
+  }
+  if (/\.(mp4|webm|ogg)(\?.*)?$/i.test(url)) {
+    return `<div class="resp-video-wrap"><video class="resp-video-frame" controls preload="metadata" src="${safe}"></video></div>`;
+  }
+  return `<a class="resp-video-fallback" href="${safe}" target="_blank" rel="noopener">${ICON_PLAY}<span>Assistir vídeo explicativo</span></a>`;
+}
+
 // ── FETCH via PapaParse — stale-while-revalidate ───────
 // Serve cache imediato (UX rápida) e rebusca planilha em background sempre.
 // Se a planilha mudar, próxima interação já usa os dados novos.
@@ -149,9 +229,11 @@ function loadFaqData() {
       return; // mantém cache anterior se fetch falhar
     }
 
-    // Atualiza só se os dados mudaram (comparação leve por tamanho + última pergunta)
-    const changed = fresh.length !== faqDB.length ||
-      fresh[fresh.length - 1]?.pergunta !== faqDB[faqDB.length - 1]?.pergunta;
+    // Atualiza sempre que o CONTEÚDO mudar — antes só comparava quantidade
+    // de linhas + última pergunta, o que não detectava edição no texto de
+    // uma resposta já existente (ex.: acrescentar o link de vídeo entre
+    // aspas simples numa pergunta que já existia na planilha)
+    const changed = JSON.stringify(fresh) !== JSON.stringify(faqDB);
 
     if (changed) {
       faqDB = fresh;
@@ -159,17 +241,15 @@ function loadFaqData() {
       buildIndexes();
       renderFaqSections();
       // reconstrói fuseChat se o chat já estiver com perfil selecionado
-      if (chatProfile) _finishSetProfile(chatProfile, p =>
-        String(p || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-      );
+      if (chatProfile) _finishSetProfile(chatProfile);
     }
   });
 }
 
 // ── INDEXAÇÃO COM FUSE.JS ──────────────────────────────
 function buildIndexes() {
-  const gestorItems  = faqDB.filter(r => /gestor/i.test(r.perfil  || ''));
-  const usuarioItems = faqDB.filter(r => /usuario|servidor/i.test(r.perfil || ''));
+  const gestorItems  = faqDB.filter(r => matchesProfile(r.perfil, 'gestor'));
+  const usuarioItems = faqDB.filter(r => matchesProfile(r.perfil, 'usuario'));
 
   fuseGestor  = new Fuse(gestorItems,  FUSE_OPTS);
   fuseUsuario = new Fuse(usuarioItems, FUSE_OPTS);
@@ -177,14 +257,50 @@ function buildIndexes() {
 
 // ── RENDERIZAÇÃO DOS ACORDEONS ─────────────────────────
 function renderFaqSections() {
-  const gestorItems  = faqDB.filter(r => /gestor/i.test(r.perfil  || ''));
-  const usuarioItems = faqDB.filter(r => /usuario|servidor/i.test(r.perfil || ''));
+  const gestorItems  = faqDB.filter(r => matchesProfile(r.perfil, 'gestor'));
+  const usuarioItems = faqDB.filter(r => matchesProfile(r.perfil, 'usuario'));
 
   injectAccordions('gestorAccordion',  gestorItems);
   injectAccordions('usuarioAccordion', usuarioItems);
 
-  // re-bind accordion triggers (DOM foi atualizado)
+  // re-bind accordion triggers e grupos de tema (DOM foi atualizado)
   bindAccordions();
+  bindThemeGroups();
+}
+
+// Agrupa os itens do perfil pela coluna "tema" da planilha, preservando
+// a ordem de primeira aparição. Itens sem tema caem em "Geral".
+function groupByTema(items) {
+  const order = [];
+  const map = new Map();
+  items.forEach(item => {
+    const tema = (item.tema || '').trim() || 'Geral';
+    if (!map.has(tema)) { map.set(tema, []); order.push(tema); }
+    map.get(tema).push(item);
+  });
+  return order.map(tema => ({ tema, items: map.get(tema) }));
+}
+
+function accordionItemHtml(item, key) {
+  const obs = item.observacao
+    ? `<div class="accordion-obs"><i class="fas fa-info-circle"></i> ${escHtml(item.observacao)}</div>`
+    : '';
+  const shared = isSharedPerfil(item.perfil)
+    ? '<span class="badge accordion-badge"><i class="fas fa-users"></i> Ambos os perfis</span>'
+    : '';
+  return `
+    <div class="accordion-item" data-index="${key}">
+      <button class="accordion-trigger" aria-expanded="false">
+        <span class="accordion-question">${escHtml(item.pergunta)}${shared}</span>
+        <span class="accordion-icon"><i class="fas fa-plus"></i></span>
+      </button>
+      <div class="accordion-body">
+        <div class="accordion-body-inner">
+          ${formatResposta(item.resposta)}
+          ${obs}
+        </div>
+      </div>
+    </div>`;
 }
 
 function injectAccordions(containerId, items) {
@@ -199,24 +315,48 @@ function injectAccordions(containerId, items) {
     return;
   }
 
-  container.innerHTML = items.map((item, idx) => {
-    const obs = item.observacao
-      ? `<div class="accordion-obs"><i class="fas fa-info-circle"></i> ${escHtml(item.observacao)}</div>`
-      : '';
+  const groups = groupByTema(items);
+
+  container.innerHTML = groups.map(({ tema, items: grpItems }, gidx) => {
+    const body = grpItems.map((item, idx) => accordionItemHtml(item, `${gidx}-${idx}`)).join('');
     return `
-      <div class="accordion-item" data-index="${idx}">
-        <button class="accordion-trigger" aria-expanded="false">
-          <span class="accordion-question">${escHtml(item.pergunta)}</span>
-          <span class="accordion-icon"><i class="fas fa-plus"></i></span>
+      <div class="theme-group">
+        <button class="theme-group-header" aria-expanded="false">
+          <span class="theme-group-title"><i class="fas fa-layer-group"></i> ${escHtml(tema)}</span>
+          <span class="theme-group-meta">
+            <span class="theme-group-count">${grpItems.length}</span>
+            <span class="theme-group-hint"><i class="fas fa-hand-pointer"></i> Clique para ver</span>
+            <i class="fas fa-chevron-down theme-group-arrow"></i>
+          </span>
         </button>
-        <div class="accordion-body">
-          <div class="accordion-body-inner">
-            <p>${formatResposta(item.resposta)}</p>
-            ${obs}
-          </div>
-        </div>
+        <div class="theme-group-body collapsed">${body}</div>
       </div>`;
   }).join('');
+}
+
+// ── GRUPOS DE TEMA: expandir/recolher ───────────────────
+function bindThemeGroups() {
+  document.querySelectorAll('.theme-group-header').forEach(btn => {
+    btn.removeEventListener('click', toggleThemeGroup);
+    btn.addEventListener('click', toggleThemeGroup);
+  });
+}
+function toggleThemeGroup(e) {
+  const header    = e.currentTarget;
+  const body      = header.nextElementSibling;
+  const isOpen    = header.getAttribute('aria-expanded') === 'true';
+  const container = header.closest('.faq-accordion');
+
+  // fecha e desmarca os demais temas (só um tema em destaque por vez)
+  container?.querySelectorAll('.theme-group-header').forEach(h => {
+    if (h !== header) {
+      h.setAttribute('aria-expanded', 'false');
+      h.nextElementSibling?.classList.add('collapsed');
+    }
+  });
+
+  header.setAttribute('aria-expanded', String(!isOpen));
+  if (body) body.classList.toggle('collapsed', isOpen);
 }
 
 function escHtml(str) {
@@ -227,52 +367,187 @@ function escHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
+// ── QUEBRA DE LINHA INTELIGENTE ─────────────────────────
+
+// 1) Se a resposta veio como um "bloco" só (planilha sem \n\n),
+//    agrupa as frases em parágrafos de ~2 frases / ~80+ caracteres
+//    para evitar parede de texto. Não mexe se já houver parágrafos
+//    definidos pelo autor ou se for uma lista.
+function autoParagraph(text) {
+  if (/\n\s*\n/.test(text)) return text;
+  if (/^\s*(?:[•\-]|\d+[.)])\s+/m.test(text)) return text;
+  // não reagrupa textos com e-mail/link/telefone — são curtos e
+  // sensíveis a uma divisão incorreta em "frases"
+  if (/https?:\/\//.test(text)) return text;
+  if (/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(text)) return text;
+
+  // divide em frases sem perder nenhum caractere: quebra apenas no
+  // espaço que vem depois de ./!/? e antes de uma letra maiúscula
+  const sentences = text.split(/(?<=[.!?])\s+(?=[A-ZÀ-Ý0-9])/);
+  if (sentences.length < 3) return text;
+
+  const paragraphs = [];
+  let current = [];
+  let charCount = 0;
+  for (const s of sentences) {
+    current.push(s);
+    charCount += s.length;
+    if (current.length >= 2 && charCount > 80) {
+      paragraphs.push(current.join(' '));
+      current = [];
+      charCount = 0;
+    }
+  }
+  if (current.length) paragraphs.push(current.join(' '));
+  return paragraphs.length > 1 ? paragraphs.join('\n\n') : text;
+}
+
+// 1b) Quebra de linha antes de "rótulos" tipo "Campo:" — comum em respostas
+//     da planilha que juntam vários dados num só parágrafo (ex.: "Prazo: 5
+//     dias úteis. Local: sala 202. Contato: (31) 3391-8000."). Cada rótulo
+//     passa a iniciar seu próprio parágrafo. Não afeta horários (8:00),
+//     valores (R$ 100) ou URLs, pois estes nunca começam com letra maiúscula
+//     seguida só de ":" — e o link de vídeo já foi extraído antes deste passo.
+const LABEL_BREAK_RE = /(\S)[ \t]+([A-ZÀ-Ý][A-Za-zÀ-ÿ0-9]*(?:[ \t][A-Za-zÀ-ÿ0-9]+){0,3}:)(?=[ \t]|$)/g;
+function breakBeforeLabels(text) {
+  return text.replace(LABEL_BREAK_RE, '$1\n\n$2');
+}
+
+// Rótulos de destaque (Importante/Atenção/Observação/Nota/Dica/Aviso) viram
+// um callout visual (como .accordion-obs) em vez de um parágrafo comum.
+const CALLOUT_RE = /^\s*(?:<strong>)?\s*(importante|atenc?ao|observac?ao|obs|nota|dica|aviso)\s*:(?:<\/strong>)?/i;
+const CALLOUT_ICONS = {
+  importante: 'fa-triangle-exclamation',
+  atencao:    'fa-triangle-exclamation',
+  aviso:      'fa-triangle-exclamation',
+  observacao: 'fa-circle-info',
+  obs:        'fa-circle-info',
+  nota:       'fa-circle-info',
+  dica:       'fa-lightbulb',
+};
+function normAscii(str) {
+  return String(str).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+// 2) Tipografia fina, linha a linha: liga com espaço inseparável (nbsp)
+//    palavras que nunca deveriam "sobrar" sozinhas no início/fim de
+//    linha — preposições/conjunções curtas, "R$ 100", "nº 5", "5 dias" —
+//    e cola as duas últimas palavras de cada linha para evitar a
+//    clássica "palavra órfã" isolada na última linha do parágrafo.
+const GLUE_WORDS = ['a','à','e','é','o','ao','de','da','do','em','no','na','ou','um','uma','se','que','por','com'];
+const GLUE_WORDS_RE = new RegExp('(^|\\s)(' + GLUE_WORDS.join('|') + ')\\s+(?=\\S)', 'gi');
+
+function smartTypography(t) {
+  return t.split('\n').map(line => {
+    if (!line.trim()) return line;
+    let l = line;
+    // moeda: "R$ 100,00" nunca quebra entre o símbolo e o valor
+    l = l.replace(/(R\$)\s+(?=\d)/g, '$1\u00A0');
+    // número + unidade: "200 horas", "5 dias", "30 minutos"
+    l = l.replace(/(\d+)\s+(dias?|horas?|minutos?|meses?|anos?)\b/gi, '$1\u00A0$2');
+    // "nº 5", "Art. 37", "§ 2"
+    l = l.replace(/(n[ºo°]|art\.?|§)\s+(?=\S)/gi, (m, p1) => p1 + '\u00A0');
+    // preposições/conjunções curtas nunca sozinhas no fim da linha
+    l = l.replace(GLUE_WORDS_RE, (m, pre, word) => pre + word + '\u00A0');
+    // evita palavra órfã isolada na última linha do parágrafo
+    l = l.replace(/\s+(\S+)\s*$/, '\u00A0$1');
+    return l;
+  }).join('\n');
+}
+
 // Converte \n, **negrito**, URLs e e-mails para HTML com quebras inteligentes
 function formatResposta(text) {
+  // 0a. extrai link de vídeo entre aspas simples '...' — por convenção da
+  //     planilha, esse trecho é sempre um vídeo e nunca deve aparecer como
+  //     texto cru. Só existe player quando esse padrão está presente.
+  const { text: semVideo, videoUrl } = extractVideoLink(String(text));
+
+  // 0b. quebra de linha antes de rótulos "Campo:" (Prazo:, Local:, Passo 2:)
+  let raw = breakBeforeLabels(semVideo);
+
+  // 0c. agrupa em parágrafos legíveis quando o texto vem como bloco único
+  raw = autoParagraph(raw);
+
   // 1. escapa HTML
-  let t = escHtml(text);
+  let t = escHtml(raw);
+
+  // 1b. tipografia fina (nbsp em pontos que não devem quebrar)
+  t = smartTypography(t);
 
   // 2. negrito **...**
   t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
 
-  // 3. links — URL
+  // 2b. rótulo no início da linha ("Prazo: 5 dias") ganha negrito automático
+  t = t.replace(/(^|\n)([A-ZÀ-Ý][A-Za-zÀ-ÿ0-9]*(?:[ \t][A-Za-zÀ-ÿ0-9]+){0,3}:)([ \t])/g, '$1<strong>$2</strong>$3');
+
+  // 3. links — URL (chip com ícone SVG de link)
   t = t.replace(
     /(https?:\/\/[^\s<>"]+)/g,
-    '<a class="chat-link" href="$1" target="_blank" rel="noopener">$1</a>'
+    (m) => `<a class="resp-chip resp-chip--link" href="${m}" target="_blank" rel="noopener">${ICON_LINK}<span>${m}</span></a>`
   );
 
-  // 4. e-mails
+  // 4. e-mails (chip com ícone SVG de envelope)
   t = t.replace(
     /([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/g,
-    '<a class="chat-link" href="mailto:$1">$1</a>'
+    (m) => `<a class="resp-chip resp-chip--mail" href="mailto:${m}">${ICON_MAIL}<span>${m}</span></a>`
   );
 
-  // 5. telefones no padrão BR (ex: (31) 3391-8000 ou 31 3391-8000)
+  // 5. telefones no padrão BR — ex: (31) 3391-8000 ou 31 3391-8000
+  //    (chip com ícone SVG de telefone; href usa apenas dígitos)
   t = t.replace(
     /(\(?\d{2}\)?\s?\d{4,5}[-\s]?\d{4})/g,
-    '<a class="chat-link" href="tel:$1">$1</a>'
+    (m) => `<a class="resp-chip resp-chip--phone" href="tel:+55${m.replace(/\D/g, '')}">${ICON_PHONE}<span>${m}</span></a>`
   );
 
-  // 6. lista com bullet "• item" ou "- item" no início da linha → <ul>
+  // 6. lista com bullet "• item" / "- item" → <ul>, ou "1. item" / "1) item" → <ol>
   const lines = t.split(/\n/);
   const out = [];
-  let inList = false;
+  let inList = null; // 'ul' | 'ol' | null
   for (const line of lines) {
-    const isBullet = /^[•\-]\s+/.test(line.trim());
-    if (isBullet) {
-      if (!inList) { out.push('<ul class="resp-list">'); inList = true; }
-      out.push('<li>' + line.trim().replace(/^[•\-]\s+/, '') + '</li>');
+    const trimmed = line.trim();
+    const isBullet   = /^[•\-]\s+/.test(trimmed);
+    const isNumbered = !isBullet && /^\d+[.)]\s+/.test(trimmed);
+
+    if (isBullet || isNumbered) {
+      const type = isBullet ? 'ul' : 'ol';
+      if (inList && inList !== type) { out.push(`</${inList}>`); inList = null; }
+      if (!inList) { out.push(type === 'ul' ? '<ul class="resp-list">' : '<ol class="resp-list resp-list--ol">'); inList = type; }
+      const cleaned = isBullet ? trimmed.replace(/^[•\-]\s+/, '') : trimmed.replace(/^\d+[.)]\s+/, '');
+      out.push('<li>' + cleaned + '</li>');
     } else {
-      if (inList) { out.push('</ul>'); inList = false; }
+      if (inList) { out.push(`</${inList}>`); inList = null; }
       out.push(line);
     }
   }
-  if (inList) out.push('</ul>');
+  if (inList) out.push(`</${inList}>`);
 
-  // 7. parágrafos: duas quebras de linha seguidas viram separador de parágrafo
-  return out.join('\n')
-    .replace(/\n{2,}/g, '</p><p class="resp-p">')
-    .replace(/\n/g, '<br>');
+  // 7. parágrafos: duas quebras de linha seguidas viram separador de parágrafo.
+  //    Antes disso, remove quebras de linha coladas nas tags de lista para
+  //    que <ul>/<ol>/<li> nunca ganhem <br> indevido.
+  let joined = out.join('\n')
+    .replace(/\n(<\/?(?:ul|ol)[^>]*>)/g, '$1')
+    .replace(/(<\/?(?:ul|ol)[^>]*>)\n/g, '$1')
+    .replace(/\n(<li>)/g, '$1')
+    .replace(/(<\/li>)\n/g, '$1');
+
+  // 8. cada parágrafo vira <p> (o 1º sem margem extra, os demais com a
+  //    classe .resp-p); rótulos de destaque (Importante/Atenção/Observação/
+  //    Nota/Dica/Aviso) viram um callout visual, no estilo do .accordion-obs.
+  const html = joined.split(/\n{2,}/).map((par, idx) => {
+    const withBr  = par.replace(/\n/g, '<br>');
+    const callout = par.match(CALLOUT_RE);
+    if (callout) {
+      const icon = CALLOUT_ICONS[normAscii(callout[1])] || 'fa-circle-info';
+      // remove o <strong> do rótulo dentro do callout — o destaque visual
+      // já vem do ícone/borda da caixa, evitando negrito duplicado
+      const cleaned = withBr.replace(/^\s*<strong>([^<]+:)<\/strong>\s*/i, '$1 ');
+      return `<div class="resp-callout"><i class="fas ${icon}"></i><div>${cleaned}</div></div>`;
+    }
+    return idx === 0 ? `<p>${withBr}</p>` : `<p class="resp-p">${withBr}</p>`;
+  }).join('');
+
+  // 9. player de vídeo embutido, se a resposta tinha um link entre aspas simples
+  return videoUrl ? html + buildVideoEmbed(videoUrl) : html;
 }
 
 // ── LOADING / ERROR STATES ─────────────────────────────
@@ -368,10 +643,16 @@ function runSearch(query) {
     const obs = item.observacao
       ? `<div class="accordion-obs"><i class="fas fa-info-circle"></i> ${escHtml(item.observacao)}</div>`
       : '';
+    const shared = isSharedPerfil(item.perfil)
+      ? '<span class="badge accordion-badge"><i class="fas fa-users"></i> Ambos os perfis</span>'
+      : '';
+    const temaBadge = item.tema
+      ? `<span class="badge accordion-badge accordion-badge-tema"><i class="fas fa-layer-group"></i> ${escHtml(item.tema)}</span>`
+      : '';
     return `
       <div class="accordion-item search-result" data-index="${idx}">
         <button class="accordion-trigger" aria-expanded="${idx === 0 ? 'true' : 'false'}">
-          <span class="accordion-question">${perguntaHL}</span>
+          <span class="accordion-question">${perguntaHL}${temaBadge}${shared}</span>
           <span class="accordion-icon"><i class="fas fa-plus"></i></span>
         </button>
         <div class="accordion-body ${idx === 0 ? 'active' : ''}">
@@ -544,7 +825,9 @@ window.addEventListener('popstate', e => {
 
 // ── CONTENT BLOCKER ────────────────────────────────────
 function setupContentBlocker() {
-  const ALLOWED = ['drive.google.com'];
+  // drive.google.com já era permitido; youtube/vimeo liberados para os
+  // vídeos embutidos gerados por formatResposta() (ver buildVideoEmbed)
+  const ALLOWED = ['drive.google.com', 'www.youtube.com', 'www.youtube-nocookie.com', 'player.vimeo.com'];
 
   function cleanNode(node) {
     if (node.nodeType !== 1) return;
@@ -571,6 +854,19 @@ let chatProfile  = null;   // 'gestor' | 'usuario'
 let fuseChat     = null;   // índice Fuse ativo para o chat
 let chatOpen     = false;
 let chatGreeted  = false;
+
+// Comandos e respostas rápidas — reconhecidos antes da busca no FAQ
+const RE_SWITCH_PROFILE = /\b(trocar|mudar|alterar|selecionar)\s+(de\s+)?perfil\b|\boutro\s+perfil\b/i;
+const CHAT_SMALLTALK = [
+  { re: /^(oi+|ol[aá]|bom\s+dia|boa\s+tarde|boa\s+noite|e[ai]+|hey|hello)[\s!.,?]*$/i,
+    reply: 'Olá! 😊 Pode digitar sua dúvida ou tocar em uma das sugestões abaixo.' },
+  { re: /^(muito\s+)?(obrigad[oa]o?s?|grato|valeu|vlw)[\s!.,?]*$/i,
+    reply: 'De nada! 🙌 Posso ajudar com mais alguma coisa?' },
+  { re: /^(tchau|at[eé]\s+(mais|logo)|falou|adeus|bye)[\s!.,?]*$/i,
+    reply: 'Até mais! 👋 Estou por aqui se precisar de algo.' },
+  { re: /\b(atendente|humano|pessoa\s+real|falar\s+com\s+algu[eé]m)\b/i,
+    reply: 'Para atendimento humano, contate a equipe SEAD ou acesse o <a class="chat-link" href="https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx" target="_blank" rel="noopener">ForPonto Web</a>. Enquanto isso, me diga sua dúvida que eu tento ajudar por aqui. 🙂' },
+];
 
 /* ---- abertura/fechamento ---- */
 function toggleChat() {
@@ -606,18 +902,13 @@ function chatWelcome() {
       '<li>Configuração do app e senha</li>' +
       '<li>Relatórios e gestão de equipe</li>' +
     '</ul>' +
-    'Selecione seu <strong>perfil acima</strong> para começar. 👆'
+    'Selecione seu <strong>perfil abaixo</strong> para começar. 👆'
   );
 }
 
 /* ---- seleção de perfil no chat ---- */
 function setChatProfile(profile) {
   chatProfile = profile;
-
-  // normaliza o campo perfil da planilha antes de filtrar (remove acentos, lowercase)
-  function normPerfil(v) {
-    return String(v || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  }
 
   // se faqDB ainda não carregou, aguarda até 5s e tenta de novo
   if (!faqDB.length) {
@@ -630,25 +921,17 @@ function setChatProfile(profile) {
           chatAddMsg('bot', '⚠️ Não foi possível carregar o manual. Verifique sua conexão e recarregue a página.');
           return;
         }
-        _finishSetProfile(profile, normPerfil);
+        _finishSetProfile(profile);
       }
     }, 300);
     return;
   }
 
-  _finishSetProfile(profile, normPerfil);
+  _finishSetProfile(profile);
 }
 
-function _finishSetProfile(profile, normPerfil) {
-  function normPerfil(v) {
-    return String(v || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  }
-  const items = faqDB.filter(r => {
-    const p = normPerfil(r.perfil);
-    return profile === 'gestor'
-      ? p.includes('gestor')
-      : (p.includes('usuario') || p.includes('servidor'));
-  });
+function _finishSetProfile(profile) {
+  const items = faqDB.filter(r => matchesProfile(r.perfil, profile));
 
   // Fallback: se o campo perfil não existir / vier diferente, usa todos os itens
   const finalItems = items.length ? items : faqDB;
@@ -717,6 +1000,16 @@ function chatSend(text) {
   }
 
   chatAddMsg('user', escHtml(text));
+
+  // comandos e conversas rápidas — respondem direto, sem acionar busca no FAQ
+  if (RE_SWITCH_PROFILE.test(text)) { promptSwitchProfile(); return; }
+  const smalltalk = CHAT_SMALLTALK.find(r => r.re.test(text));
+  if (smalltalk) {
+    chatTyping();
+    setTimeout(() => { removeTyping(); chatAddMsg('bot', smalltalk.reply); }, 450 + Math.random() * 200);
+    return;
+  }
+
   chatTyping();
 
   setTimeout(() => {
@@ -754,8 +1047,13 @@ function chatSend(text) {
     }
 
     if (!results.length) {
-      // sem resultado: mostra perguntas frequentes do perfil como sugestão
-      const sugestoes = docs.slice(0, 4).map(i => i.pergunta);
+      // sem resultado: tenta uma busca bem permissiva antes de cair nas perguntas genéricas
+      let sugestoes = [];
+      if (docs.length) {
+        const fuseLoose = new Fuse(docs, { ...FUSE_OPTS_FUZZY, threshold: 0.9 });
+        sugestoes = fuseLoose.search(text).slice(0, 4).map(r => r.item.pergunta);
+      }
+      if (!sugestoes.length) sugestoes = docs.slice(0, 4).map(i => i.pergunta);
       chatAddMsg('bot',
         `Não encontrei nada exato sobre <strong>"${escHtml(text)}"</strong> no manual. 🔍<br><br>` +
         `Tente reformular a pergunta ou clique em uma das sugestões abaixo:`
@@ -764,13 +1062,15 @@ function chatSend(text) {
       return;
     }
 
-    const top = results[0].item;
+    const top   = results[0].item;
+    const score = typeof results[0].score === 'number' ? results[0].score : 0;
+    const lead  = score > 0.4 ? 'Não achei uma correspondência exata, mas isso talvez ajude:<br><br>' : '';
     const obs = top.observacao
       ? `<div class="chat-obs"><i class="fas fa-info-circle"></i> ${escHtml(top.observacao)}</div>`
       : '';
 
     chatAddMsg('bot',
-      `<strong>${escHtml(top.pergunta)}</strong><br><br>` +
+      lead + `<strong>${escHtml(top.pergunta)}</strong><br><br>` +
       formatResposta(top.resposta) + obs
     );
 
@@ -797,6 +1097,21 @@ function chatTyping() {
 }
 function removeTyping() {
   document.querySelector('.chat-typing')?.remove();
+}
+
+/* ---- troca de perfil sem perder o histórico da conversa ---- */
+function promptSwitchProfile() {
+  chatProfile = null;
+  fuseChat    = null;
+
+  const input   = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('chatSendBtn');
+  if (input)   input.disabled   = true;
+  if (sendBtn) sendBtn.disabled = true;
+
+  chatAddMsg('bot', 'Sem problemas! Selecione o novo perfil abaixo. 👇');
+  const picker = document.getElementById('chatProfilePicker');
+  if (picker) picker.style.display = 'flex';
 }
 
 /* ---- limpar conversa ---- */
@@ -869,12 +1184,17 @@ function setupChat() {
 // ── INIT ───────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
 
-  // Tema
-  document.getElementById('themeToggle')?.addEventListener('click', () => {
-    const isDark = document.documentElement.dataset.theme !== 'dark';
-    window.applyTheme(isDark);
-    localStorage.setItem(window.THEME_KEY, isDark ? 'dark' : 'light');
-  }, { passive: true });
+  // Tema — registra o clique só uma vez mesmo quando faq.js é carregado
+  // junto com outro script da página (calculadora.js/imagem.js/script.js),
+  // evitando dois listeners no mesmo botão (o que cancelava o clique)
+  if (!window._ppThemeListenerSet) {
+    window._ppThemeListenerSet = true;
+    document.getElementById('themeToggle')?.addEventListener('click', () => {
+      const isDark = document.documentElement.dataset.theme !== 'dark';
+      window.applyTheme(isDark);
+      localStorage.setItem(window.THEME_KEY, isDark ? 'dark' : 'light');
+    }, { passive: true });
+  }
 
   // Navbar scroll
   const nav = document.querySelector('.site-nav');
