@@ -1,0 +1,2009 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Envio de Foto — Portal Ponto Eletrônico</title>
+  <link rel="icon" type="image/png" href="https://i.ibb.co/fVRw238j/Ponto-removebg-preview.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" />
+  <!-- CSS do portal (tokens.css + imagem.css) embutido para a página funcionar sozinha -->
+  <style>
+/* =====================================================
+   PORTAL PONTO ELETRÔNICO — Design Tokens v4
+   Aesthetic: Editorial Tech · Crisp Minimalism
+   Inspired by: structured whitespace, sharp grid lines,
+   confident sans-serif scale, blue accent system
+   ===================================================== */
+
+
+
+:root {
+  /* ── Core Palette ── */
+  --white:        #ffffff;
+  --off-white:    #f8f8f6;
+  --stone-50:     #f4f3f0;
+  --stone-100:    #e8e7e2;
+  --stone-200:    #d1d0cb;
+  --stone-400:    #9c9b93;
+  --stone-600:    #5c5b55;
+  --stone-800:    #2a2a26;
+  --stone-900:    #16160f;
+
+  /* ── Blue Accent ── */
+  --blue-50:      #edf4ff;
+  --blue-100:     #c6dcff;
+  --blue-300:     #6baaf5;
+  --blue-500:     #2d7de0;
+  --blue-600:     #1a5fb8;
+  --blue-700:     #114590;
+  --blue-900:     #081f45;
+
+  /* ── Semantic ── */
+  --success:      #1a8a5a;
+  --error:        #c42b2b;
+  --warning:      #c97b00;
+
+  /* ── Brand Primary ── */
+  --brand:        var(--blue-500);
+  --brand-dark:   var(--blue-700);
+
+  /* ── Typography ── */
+  --font-display: 'DM Sans', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+  --font-serif:   'Instrument Serif', Georgia, serif;
+  --font-mono:    'DM Mono', monospace;
+
+  /* ── Font Sizes ── */
+  --text-2xs:  0.625rem;
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  2rem;
+  --text-4xl:  2.75rem;
+  --text-5xl:  3.75rem;
+  --text-6xl:  5rem;
+  --text-hero: clamp(2.8rem, 8vw, 7.5rem);
+
+  /* ── Spacing ── */
+  --sp-1:  0.25rem;
+  --sp-2:  0.5rem;
+  --sp-3:  0.75rem;
+  --sp-4:  1rem;
+  --sp-5:  1.25rem;
+  --sp-6:  1.5rem;
+  --sp-8:  2rem;
+  --sp-10: 2.5rem;
+  --sp-12: 3rem;
+  --sp-16: 4rem;
+  --sp-20: 5rem;
+  --sp-24: 6rem;
+  --sp-32: 8rem;
+  --sp-40: 10rem;
+
+  /* ── Border Radius ── */
+  --radius-xs:   2px;
+  --radius-sm:   4px;
+  --radius-md:   6px;
+  --radius-lg:   10px;
+  --radius-xl:   14px;
+  --radius-2xl:  20px;
+  --radius-full: 9999px;
+
+  /* ── Transitions ── */
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast:    130ms;
+  --dur-med:     250ms;
+  --dur-slow:    450ms;
+
+  /* ── Light Semantic Tokens ── */
+  --bg:             var(--white);
+  --bg-alt:         var(--off-white);
+  --surface:        var(--white);
+  --surface-2:      var(--stone-50);
+  --surface-3:      var(--stone-100);
+  --text-primary:   var(--stone-900);
+  --text-secondary: var(--stone-600);
+  --text-muted:     var(--stone-400);
+  --border:         var(--stone-100);
+  --border-mid:     var(--stone-200);
+  --border-strong:  var(--stone-600);
+  --accent:         var(--blue-500);
+  --accent-light:   var(--blue-50);
+  --accent-dark:    var(--blue-700);
+  --header-bg:      rgba(255,255,255,0.94);
+  --shadow-sm:      0 1px 4px rgba(0,0,0,0.06);
+  --shadow-md:      0 4px 20px rgba(0,0,0,0.08);
+  --shadow-lg:      0 16px 48px rgba(0,0,0,0.1);
+  --near-black:     var(--stone-900);
+  --dark-gray:      var(--stone-800);
+  --dim-gray:       var(--stone-600);
+  --mid-gray:       var(--stone-400);
+  --light-gray:     var(--stone-100);
+  --black:          #000000;
+}
+
+/* ── Dark Mode ── */
+[data-theme="dark"] {
+  --bg:             #0f0f0d;
+  --bg-alt:         #161613;
+  --surface:        #161613;
+  --surface-2:      #1e1e1a;
+  --surface-3:      #262621;
+  --text-primary:   #f0efeb;
+  --text-secondary: rgba(240,239,235,0.7);
+  --text-muted:     rgba(240,239,235,0.38);
+  --border:         rgba(255,255,255,0.08);
+  --border-mid:     rgba(255,255,255,0.14);
+  --border-strong:  rgba(255,255,255,0.35);
+  --accent:         var(--blue-300);
+  --accent-light:   rgba(107,170,245,0.12);
+  --accent-dark:    var(--blue-100);
+  --header-bg:      rgba(15,15,13,0.94);
+  --shadow-sm:      0 1px 4px rgba(0,0,0,0.4);
+  --shadow-md:      0 4px 20px rgba(0,0,0,0.45);
+  --shadow-lg:      0 16px 48px rgba(0,0,0,0.55);
+  --near-black:     #f0efeb;
+  --dark-gray:      rgba(240,239,235,0.85);
+  --dim-gray:       rgba(240,239,235,0.55);
+  --mid-gray:       rgba(240,239,235,0.3);
+  --light-gray:     rgba(255,255,255,0.08);
+  --off-white:      #1e1e1a;
+}
+
+/* ===================== RESET ===================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* ===================== TYPOGRAPHY ===================== */
+.display-hero {
+  font-family: var(--font-display);
+  font-size: var(--text-hero);
+  font-weight: 300;
+  line-height: 0.94;
+  letter-spacing: -0.035em;
+}
+.display-1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 6vw, 5.5rem);
+  font-weight: 300;
+  line-height: 0.96;
+  letter-spacing: -0.03em;
+}
+.display-2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 3.5rem);
+  font-weight: 400;
+  line-height: 1.0;
+  letter-spacing: -0.025em;
+}
+.display-3 {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 3vw, 2.25rem);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.lead {
+  font-size: var(--text-lg);
+  font-weight: 400;
+  color: var(--text-secondary);
+  line-height: 1.72;
+  letter-spacing: -0.01em;
+}
+
+/* ===================== LINKS ===================== */
+a { color: inherit; text-decoration: none; }
+
+/* ===================== CONTAINER ===================== */
+.container {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 var(--sp-8);
+}
+@media(max-width: 640px) { .container { padding: 0 var(--sp-5); } }
+
+/* ===================== NAVBAR ===================== */
+.site-nav {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: var(--header-bg);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border-bottom: 1px solid var(--border);
+  transition: box-shadow var(--dur-med);
+}
+.site-nav.scrolled { box-shadow: var(--shadow-sm); }
+.site-nav .inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 62px;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 var(--sp-8);
+  gap: var(--sp-6);
+}
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-shrink: 0;
+}
+.nav-logo img {
+  height: 22px;
+  width: auto;
+}
+[data-theme="dark"] .nav-logo img { filter: brightness(0) invert(1); }
+.nav-logo-text {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+.nav-logo-text span { color: var(--accent); }
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  list-style: none;
+}
+.nav-links a {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  padding: var(--sp-2) var(--sp-4);
+  color: var(--text-secondary);
+  transition: color var(--dur-fast);
+  letter-spacing: -0.01em;
+}
+.nav-links a:hover { color: var(--text-primary); }
+.nav-links a.active { color: var(--text-primary); }
+.nav-links .btn-primary {
+  color: var(--white) !important;
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+[data-theme="dark"] .nav-links .btn-primary {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: var(--white) !important;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+.theme-toggle-btn {
+  width: 34px; height: 34px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--dur-fast);
+  font-size: 0.82rem;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.theme-toggle-btn:hover { color: var(--text-primary); border-color: var(--border-mid); background: var(--surface-2); }
+
+.nav-hamburger {
+  display: none;
+  width: 34px; height: 34px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  align-items: center; justify-content: center;
+  font-size: 0.9rem;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: all var(--dur-fast);
+}
+.nav-hamburger:hover { color: var(--text-primary); border-color: var(--border-mid); }
+
+@media (max-width: 900px) {
+  .nav-links {
+    position: fixed;
+    top: 62px; left: 0; right: 0;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: var(--sp-4) var(--sp-6) var(--sp-6);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    transform: translateY(-8px);
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transition: transform 0.2s var(--ease-out), opacity 0.2s var(--ease-out), visibility 0s linear 0.2s;
+  }
+  .nav-links.open {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+    transition: transform 0.2s var(--ease-out), opacity 0.2s var(--ease-out), visibility 0s linear 0s;
+  }
+  .nav-links a {
+    padding: var(--sp-4) var(--sp-2);
+    font-size: var(--text-base);
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+  .nav-links li:last-child { padding-top: var(--sp-3); }
+  .nav-hamburger { display: flex; }
+  .site-nav .inner { padding: 0 var(--sp-5); }
+}
+
+/* ===================== HERO BAND ===================== */
+.hero-band {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+  padding: var(--sp-32) 0 var(--sp-24);
+}
+.hero-band .container { position: relative; z-index: 1; }
+.hero-band .eyebrow { margin-bottom: var(--sp-5); display: block; }
+.hero-band .lead { max-width: 520px; margin-top: var(--sp-5); margin-bottom: var(--sp-10); }
+
+/* ===================== SECTION ===================== */
+.section    { padding: var(--sp-24) 0; }
+.section-sm { padding: var(--sp-16) 0; }
+.section-header { margin-bottom: var(--sp-12); }
+.section-header .eyebrow { display: block; margin-bottom: var(--sp-4); }
+
+/* ===================== BUTTONS ===================== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  letter-spacing: -0.01em;
+  padding: 0.65rem 1.4rem;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
+  text-decoration: none;
+  white-space: nowrap;
+  position: relative;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-primary {
+  background: var(--accent);
+  color: var(--white);
+  border-color: var(--accent);
+}
+.btn-primary:hover { background: var(--accent-dark); border-color: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(45,125,224,0.35); }
+
+.btn-outline {
+  background: transparent;
+  color: var(--text-primary);
+  border-color: var(--border-mid);
+}
+.btn-outline:hover { border-color: var(--text-primary); background: var(--surface-2); }
+
+.btn-ghost {
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  border-color: var(--border);
+}
+.btn-ghost:hover { border-color: var(--border-mid); color: var(--text-primary); }
+
+.btn-sm  { padding: 0.45rem 1rem; font-size: var(--text-xs); }
+.btn-lg  { padding: 0.85rem 1.9rem; font-size: var(--text-base); }
+
+/* ===================== BADGE ===================== */
+.badge {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  font-family: var(--font-mono); font-weight: 400; font-size: var(--text-xs);
+  letter-spacing: 0.06em;
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: var(--radius-full);
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  border: 1px solid transparent;
+}
+[data-theme="dark"] .badge { color: var(--accent); background: var(--accent-light); }
+
+/* ===================== FORM ELEMENTS ===================== */
+.form-group { margin-bottom: var(--sp-5); }
+.field-label {
+  display: block; margin-bottom: var(--sp-2);
+  font-size: var(--text-xs); font-weight: 500;
+  letter-spacing: 0.02em; color: var(--text-secondary);
+}
+.field-input, .field-select {
+  width: 100%; padding: 0.7rem 0.9rem;
+  font-family: var(--font-body); font-size: var(--text-sm);
+  background: var(--surface); color: var(--text-primary);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+  appearance: none;
+  -webkit-appearance: none;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.field-input:focus, .field-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+.field-input::placeholder { color: var(--text-muted); }
+
+/* ===================== ACCORDION ===================== */
+.accordion-item {
+  border-bottom: 1px solid var(--border);
+  transition: border-color var(--dur-med);
+}
+.accordion-item:first-child { border-top: 1px solid var(--border); }
+.accordion-trigger {
+  width: 100%; background: none; border: none; cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: var(--sp-5) 0; text-align: left;
+  transition: background var(--dur-fast);
+  touch-action: manipulation;
+}
+.accordion-trigger:hover .accordion-question { color: var(--text-primary); }
+.accordion-question {
+  font-size: var(--text-base); font-weight: 500;
+  color: var(--text-secondary); line-height: 1.45;
+  transition: color var(--dur-fast); letter-spacing: -0.01em;
+}
+.accordion-trigger[aria-expanded="true"] .accordion-question { color: var(--text-primary); }
+.accordion-icon {
+  width: 26px; height: 26px; flex-shrink: 0;
+  color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem;
+  transition: transform var(--dur-med) var(--ease-out), color var(--dur-fast);
+}
+.accordion-trigger[aria-expanded="true"] .accordion-icon {
+  color: var(--text-primary); transform: rotate(45deg);
+}
+.accordion-body { display: none; }
+.accordion-body.active { display: block; animation: slideDown var(--dur-med) var(--ease-out); }
+.accordion-body-inner {
+  padding: 0 0 var(--sp-5);
+  color: var(--text-secondary); line-height: 1.8;
+  font-size: var(--text-sm);
+}
+@keyframes slideDown { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+
+/* ===================== FOOTER ===================== */
+.site-footer {
+  background: var(--stone-900);
+  color: rgba(240,239,235,0.5);
+  padding: var(--sp-16) 0 var(--sp-10);
+  margin-top: var(--sp-24);
+}
+[data-theme="dark"] .site-footer { background: #0a0a08; }
+.footer-inner {
+  display: flex; align-items: center; gap: var(--sp-8); flex-wrap: wrap;
+  padding-bottom: var(--sp-6);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: var(--sp-6);
+}
+.footer-logo img {
+  height: 22px; filter: brightness(0) invert(0.45);
+}
+.footer-copy, .footer-dev {
+  font-size: var(--text-xs); color: rgba(240,239,235,0.35);
+  margin-top: var(--sp-1); font-family: var(--font-mono);
+  letter-spacing: 0.03em;
+}
+.footer-dev a { color: rgba(240,239,235,0.55); }
+.footer-dev a:hover { color: rgba(240,239,235,0.9); }
+
+/* ===================== UTILITIES ===================== */
+.hidden { display: none !important; }
+.text-muted  { color: var(--text-muted); }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+
+/* ===================== SCROLLBAR ===================== */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--stone-200); border-radius: 3px; }
+[data-theme="dark"] ::-webkit-scrollbar-thumb { background: var(--surface-3); }
+
+/* ===================== FOCUS ===================== */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: var(--radius-sm); }
+
+/* ===================== SELECTION ===================== */
+::selection { background: var(--blue-100); color: var(--blue-900); }
+[data-theme="dark"] ::selection { background: var(--blue-700); color: var(--blue-50); }
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width: 768px) {
+  .section { padding: var(--sp-16) 0; }
+  .hero-band { padding: var(--sp-20) 0 var(--sp-14); }
+  .lead { font-size: var(--text-base); }
+}
+@media (max-width: 480px) {
+  .hero-band { padding: var(--sp-16) 0 var(--sp-12); }
+}
+@media print {
+  .site-nav, .site-footer { display: none !important; }
+  body { background: white; color: black; }
+}
+/* =====================================================
+   imagem.css — Processador de Imagens
+   Nike Premium · Athletic Minimalism
+   ===================================================== */
+
+
+.page-wrapper { min-height: 100vh; display: flex; flex-direction: column; }
+main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
+
+/* BACK */
+.btn-back-page {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  font-family: var(--font-body); font-weight: 700; font-size: var(--text-xs);
+  color: var(--text-muted); background: none; border: none; cursor: pointer;
+  padding: var(--sp-2) 0; margin-bottom: var(--sp-10);
+  transition: color var(--dur-fast);
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.btn-back-page:hover { color: var(--text-primary); }
+.btn-back-page i { transition: transform var(--dur-fast); }
+.btn-back-page:hover i { transform: translateX(-3px); }
+
+/* PAGE HERO */
+.page-hero {
+  background: var(--near-black);
+  border-radius: var(--radius-xl);
+  padding: var(--sp-12);
+  position: relative; overflow: hidden;
+  margin-bottom: var(--sp-5);
+}
+[data-theme="dark"] .page-hero { background: var(--surface-2); border: 1.5px solid var(--border); }
+.page-hero .eyebrow { display: block; margin-bottom: var(--sp-4); position: relative; z-index: 1; color: rgba(255,255,255,0.4); }
+[data-theme="dark"] .page-hero .eyebrow { color: var(--text-muted); }
+.page-hero h1 {
+  font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(1.8rem, 4vw, 3.5rem);
+  color: var(--white); margin-bottom: var(--sp-3);
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: var(--sp-3);
+  text-transform: uppercase;
+}
+[data-theme="dark"] .page-hero h1 { color: var(--text-primary); }
+.page-hero h1 i { color: rgba(255,255,255,0.3); font-size: 0.65em; }
+[data-theme="dark"] .page-hero h1 i { color: var(--text-muted); }
+.page-hero p { color: rgba(255,255,255,0.55); font-size: var(--text-sm); position: relative; z-index: 1; line-height: 1.75; }
+[data-theme="dark"] .page-hero p { color: var(--text-secondary); }
+
+/* INFO CARD */
+.info-card {
+  display: flex; align-items: flex-start; gap: var(--sp-5);
+  background: var(--off-white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-6) var(--sp-7);
+  margin-bottom: var(--sp-5);
+}
+[data-theme="dark"] .info-card { background: var(--surface-2); }
+.info-icon {
+  width: 40px; height: 40px; flex-shrink: 0;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; color: var(--dark-gray);
+}
+[data-theme="dark"] .info-icon { background: var(--surface-3); color: var(--text-secondary); }
+.info-content h3 {
+  font-family: var(--font-body); font-weight: 700;
+  font-size: var(--text-sm); color: var(--text-primary);
+  margin-bottom: var(--sp-2); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.info-content p { color: var(--text-secondary); line-height: 1.7; font-size: var(--text-sm); }
+@media(max-width: 540px) { .info-card { flex-direction: column; } }
+
+/* UPLOAD ZONE */
+.upload-zone {
+  background: var(--surface);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--sp-16) var(--sp-8);
+  text-align: center; cursor: pointer;
+  transition: border-color var(--dur-med), background var(--dur-med);
+  position: relative;
+}
+.upload-zone:hover, .upload-zone.dragover {
+  border-color: var(--near-black);
+  background: var(--off-white);
+}
+[data-theme="dark"] .upload-zone:hover, [data-theme="dark"] .upload-zone.dragover {
+  border-color: var(--white);
+  background: var(--surface-2);
+}
+.upload-zone .up-icon {
+  font-size: 3rem; color: var(--mid-gray); margin-bottom: var(--sp-5);
+  display: block;
+  transition: color var(--dur-med), transform var(--dur-med) var(--ease-out);
+}
+.upload-zone:hover .up-icon { color: var(--near-black); transform: translateY(-6px); }
+[data-theme="dark"] .upload-zone:hover .up-icon { color: var(--white); }
+.upload-zone h3 {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: var(--text-2xl); color: var(--text-primary);
+  margin-bottom: var(--sp-2); text-transform: uppercase;
+}
+.upload-zone p { color: var(--text-muted); font-size: var(--text-sm); margin-bottom: var(--sp-5); }
+.format-badges { display: flex; gap: var(--sp-2); justify-content: center; flex-wrap: wrap; margin-bottom: var(--sp-6); }
+.fmt-badge {
+  background: var(--off-white);
+  border: 1.5px solid var(--border);
+  color: var(--dim-gray);
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: var(--radius-full);
+  font-family: var(--font-mono); font-weight: 500;
+  font-size: var(--text-xs); letter-spacing: 0.1em;
+}
+[data-theme="dark"] .fmt-badge { background: var(--surface-2); color: var(--text-muted); }
+
+/* FILE PANEL */
+.file-panel {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  display: none;
+  margin-top: var(--sp-4);
+}
+.file-panel-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: var(--sp-4) var(--sp-7);
+  border-bottom: 1.5px solid var(--border);
+  background: var(--off-white);
+}
+[data-theme="dark"] .file-panel-header { background: var(--surface-2); }
+.file-panel-title {
+  font-family: var(--font-body); font-weight: 700;
+  font-size: var(--text-sm); color: var(--text-primary);
+  display: flex; align-items: center; gap: var(--sp-3);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.file-panel-title i { color: var(--text-muted); }
+.count-badge {
+  background: var(--near-black);
+  color: var(--white);
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: var(--radius-full);
+  font-family: var(--font-mono); font-weight: 500;
+  font-size: var(--text-xs); letter-spacing: 0.1em;
+}
+[data-theme="dark"] .count-badge { background: var(--surface-3); color: var(--text-secondary); }
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: var(--sp-3);
+  padding: var(--sp-6) var(--sp-7);
+}
+.img-thumb {
+  position: relative; border-radius: var(--radius-md); overflow: hidden;
+  aspect-ratio: 1;
+  background: var(--off-white);
+  border: 1.5px solid var(--border);
+  transition: border-color var(--dur-med);
+}
+[data-theme="dark"] .img-thumb { background: var(--surface-2); }
+.img-thumb img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform var(--dur-med) var(--ease-out);
+}
+.img-thumb:hover { border-color: var(--near-black); }
+[data-theme="dark"] .img-thumb:hover { border-color: var(--white); }
+.img-thumb:hover img { transform: scale(1.06); }
+.img-remove {
+  position: absolute; top: 5px; right: 5px;
+  width: 24px; height: 24px;
+  background: rgba(0,0,0,0.7); color: var(--white);
+  border: none;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 0.7rem;
+  opacity: 0; transition: opacity var(--dur-fast);
+}
+.img-thumb:hover .img-remove { opacity: 1; }
+.img-remove:hover { background: var(--error); }
+
+.file-panel-actions {
+  display: flex; gap: var(--sp-3); flex-wrap: wrap;
+  padding: 0 var(--sp-7) var(--sp-6);
+}
+.file-panel-actions .btn { flex: 1; min-width: 120px; justify-content: center; }
+
+/* PROGRESS */
+.progress-panel {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--sp-10);
+  display: none;
+  margin-top: var(--sp-4);
+}
+.progress-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: var(--sp-6); flex-wrap: wrap; gap: var(--sp-4);
+}
+.progress-title {
+  font-family: var(--font-body); font-weight: 700;
+  font-size: var(--text-sm); color: var(--text-secondary);
+  display: flex; align-items: center; gap: var(--sp-3);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.progress-spin { animation: spin 1s linear infinite; color: var(--text-muted); }
+@keyframes spin { to { transform: rotate(360deg); } }
+.progress-pct {
+  font-family: var(--font-display); font-weight: 900;
+  font-size: var(--text-3xl); color: var(--text-primary);
+  text-transform: uppercase;
+}
+.progress-bar-track {
+  height: 3px; background: var(--light-gray);
+  border-radius: var(--radius-full); overflow: hidden;
+  margin-bottom: var(--sp-4);
+}
+[data-theme="dark"] .progress-bar-track { background: var(--surface-3); }
+.progress-bar-fill {
+  height: 100%; width: 0%;
+  background: var(--near-black);
+  border-radius: var(--radius-full);
+  transition: width 0.3s var(--ease-out);
+}
+[data-theme="dark"] .progress-bar-fill { background: var(--white); }
+.progress-text {
+  text-align: center; color: var(--text-muted);
+  font-size: var(--text-xs); font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+}
+
+/* RESULT / ERROR */
+.result-panel, .error-panel {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--sp-16) var(--sp-8);
+  text-align: center;
+  display: none;
+  margin-top: var(--sp-4);
+}
+.result-panel { border-color: var(--near-black); background: var(--near-black); color: var(--white); }
+[data-theme="dark"] .result-panel { border-color: var(--border); background: var(--surface-2); color: var(--text-primary); }
+.result-icon { font-size: 3rem; color: var(--white); margin-bottom: var(--sp-5); display: block; }
+[data-theme="dark"] .result-icon { color: var(--success); }
+.error-icon  { font-size: 3rem; color: var(--error); margin-bottom: var(--sp-5); display: block; }
+.result-panel h3 {
+  font-family: var(--font-display); font-weight: 900;
+  font-size: var(--text-3xl); color: var(--white);
+  margin-bottom: var(--sp-3); text-transform: uppercase;
+}
+[data-theme="dark"] .result-panel h3 { color: var(--text-primary); }
+.error-panel h3 {
+  font-family: var(--font-display); font-weight: 900;
+  font-size: var(--text-3xl); color: var(--text-primary);
+  margin-bottom: var(--sp-3); text-transform: uppercase;
+}
+.result-panel p { color: rgba(255,255,255,0.65); max-width: 380px; margin: 0 auto var(--sp-8); line-height: 1.75; font-size: var(--text-sm); }
+[data-theme="dark"] .result-panel p { color: var(--text-secondary); }
+.error-panel p { color: var(--text-secondary); max-width: 380px; margin: 0 auto var(--sp-8); line-height: 1.75; font-size: var(--text-sm); }
+.result-panel .btn-row, .error-panel .btn-row { justify-content: center; }
+.result-panel .btn-primary { background: var(--white); color: var(--near-black); border-color: var(--white); }
+.result-panel .btn-outline { border-color: rgba(255,255,255,0.4); color: rgba(255,255,255,0.8); }
+.result-panel .btn-outline:hover { background: rgba(255,255,255,0.1); border-color: var(--white); color: var(--white); }
+
+/* NOTIFICATION */
+.notification {
+  position: fixed; top: var(--sp-5); right: var(--sp-5);
+  padding: var(--sp-3) var(--sp-5);
+  border-radius: var(--radius-full);
+  font-family: var(--font-body); font-weight: 700; font-size: var(--text-xs);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  z-index: 2000;
+  opacity: 0; transform: translateX(12px);
+  transition: opacity 0.2s var(--ease-out), transform 0.2s var(--ease-out);
+  border: 1.5px solid transparent;
+}
+.notification.visible { opacity: 1; transform: translateX(0); }
+.notification.success { background: var(--near-black); color: var(--white); border-color: var(--near-black); }
+[data-theme="dark"] .notification.success { background: var(--surface-2); border-color: var(--border); color: var(--text-primary); }
+.notification.error { background: var(--error); color: var(--white); border-color: var(--error); }
+.notification.info { background: var(--near-black); color: var(--white); border-color: var(--near-black); }
+
+/* RESPONSIVE */
+@media(max-width: 768px) {
+  .page-hero { padding: var(--sp-8) var(--sp-6); }
+  .file-panel-header { flex-direction: column; align-items: flex-start; gap: var(--sp-2); }
+  .file-panel-actions { flex-direction: column; }
+  .preview-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+}
+  </style>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    /* ===== Formulário de foto (usa os tokens do portal) ===== */
+    :root { --sp-7: 1.75rem; }  /* o tokens.css não define --sp-7, o que zerava o padding dos cards */
+    .foto-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: var(--sp-6); align-items: start; margin-top: var(--sp-5); }
+    @media (max-width: 860px) { .foto-grid { grid-template-columns: 1fr; } }
+    .card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-xl); padding: var(--sp-8); }
+        .card h2 { font-family: var(--font-body); font-weight: 700; font-size: var(--text-sm); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 var(--sp-6); color: var(--text-primary); display: flex; gap: var(--sp-4); align-items: center; }
+    .ico-box { width: 38px; height: 38px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; background: var(--off-white); border: 1.5px solid var(--border); border-radius: var(--radius-md); color: var(--text-secondary); font-size: .95rem; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); }
+    @media (max-width: 540px) { .row2 { grid-template-columns: 1fr; } }
+    /* cartões laterais */
+    .side-card { background: var(--off-white); border: 1.5px solid var(--border); border-radius: var(--radius-xl); padding: var(--sp-8); margin-bottom: var(--sp-6); }
+    .side-card:last-child { margin-bottom: 0; }
+    .side-head { display: flex; align-items: center; gap: var(--sp-4); margin-bottom: var(--sp-6); }
+    .side-head h3 { margin: 0; font-family: var(--font-body); font-weight: 700; font-size: var(--text-sm); text-transform: uppercase; letter-spacing: .06em; color: var(--text-primary); }
+    .side-card p { margin: 0; font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.75; }
+    @media (max-width: 540px) { .card, .side-card { padding: var(--sp-6); } }
+    .field { margin-bottom: var(--sp-5); }
+    .field label { display: block; font-weight: 700; font-size: var(--text-xs); letter-spacing: .08em; text-transform: uppercase; color: var(--text-secondary); margin-bottom: var(--sp-2); }
+    .field input[type=text], .field select {
+      width: 100%; padding: .75rem .9rem; font: inherit; font-size: var(--text-base);
+      background: var(--bg); color: var(--text-primary);
+      border: 1.5px solid var(--border-mid); border-radius: var(--radius-md);
+    }
+    .field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .field .hint { font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--sp-2); }
+    .field .err { font-size: var(--text-xs); color: var(--error); margin-top: var(--sp-2); display: none; }
+    .field.invalid .err { display: block; }
+    .field.invalid input, .field.invalid select { border-color: var(--error); }
+    .field label.check { text-transform: none; letter-spacing: 0; font-weight: 400; font-size: var(--text-sm); display: flex; gap: var(--sp-3); align-items: flex-start; font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.55; }
+    .check input { margin-top: .25rem; width: 18px; height: 18px; flex-shrink: 0; }
+
+    .drop { border: 2px dashed var(--border-mid); border-radius: var(--radius-xl); padding: var(--sp-10) var(--sp-5); text-align: center; cursor: pointer; background: var(--surface); transition: border-color var(--dur-med), background var(--dur-med); }
+    .drop:hover, .drop.dragover { border-color: var(--near-black); background: var(--off-white); }
+    .drop i { font-size: 2.2rem; color: var(--mid-gray); display: block; margin-bottom: var(--sp-3); }
+    .drop strong { display: block; font-size: var(--text-lg); margin-bottom: var(--sp-1); }
+    .drop span { font-size: var(--text-sm); color: var(--text-muted); }
+
+    .cam-row { display: flex; align-items: center; justify-content: center; gap: var(--sp-4); margin-top: var(--sp-4); color: var(--text-muted); font-size: var(--text-sm); }
+    .cam-modal { position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 3000; display: flex; align-items: center; justify-content: center; padding: var(--sp-4); }
+    .cam-modal[hidden] { display: none !important; }
+    .cam-box { background: var(--surface); border-radius: var(--radius-xl); padding: var(--sp-6); width: min(560px, 100%); max-height: 96vh; overflow: auto; }
+    .cam-view { position: relative; width: 100%; aspect-ratio: 4 / 3; background: #000; border-radius: var(--radius-lg); overflow: hidden; }
+    .cam-view video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: block; }
+    .cam-oval { position: absolute; left: 50%; top: 47%; width: 44%; height: 70%; transform: translate(-50%, -50%); border: 3px dashed rgba(255,255,255,.85); border-radius: 50%; box-shadow: 0 0 0 999px rgba(0,0,0,.28); pointer-events: none; }
+    .cam-count { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 5.5rem; font-weight: 800; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.6); pointer-events: none; }
+    .cam-tip { font-size: var(--text-sm); color: var(--text-secondary); margin: var(--sp-4) 0 0; line-height: 1.6; text-align: center; }
+    .loading-model { font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--sp-3); display: flex; gap: var(--sp-2); align-items: center; }
+
+    .result { margin-top: var(--sp-5); border-radius: var(--radius-lg); padding: var(--sp-5) var(--sp-6); border: 1.5px solid var(--border); display: none; }
+    .result.show { display: block; }
+    .result.ok { border-color: var(--success); background: rgba(26,138,90,.08); }
+    .result.bad { border-color: var(--error); background: rgba(196,43,43,.07); }
+    .result.work { background: var(--surface-2); }
+    .result h3 { font-size: var(--text-base); font-weight: 800; display: flex; gap: var(--sp-3); align-items: center; margin-bottom: var(--sp-2); }
+    .result.ok h3 { color: var(--success); } .result.bad h3 { color: var(--error); }
+    .result ul { margin: var(--sp-3) 0 0 0; padding: 0; list-style: none; display: grid; gap: var(--sp-3); }
+    .result li { font-size: var(--text-sm); color: var(--text-primary); line-height: 1.55; padding-left: 1.6rem; position: relative; }
+    .result li::before { content: "\f00d"; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; left: 0; color: var(--error); }
+    .result li b { display: block; }
+    .result p { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6; }
+
+    .preview-box { display: none; text-align: center; margin-top: var(--sp-5); }
+    .preview-box.show { display: block; }
+    .preview-box canvas { width: 200px; height: 200px; border-radius: var(--radius-md); border: 1.5px solid var(--border-mid); background: #fff; }
+    .preview-box small { display: block; margin-top: var(--sp-2); color: var(--text-muted); font-size: var(--text-xs); }
+
+    .tips { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--sp-4); }
+    .tips li { font-size: var(--text-sm); color: var(--text-secondary); display: flex; gap: var(--sp-4); line-height: 1.65; align-items: flex-start; }
+    .guia-link { margin-top: var(--sp-6); width: 100%; justify-content: center; gap: var(--sp-3); }
+    .tips li i { color: var(--success); margin-top: .3rem; width: 16px; text-align: center; flex-shrink: 0; }
+    .tips li.no i { color: var(--error); }
+
+    .actions { display: flex; gap: var(--sp-3); flex-wrap: wrap; margin-top: var(--sp-6); }
+    .btn[disabled] { opacity: .45; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+    /* tela de sucesso */
+    .done { display: none; text-align: center; padding: var(--sp-12) var(--sp-8); max-width: 560px; margin: var(--sp-6) auto 0; }
+    .done.show { display: block; }
+    .done-badge { width: 72px; height: 72px; margin: 0 auto var(--sp-6); border-radius: 50%; background: rgba(26,138,90,.12); color: var(--success); display: flex; align-items: center; justify-content: center; font-size: 1.7rem; }
+    .done h3 { font-size: var(--text-2xl); font-weight: 800; margin: 0 0 var(--sp-3); color: var(--text-primary); }
+    .done p { margin: 0 auto; max-width: 44ch; color: var(--text-secondary); line-height: 1.7; font-size: var(--text-sm); }
+    .done-thumb { display: block; width: 96px; height: 96px; border-radius: var(--radius-lg); border: 1.5px solid var(--border-mid); margin: var(--sp-8) auto var(--sp-3); background: #fff; }
+    .done-meta { font-size: var(--text-xs); color: var(--text-muted); letter-spacing: .04em; }
+    .done .actions { justify-content: center; margin-top: var(--sp-8); }
+
+    /* ===== Celular ===== */
+    @media (max-width: 640px) {
+      main { padding: var(--sp-8) 0 var(--sp-16); }
+      .btn-back-page { margin-bottom: var(--sp-6); }
+      .page-hero { padding: var(--sp-6); border-radius: var(--radius-lg); }
+      .page-hero h1 { font-size: clamp(1.35rem, 7vw, 1.8rem); gap: var(--sp-3); }
+      .page-hero p { font-size: var(--text-sm); line-height: 1.6; }
+      .foto-grid { margin-top: var(--sp-4); gap: var(--sp-4); }
+      .card, .side-card { padding: var(--sp-5); border-radius: var(--radius-lg); }
+      .side-card { margin-bottom: var(--sp-4); }
+      .card h2, .side-head { margin-bottom: var(--sp-5); }
+      .drop { padding: var(--sp-8) var(--sp-4); }
+      .drop strong { font-size: var(--text-base); }
+      .cam-row { flex-wrap: wrap; }
+      .cam-row .btn { width: 100%; justify-content: center; }
+      .actions { flex-direction: column; align-items: stretch; }
+      .actions .btn { width: 100%; justify-content: center; }
+      .result { padding: var(--sp-4) var(--sp-5); }
+      .preview-box canvas { width: 160px; height: 160px; }
+      .done { padding: var(--sp-8) var(--sp-5); margin-top: var(--sp-4); }
+      .done h3 { font-size: var(--text-xl); }
+      .cam-modal { padding: var(--sp-3); align-items: flex-end; }
+      .cam-box { padding: var(--sp-4); border-radius: var(--radius-xl) var(--radius-xl) var(--radius-lg) var(--radius-lg); }
+      .cam-count { font-size: 4rem; }
+      .cam-box .actions { flex-direction: column-reverse; }
+    }
+    @media (max-width: 380px) { .field input[type=text], .field select { padding: .7rem .75rem; } }
+
+    /* ===== Modo calibragem (?debug=1) ===== */
+    #debugPanel { display: none; margin-top: var(--sp-5); }
+    body.debug #debugPanel { display: block; }
+    #debugPanel table { width: 100%; border-collapse: collapse; font-size: var(--text-xs); font-family: var(--font-mono); }
+    #debugPanel th, #debugPanel td { border-bottom: 1px solid var(--border); padding: 6px 8px; text-align: left; vertical-align: top; }
+    #debugPanel td.ok { color: var(--success); font-weight: 700; } #debugPanel td.bad { color: var(--error); font-weight: 700; }
+    #debugPanel pre { white-space: pre-wrap; font-size: var(--text-xs); background: var(--surface-2); padding: var(--sp-4); border-radius: var(--radius-md); }
+    .debug-badge { display: none; background: var(--warning); color: #fff; font-size: var(--text-xs); font-weight: 700; padding: 2px 10px; border-radius: 99px; margin-left: 10px; vertical-align: middle; }
+    body.debug .debug-badge { display: inline-block; }
+  </style>
+</head>
+<body class="page-wrapper">
+
+  <nav class="site-nav" role="navigation" aria-label="Navegação principal">
+    <div class="inner">
+      <a class="nav-logo" href="index.html" aria-label="Voltar ao início">
+        <img src="https://legislacao.contagem.mg.gov.br/imgs/Marca-PMC-cor.png" alt="Prefeitura de Contagem" />
+        <span class="nav-logo-text">Ponto<span>.</span>PMC</span>
+      </a>
+      <ul class="nav-links" id="navLinks" role="list">
+        <li><a href="index.html">Início</a></li>
+        <li><a href="calculadora.html">Calculadora</a></li>
+        <li><a href="controle.html">Controle</a></li>
+        <li><a href="imagem.html">Imagens</a></li>
+        <li><a href="foto.html" class="active">Enviar Foto</a></li>
+        <li><a href="faq.html">Ajuda</a></li>
+        <li><a href="https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Acessar</a></li>
+      </ul>
+      <div class="nav-actions">
+        <button class="theme-toggle-btn" id="themeToggle" aria-label="Alternar tema"><i class="fas fa-moon" id="themeIcon"></i></button>
+        <button class="nav-hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false"><i class="fas fa-bars"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container">
+
+      <button class="btn-back-page" onclick="history.back()"><i class="fas fa-arrow-left"></i> Voltar</button>
+
+      <div class="page-hero">
+        <span class="eyebrow">Cadastro Facial</span>
+        <h1><i class="fas fa-camera"></i> Envio de Foto <span class="debug-badge">calibragem</span></h1>
+        <p>Envie sua foto para o cadastro no relógio de ponto facial. O sistema confere se ela está dentro do padrão e já ajusta o tamanho automaticamente.</p>
+      </div>
+
+      <div id="formArea">
+        <div class="foto-grid">
+
+          <!-- COLUNA ESQUERDA: dados + foto -->
+          <div class="card">
+            <h2><span class="ico-box"><i class="fas fa-id-card"></i></span> Seus dados</h2>
+
+            <div class="field" id="fNome">
+              <label for="nome">Nome completo</label>
+              <input type="text" id="nome" autocomplete="name" maxlength="120" />
+              <div class="err">Informe seu nome completo.</div>
+            </div>
+
+            <div class="row2">
+              <div class="field" id="fMat">
+                <label for="matricula">Matrícula</label>
+                <input type="text" id="matricula" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="Ex.: 1453013" />
+                <div class="hint">Somente a matrícula, sem zeros à esquerda.</div>
+                <div class="err" id="matErr">Informe uma matrícula válida (somente números).</div>
+              </div>
+              <div class="field" id="fCpf">
+                <label for="cpf">CPF</label>
+                <input type="text" id="cpf" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="000.000.000-00" />
+                <div class="hint">Somente números.</div>
+                <div class="err">Informe um CPF válido.</div>
+              </div>
+            </div>
+
+            <div class="field" id="fEmail">
+              <label for="email">E-mail</label>
+              <input type="text" id="email" inputmode="email" autocomplete="email" maxlength="120" placeholder="nome@exemplo.com" />
+              <div class="err">Informe um e-mail válido.</div>
+            </div>
+
+            <div class="field" id="fSec">
+              <label for="secretaria">Secretaria / órgão</label>
+              <select id="secretaria"><option value="">Selecione…</option></select>
+              <div class="err">Selecione sua secretaria.</div>
+            </div>
+
+            <h2 style="margin-top:var(--sp-10)"><span class="ico-box"><i class="fas fa-image"></i></span> Sua foto</h2>
+
+            <div class="drop" id="drop" tabindex="0" role="button" aria-label="Selecionar foto">
+              <i class="fas fa-cloud-upload-alt"></i>
+              <strong>Toque para escolher ou arraste a foto</strong>
+              <span>JPG, PNG ou WEBP</span>
+              <input type="file" id="file" accept="image/*" hidden />
+            </div>
+            <div class="cam-row">
+              <span>ou</span>
+              <button class="btn btn-outline" id="btnCam" type="button"><i class="fas fa-camera"></i> Tirar foto agora</button>
+              <input type="file" id="fileCam" accept="image/*" capture="user" hidden />
+            </div>
+            <div class="loading-model" id="modelStatus"><i class="fas fa-circle-notch fa-spin"></i> Preparando o verificador de fotos…</div>
+
+            <div class="result" id="result" role="status" aria-live="polite"></div>
+
+            <div class="preview-box" id="previewBox">
+              <canvas id="previewCanvas" width="200" height="200"></canvas>
+              <small>Foto como será enviada (200 × 200 px)</small>
+            </div>
+
+            <div class="field" style="margin-top:var(--sp-6)" id="fConsent">
+              <label class="check">
+                <input type="checkbox" id="consent" />
+                <span>Autorizo o uso desta foto e dos meus dados (nome, matrícula, CPF e e-mail) exclusivamente para o cadastro no sistema de ponto eletrônico facial da Prefeitura de Contagem. A foto só é enviada se estiver dentro do padrão.</span>
+              </label>
+              <div class="err">É necessário autorizar para enviar.</div>
+            </div>
+
+            <div class="actions">
+              <button class="btn btn-primary btn-lg" id="send" disabled><i class="fas fa-paper-plane"></i> Enviar foto</button>
+              <button class="btn btn-ghost" id="reset" type="button"><i class="fas fa-redo-alt"></i> Limpar</button>
+            </div>
+            <div class="result" id="sendMsg" role="status" aria-live="polite" style="margin-top:var(--sp-5)"></div>
+          </div>
+
+          <!-- COLUNA DIREITA: orientações -->
+          <div>
+            <div class="side-card">
+              <div class="side-head"><span class="ico-box"><i class="fas fa-lightbulb"></i></span><h3>Como tirar a foto</h3></div>
+              <ul class="tips">
+                <li><i class="fas fa-check"></i> <span>Fundo <b>liso e claro</b> (parede branca ou clara), sem quadros, móveis ou outras pessoas.</span></li>
+                <li><i class="fas fa-check"></i> <span>Rosto de frente, olhando para a câmera, <b>olhos abertos</b> e expressão neutra.</span></li>
+                <li><i class="fas fa-check"></i> <span>Luz <b>de frente e uniforme</b>, de preferência de uma janela. Sem sombra no rosto ou nos olhos.</span></li>
+                <li><i class="fas fa-check"></i> <span>Enquadre da cabeça até os ombros, com um pouco de espaço ao redor.</span></li>
+                <li class="no"><i class="fas fa-times"></i> <span><b>Sem óculos</b> (nem de grau), boné, chapéu ou máscara.</span></li>
+                <li class="no"><i class="fas fa-times"></i> <span>Sem flash e sem brilho ou reflexo de luz nos olhos.</span></li>
+                <li class="no"><i class="fas fa-times"></i> <span>Sem filtros, edições ou foto de foto.</span></li>
+              </ul>
+              <a class="btn btn-outline guia-link" href="https://drive.google.com/file/d/1ThsIScNFIo2EWpRDdqcgRqC1FnKPx3Pn/view?usp=sharing" target="_blank" rel="noopener">
+                <i class="fas fa-file-pdf"></i> Ver guia com exemplos (PDF)
+              </a>
+            </div>
+            <div class="side-card">
+              <div class="side-head"><span class="ico-box"><i class="fas fa-shield-alt"></i></span><h3>Sua foto fica protegida</h3></div>
+              <p>A conferência acontece no seu próprio aparelho. Se a foto for recusada, ela <b>não é enviada</b> para lugar nenhum. Só as fotos aprovadas e confirmadas por você seguem para o cadastro.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Painel de calibragem -->
+        <div class="card" id="debugPanel">
+          <h2><i class="fas fa-sliders-h"></i> Modo calibragem</h2>
+          <p style="font-size:var(--text-sm);color:var(--text-secondary);margin-bottom:var(--sp-4)">
+            Selecione várias fotos de uma vez (aprovadas e reprovadas em casos reais) para ver as métricas de cada uma e ajustar os limites no bloco <code>CONFIG.T</code> do arquivo.
+          </p>
+          <input type="file" id="batch" accept="image/*" multiple />
+          <div class="actions"><button class="btn btn-outline btn-sm" id="csvBtn" type="button" disabled>Baixar CSV</button></div>
+          <div style="overflow:auto;margin-top:var(--sp-4)"><table id="batchTable"></table></div>
+          <pre id="lastMetrics">Envie uma foto para ver as métricas.</pre>
+          <canvas id="dbgCanvas" style="max-width:100%;margin-top:var(--sp-4)"></canvas>
+        </div>
+      </div>
+
+      <div class="card done" id="doneArea">
+        <div class="done-badge"><i class="fas fa-check"></i></div>
+        <h3>Foto enviada com sucesso</h3>
+        <p>Recebemos a sua foto. Ela será incluída no relógio de ponto facial pela equipe do Ponto Eletrônico.</p>
+        <canvas class="done-thumb" id="doneThumb" width="200" height="200" aria-label="Foto enviada"></canvas>
+        <div class="done-meta" id="doneMeta"></div>
+        <div class="actions"><button class="btn btn-outline" id="again" type="button"><i class="fas fa-redo-alt"></i> Enviar outra foto</button></div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-logo"><img src="https://legislacao.contagem.mg.gov.br/imgs/Marca-PMC-cor.png" alt="Logo Prefeitura de Contagem" /></div>
+        <div>
+          <p class="footer-copy">© 2026 Equipe Ponto Eletrônico — Prefeitura Municipal de Contagem</p>
+          <p class="footer-dev">Desenvolvido por Equipe Ponto Eletrônico — SEAD</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+<div class="cam-modal" id="camModal" role="dialog" aria-modal="true" aria-label="Tirar foto" hidden>
+  <div class="cam-box">
+    <div class="cam-view" id="camView">
+      <video id="camVideo" playsinline muted autoplay></video>
+      <div class="cam-oval"></div>
+      <div class="cam-count" id="camCount"></div>
+    </div>
+    <p class="cam-tip">Fundo claro e liso, luz de frente, rosto dentro do contorno, olhando para a câmera e sem óculos.</p>
+    <div class="actions" style="justify-content:center">
+      <button class="btn btn-primary btn-lg" id="camShot" type="button"><i class="fas fa-camera"></i> Tirar foto (3 s)</button>
+      <button class="btn btn-ghost" id="camCancel" type="button">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+'use strict';
+
+/* =====================================================================
+   CONFIGURAÇÃO  — o que normalmente se mexe fica aqui
+   ===================================================================== */
+const CONFIG = {
+  // Endereço do Web App do Google Apps Script (ver Code.gs) e o token combinado.
+  ENDPOINT: 'https://script.google.com/macros/s/AKfycbzsDkA3yCzRNpLZ3ourM0fh3s9fIJiFeNriVKS73hMU5cPXcjc5kqP0Ok_s2ex0aNT4rA/exec',
+  TOKEN:    'sKHwQaBbn-3G-DzAjq-RGINix73A_sr1',
+
+  OUT_SIZE: 200,          // tamanho final (px) aceito pelo ponto
+  JPEG_QUALITY: 0.92,
+  MAX_FILE_MB: 15,
+  ANALYSIS_MAX_SIDE: 1280, // lado maior usado na análise
+  CROP_FACTOR: 1.32,       // lado do recorte = fator × altura do rosto (testa→queixo). Menor = mais perto do rosto
+  HEAD_MARGIN: 0.01,       // folga em volta da cabeça (cabelo até barba), fração da altura da cabeça
+  HEAD_BG_DIST: 50,        // quanto o pixel precisa diferir do fundo para contar como cabelo
+  BEARD_DARK: 0.62,        // barba = pixel mais escuro que essa fração do brilho da pele
+  BEARD_MAX: 0.4,          // até quanto abaixo do queixo procurar barba (× altura do rosto)
+  CROP_SHIFT_Y: -0.035,    // desloca o recorte para cima (fração do lado) para incluir o cabelo
+
+  // MediaPipe: tenta primeiro a cópia local (pasta vendor/mediapipe), depois a CDN.
+  MP_LOCAL: 'vendor/mediapipe',
+  MP_CDN:   'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14',
+  MODEL_LOCAL: 'vendor/mediapipe/face_landmarker.task',
+  MODEL_CDN:   'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
+
+  REJECT_SMILE: false,    // true = também recusa sorriso/boca aberta
+
+  // Limites de aceitação — ajustar com o modo calibragem (?debug=1)
+  T: {
+    minSide: 180,           // menor lado da imagem (px); fotos 200x200 já são aceitas
+    faceHeightMin: 0.22,    // altura do rosto / altura da imagem
+    faceHeightMax: 0.92,
+    centerOffsetMax: 0.22,  // desvio do centro do rosto / largura da imagem
+    blinkMax: 0.55,         // blendshape eyeBlink (olho fechado)
+    squintMax: 0.5,         // blendshape eyeSquint médio (olhos apertados)
+    smileForSquint: 0.35,   // se estiver sorrindo acima disso...
+    smileEyeOpenMax: 0.50,  // ...e o olho estiver menos aberto que isso (÷ íris), recusa
+    eyeOpenMin: 0.375,       // abertura do olho ÷ diâmetro da íris (calibrar)
+    earMin: 0.12,           // abertura do olho (altura/largura); abaixo disso = fechado
+    yawMax: 0.14,           // |posição do nariz − 0,5| (rosto virado)
+    rollMaxDeg: 12,         // cabeça inclinada
+    pitchMin: 0.45, pitchMax: 0.64, // razão vertical nariz (rosto para cima/baixo)
+    faceSatMin: 0.10,       // saturação média do rosto (preto e branco fica perto de 0)
+    colorFracMin: 0.25,     // fração do rosto com cor perceptível
+    faceChromaMin: 30,      // diferença média entre o maior e o menor canal (RGB) no rosto
+    strongFracMin: 0.35,    // fração do rosto com cor forte (diferença > 30); P&B tingido fica perto de 0
+    faceLumaMin: 70, faceLumaMax: 232,   // rosto escuro / estourado
+    sharpMin: 15,           // nitidez nos olhos/sobrancelhas (p98 do laplaciano)
+    // fundo
+    bgPatch: 0.09,          // lado dos recortes de fundo (fração do menor lado da imagem)
+    bgLumaMin: 150,         // fundo claro
+    bgSatMax: 0.28,         // saturação média máxima (fundo "sem cor")
+    bgStdMax: 30,           // desvio padrão do brilho (fundo liso)
+    bgRangeMax: 70,         // amplitude p90−p10 do brilho
+    bgSideGap: 0.5,         // distância mínima (× largura do rosto) entre o recorte lateral e o rosto
+    bgDarkIgnore: 85,       // recorte mais escuro que isso é tratado como cabelo/roupa
+    // óculos
+    glassesRatioMax: 3.2,   // energia de bordas (ponte/aro) ÷ bochecha (só pega armação evidente)
+    // reflexo nos olhos
+    glareFracMax: 0.07,     // fração de pixels estourados dentro da íris
+    // sombra nos olhos
+    eyeShadowRatioMin: 0.50,// brilho da pálpebra ÷ brilho da bochecha
+    eyeAsymMax: 0.45,       // diferença entre os dois olhos
+    secondFaceMin: 0.45,    // 2º rosto só conta se tiver ao menos essa fração da largura do 1º
+    // sorriso (se REJECT_SMILE)
+    smileMax: 0.45, jawOpenMax: 0.25,
+  },
+};
+
+const SECRETARIAS = [
+  ['GP','Gabinete da Prefeita'],['GVP','Gabinete do Vice Prefeito'],
+  ['SEGOV','Secretaria Municipal de Governo e Participação Popular'],
+  ['PGM','Procuradoria Geral do Município'],['CGM','Controladoria Geral do Município'],
+  ['SECOM','Secretaria Municipal de Comunicação'],['SEAD','Secretaria Municipal de Administração'],
+  ['SEFAZ','Secretaria Municipal de Fazenda'],
+  ['SEPLAN','Secretaria Municipal de Planejamento, Orçamento e Gestão'],
+  ['SMDSSA','Secretaria Municipal de Desenvolvimento Social e Segurança Alimentar'],
+  ['SMDU','Secretaria Municipal de Desenvolvimento Urbano'],['SEDUC','Secretaria Municipal de Educação'],
+  ['SMS','Secretaria Municipal de Saúde'],['SEDECON','Secretaria Municipal de Desenvolvimento Econômico'],
+  ['SEMOBS','Secretaria Municipal de Obras'],['SEDS','Secretaria Municipal de Defesa Social'],
+  ['SMDHC','Secretaria Municipal de Direitos Humanos e Cidadania'],
+  ['SEMEL','Secretaria Municipal de Esporte e Lazer'],
+  ['SEMAD','Secretaria Municipal de Meio Ambiente e Desenvolvimento Sustentável'],
+  ['SECULT','Secretaria Municipal de Cultura'],['STI','Secretaria Municipal de Tecnologia da Informação'],
+  ['SG','Secretaria Geral'],['SLC','Secretaria Municipal de Licitação e Contratos'],
+  ['SEHAB','Secretaria Municipal de Habitação'],['SSU','Secretaria Municipal de Serviços Urbanos'],
+  ['SETGER','Secretaria Municipal de Trabalho e Geração de Renda'],
+  ['SMUJ','Secretaria Municipal da Mulher e da Juventude'],
+];
+
+const DEBUG = new URLSearchParams(location.search).get('debug') === '1';
+const $ = id => document.getElementById(id);
+
+/* =====================================================================
+   TEMA + MENU (mesmo comportamento das outras páginas)
+   ===================================================================== */
+(function themeAndMenu() {
+  const KEY = 'pp-theme';
+  const apply = d => { document.documentElement.dataset.theme = d ? 'dark' : 'light';
+    const i = $('themeIcon'); if (i) i.className = d ? 'fas fa-sun' : 'fas fa-moon'; };
+  try { apply(localStorage.getItem(KEY) === 'dark'); } catch { apply(false); }
+  $('themeToggle')?.addEventListener('click', () => {
+    const d = document.documentElement.dataset.theme !== 'dark'; apply(d);
+    try { localStorage.setItem(KEY, d ? 'dark' : 'light'); } catch {}
+  });
+  const nav = document.querySelector('.site-nav');
+  addEventListener('scroll', () => nav?.classList.toggle('scrolled', scrollY > 10), { passive: true });
+  const hb = $('hamburger'), nl = $('navLinks');
+  hb?.addEventListener('click', () => {
+    const open = nl.classList.toggle('open'); hb.setAttribute('aria-expanded', String(open));
+    hb.innerHTML = open ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
+  });
+})();
+if (DEBUG) document.body.classList.add('debug');
+
+/* =====================================================================
+   FUNÇÕES PURAS DE ANÁLISE (recebem pixels + pontos do rosto)
+   ===================================================================== */
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const luma = (r, g, b) => 0.299 * r + 0.587 * g + 0.114 * b;
+const sat  = (r, g, b) => { const mx = Math.max(r, g, b), mn = Math.min(r, g, b); return mx === 0 ? 0 : (mx - mn) / mx; };
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+function percentile(arr, p) {
+  if (!arr.length) return NaN;
+  const s = Float32Array.from(arr).sort(); return s[clamp(Math.round((s.length - 1) * p), 0, s.length - 1)];
+}
+const mean = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : NaN;
+const std  = a => { const m = mean(a); return Math.sqrt(mean(a.map(v => (v - m) ** 2))); };
+
+// Imagem de análise: { w, h, data (RGBA), gray (Float32Array) }
+function makeImg(imageData) {
+  const { width: w, height: h, data } = imageData;
+  const gray = new Float32Array(w * h);
+  for (let i = 0, j = 0; i < gray.length; i++, j += 4) gray[i] = luma(data[j], data[j + 1], data[j + 2]);
+  return { w, h, data, gray };
+}
+// Caixa em pixels (limitada à imagem). box = {x0,y0,x1,y1} em px
+function fixBox(img, b) {
+  return { x0: clamp(Math.floor(b.x0), 0, img.w - 1), y0: clamp(Math.floor(b.y0), 0, img.h - 1),
+           x1: clamp(Math.ceil(b.x1), 1, img.w),     y1: clamp(Math.ceil(b.y1), 1, img.h) };
+}
+function boxLumas(img, box) {
+  const b = fixBox(img, box), out = [];
+  for (let y = b.y0; y < b.y1; y++) for (let x = b.x0; x < b.x1; x++) out.push(img.gray[y * img.w + x]);
+  return out;
+}
+// energia média de gradiente (Sobel simplificado) dentro da caixa
+function boxEdge(img, box) {
+  const b = fixBox(img, box); let s = 0, n = 0;
+  for (let y = Math.max(1, b.y0); y < Math.min(img.h - 1, b.y1); y++)
+    for (let x = Math.max(1, b.x0); x < Math.min(img.w - 1, b.x1); x++) {
+      const i = y * img.w + x, g = img.gray;
+      const gx = g[i + 1] - g[i - 1], gy = g[i + img.w] - g[i - img.w];
+      s += Math.hypot(gx, gy); n++;
+    }
+  return n ? s / n : 0;
+}
+function boxFromCenter(cx, cy, w, h) { return { x0: cx - w / 2, y0: cy - h / 2, x1: cx + w / 2, y1: cy + h / 2 }; }
+
+const IDX = {
+  rEye: [33,7,163,144,145,153,154,155,133,173,157,158,159,160,161,246],
+  lEye: [362,382,381,380,374,373,390,249,263,466,388,387,386,385,384,398],
+  rIris: [468,469,470,471,472], lIris: [473,474,475,476,477],
+};
+
+// pts = landmarks normalizados -> converte para pixels
+function toPx(lm, img) { return lm.map(p => ({ x: p.x * img.w, y: p.y * img.h })); }
+function ptsBox(pts, ids) {
+  const xs = ids.map(i => pts[i].x), ys = ids.map(i => pts[i].y);
+  return { x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) };
+}
+
+/* ---- Fundo: recortes nos cantos e laterais altas da foto ----
+   Em fotos 3x4 o rosto ocupa quase tudo, então o fundo só aparece nos cantos.
+   Recortes muito escuros são tratados como cabelo/roupa e ignorados. */
+function patchStats(img, x0, y0, side) {
+  const lum = [], sats = []; const rgb = [0, 0, 0]; let n = 0;
+  const b = fixBox(img, { x0, y0, x1: x0 + side, y1: y0 + side });
+  for (let y = b.y0; y < b.y1; y++) for (let x = b.x0; x < b.x1; x++) {
+    const j = (y * img.w + x) * 4, r = img.data[j], g = img.data[j + 1], bl = img.data[j + 2];
+    lum.push(luma(r, g, bl)); sats.push(sat(r, g, bl)); rgb[0] += r; rgb[1] += g; rgb[2] += bl; n++;
+  }
+  if (!n) return null;
+  return { luma: mean(lum), sat: mean(sats), std: std(lum), range: percentile(lum, 0.9) - percentile(lum, 0.1), rgb: rgb.map(v => Math.round(v / n)) };
+}
+function checkBackground(img, P, T) {
+  const side = Math.max(8, T.bgPatch * Math.min(img.w, img.h));
+  const chinY = P[152].y, eyeY = (P[33].y + P[263].y) / 2;
+  const spots = [['TL', 0, 0], ['TR', img.w - side, 0]];
+  // laterais, do alto até o queixo, mas só onde estão longe da cabeça (senão pegaria cabelo)
+  const gap = T.bgSideGap * dist(P[234], P[454]);
+  for (let fy = 0.18; fy < 0.95; fy += 0.12) {
+    const y = fy * img.h; if (y + side > chinY) break;
+    if (side <= P[234].x - gap) spots.push(['L' + fy.toFixed(2), 0, y]);
+    if (img.w - side >= P[454].x + gap) spots.push(['R' + fy.toFixed(2), img.w - side, y]);
+  }
+  // o 1º par (alto) continua valendo mesmo em foto fechada, como antes
+  if (!spots.some(sp => sp[0].startsWith('L'))) spots.push(['L0.18', 0, 0.18 * img.h]);
+  if (!spots.some(sp => sp[0].startsWith('R'))) spots.push(['R0.18', img.w - side, 0.18 * img.h]);
+  const patches = [];
+  for (const [name, x, y] of spots) {
+    const st = patchStats(img, x, y, side); if (!st) continue;
+    st.name = name; st.dark = st.luma < T.bgDarkIgnore;
+    st.plain = st.luma >= T.bgLumaMin && st.sat <= T.bgSatMax && st.std <= T.bgStdMax && st.range <= T.bgRangeMax;
+    patches.push(st);
+  }
+  const m = { bgPatches: patches.map(p => `${p.name}:${p.luma.toFixed(0)}/${p.sat.toFixed(2)}/${p.std.toFixed(0)}${p.plain ? '+' : p.dark ? 'd' : '-'}`).join(' ') };
+  const considered = patches.filter(p => !p.dark);   // escuros podem ser cabelo
+  const darkTop = patches.filter(p => p.dark && (p.name === 'TL' || p.name === 'TR')).length;
+  m.bgOk = considered.length ? considered.every(p => p.plain) : false;
+  m.bgBad = considered.filter(p => !p.plain).length;
+  m.bgDarkAll = patches.length > 0 && considered.length === 0;
+  const ref = (considered.find(p => p.plain) || patches[0]);
+  m.bgColor = ref ? ref.rgb : null;
+  m.bgLuma = ref ? ref.luma : NaN;
+  m.bgSat = considered.length ? mean(considered.map(p => p.sat)) : NaN;
+  m.bgStd = considered.length ? Math.max(...considered.map(p => p.std)) : NaN;
+  m.bgRange = considered.length ? Math.max(...considered.map(p => p.range)) : NaN;
+  m.bgDarkTop = darkTop;
+  return m;
+}
+
+/* ---- Óculos: bordas na ponte do nariz e abaixo dos olhos vs bochecha ---- */
+function checkGlasses(img, P) {
+  const rb = ptsBox(P, IDX.rEye), lb = ptsBox(P, IDX.lEye);
+  const eyeW = (rb.x1 - rb.x0 + lb.x1 - lb.x0) / 2;
+  const bridge = boxFromCenter((P[133].x + P[362].x) / 2, (P[168].y + P[6].y) / 2, (P[362].x - P[133].x) * 0.8, Math.abs(P[6].y - P[168].y) * 1.0);
+  const underR = { x0: rb.x0, x1: rb.x1, y0: rb.y1 + 0.12 * eyeW, y1: rb.y1 + 0.42 * eyeW };
+  const underL = { x0: lb.x0, x1: lb.x1, y0: lb.y1 + 0.12 * eyeW, y1: lb.y1 + 0.42 * eyeW };
+  const cheekR = boxFromCenter(P[50].x, P[50].y + 0.1 * eyeW, 0.8 * eyeW, 0.5 * eyeW);
+  const cheekL = boxFromCenter(P[280].x, P[280].y + 0.1 * eyeW, 0.8 * eyeW, 0.5 * eyeW);
+  const ref = (boxEdge(img, cheekR) + boxEdge(img, cheekL)) / 2;
+  const eb = boxEdge(img, bridge), er = boxEdge(img, underR), el = boxEdge(img, underL);
+  const score = Math.max(eb, (er + el) / 2, Math.max(er, el) * 0.85) / (ref + 3);
+  return { glassesRatio: score, edgeBridge: eb, edgeUnder: (er + el) / 2, edgeCheek: ref };
+}
+
+/* ---- Reflexo (pixels estourados e sem cor dentro da íris) ---- */
+function checkGlare(img, P) {
+  const out = {};
+  for (const [name, ids] of [['R', IDX.rIris], ['L', IDX.lIris]]) {
+    const c = P[ids[0]];
+    const r = mean(ids.slice(1).map(i => dist(P[i], c))) || 1;
+    let hit = 0, tot = 0;
+    for (let y = Math.floor(c.y - r); y <= Math.ceil(c.y + r); y++)
+      for (let x = Math.floor(c.x - r); x <= Math.ceil(c.x + r); x++) {
+        if (x < 0 || y < 0 || x >= img.w || y >= img.h) continue;
+        if ((x - c.x) ** 2 + (y - c.y) ** 2 > (0.85 * r) ** 2) continue;
+        const j = (y * img.w + x) * 4, R = img.data[j], G = img.data[j + 1], B = img.data[j + 2];
+        tot++; if (luma(R, G, B) > 235 && sat(R, G, B) < 0.2) hit++;
+      }
+    out['glare' + name] = tot ? hit / tot : 0;
+  }
+  out.glare = Math.max(out.glareR, out.glareL);
+  return out;
+}
+
+/* ---- Sombra nos olhos: pálpebra/órbita vs bochecha ---- */
+function checkEyeShadow(img, P) {
+  const rb = ptsBox(P, IDX.rEye), lb = ptsBox(P, IDX.lEye);
+  const eyeW = (rb.x1 - rb.x0 + lb.x1 - lb.x0) / 2;
+  const sock = b => ({ x0: b.x0, x1: b.x1, y0: b.y0 - 0.30 * eyeW, y1: b.y0 + 0.05 * eyeW });
+  const cheek = c => boxFromCenter(c.x, c.y + 0.1 * eyeW, 0.8 * eyeW, 0.5 * eyeW);
+  const sR = percentile(boxLumas(img, sock(rb)), 0.75), sL = percentile(boxLumas(img, sock(lb)), 0.75);
+  const cR = percentile(boxLumas(img, cheek(P[50])), 0.6), cL = percentile(boxLumas(img, cheek(P[280])), 0.6);
+  const ref = (cR + cL) / 2 || 1;
+  return { eyeShadow: Math.min(sR, sL) / ref, eyeSockR: sR, eyeSockL: sL, cheekRef: ref,
+           eyeAsym: Math.abs(sR - sL) / Math.max(sR, sL, 1) };
+}
+
+/* ---- Rosto: brilho médio e nitidez (olhos + sobrancelhas) ---- */
+function checkFaceQuality(img, P) {
+  const f = fixBox(img, { x0: P[234].x, x1: P[454].x, y0: P[10].y, y1: P[152].y });
+  const vals = []; for (let y = f.y0; y < f.y1; y += 2) for (let x = f.x0; x < f.x1; x += 2) vals.push(img.gray[y * img.w + x]);
+  const rb = ptsBox(P, IDX.rEye), lb = ptsBox(P, IDX.lEye);
+  const eyeW = (rb.x1 - rb.x0 + lb.x1 - lb.x0) / 2;
+  const band = fixBox(img, { x0: rb.x0 - 0.2 * eyeW, x1: lb.x1 + 0.2 * eyeW, y0: Math.min(rb.y0, lb.y0) - 0.6 * eyeW, y1: Math.max(rb.y1, lb.y1) + 0.2 * eyeW });
+  const lap = [], g = img.gray;
+  for (let y = Math.max(1, band.y0); y < Math.min(img.h - 1, band.y1); y++)
+    for (let x = Math.max(1, band.x0); x < Math.min(img.w - 1, band.x1); x++) {
+      const i = y * img.w + x; lap.push(Math.abs(4 * g[i] - g[i - 1] - g[i + 1] - g[i - img.w] - g[i + img.w]));
+    }
+  return { faceLuma: mean(vals), sharp: percentile(lap, 0.98) };
+}
+
+/* ---- Cor: recusa foto preto e branco (ou quase sem cor) ---- */
+function checkColor(img, P) {
+  const f = fixBox(img, { x0: P[234].x, x1: P[454].x, y0: P[10].y, y1: P[152].y });
+  let sum = 0, n = 0, colored = 0, strong = 0, csum = 0;
+  for (let y = f.y0; y < f.y1; y += 2) for (let x = f.x0; x < f.x1; x += 2) {
+    const j = (y * img.w + x) * 4, r = img.data[j], g = img.data[j + 1], b = img.data[j + 2];
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+    if (mx < 40) continue;                       // ignora sombras profundas
+    sum += (mx - mn) / mx; csum += mx - mn; n++; if (mx - mn > 14) colored++; if (mx - mn > 30) strong++;
+  }
+  // variação de tom na imagem toda: foto sépia/monocromática tem um tom só
+  let hs = 0, hc = 0, hn = 0;
+  const step = Math.max(1, Math.round(Math.min(img.w, img.h) / 200));
+  for (let y = 0; y < img.h; y += step) for (let x = 0; x < img.w; x += step) {
+    const j = (y * img.w + x) * 4, r = img.data[j], g = img.data[j + 1], b = img.data[j + 2];
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b); if (mx - mn < 14) continue;
+    let h; const d = mx - mn;
+    if (mx === r) h = ((g - b) / d) % 6; else if (mx === g) h = (b - r) / d + 2; else h = (r - g) / d + 4;
+    h *= Math.PI / 3; hs += Math.sin(h); hc += Math.cos(h); hn++;
+  }
+  const R = hn ? Math.hypot(hs, hc) / hn : 1;
+  const hueSpread = hn ? Math.sqrt(Math.max(0, -2 * Math.log(Math.max(R, 1e-6)))) * 180 / Math.PI : 0;   // desvio circular em graus
+  return { faceSat: n ? sum / n : 0, colorFrac: n ? colored / n : 0, faceChroma: n ? csum / n : 0, strongFrac: n ? strong / n : 0, hueSpread };
+}
+
+/* ---- Pose e enquadramento ---- */
+function checkPose(img, P) {
+  const top = P[10], chin = P[152], left = P[234], right = P[454], nose = P[1];
+  const fh = dist(top, chin), fw = dist(left, right);
+  const yaw = (nose.x - left.x) / (right.x - left.x) - 0.5;
+  const rollDeg = Math.atan2(P[263].y - P[33].y, P[263].x - P[33].x) * 180 / Math.PI;
+  const pitch = (nose.y - top.y) / (chin.y - top.y);
+  return {
+    faceHeightFrac: fh / img.h, faceWidthFrac: fw / img.w,
+    centerOffset: Math.abs((left.x + right.x) / 2 - img.w / 2) / img.w,
+    yaw, rollDeg, pitch,
+  };
+}
+
+function blend(blendshapes, name) {
+  const c = blendshapes?.[0]?.categories?.find(c => c.categoryName === name); return c ? c.score : 0;
+}
+
+/* =====================================================================
+   REGRAS → MENSAGENS (o que a pessoa lê quando a foto é recusada)
+   ===================================================================== */
+function evaluate(img, faces, blendshapes) {
+  const T = CONFIG.T, reasons = [], M = {};
+  const lm = faces[0]; let nFaces = faces.length;
+  if (nFaces > 1) {   // 2º rosto só conta se for relevante (evita falso positivo em fundo/estampa)
+    const wd = f => Math.abs(f[454].x - f[234].x);
+    const cen = f => ({ x: (f[234].x + f[454].x) / 2, y: (f[10].y + f[152].y) / 2 });
+    const c0 = cen(lm), w0 = wd(lm);
+    // conta só rostos de tamanho relevante e que não sejam duplicata do primeiro (mesmo lugar)
+    nFaces = 1 + faces.slice(1).filter(f => wd(f) >= T.secondFaceMin * w0 && Math.hypot(cen(f).x - c0.x, cen(f).y - c0.y) > 0.6 * w0).length;
+  }
+  const R = (code, titulo, texto) => reasons.push({ code, titulo, texto });
+
+  if (nFaces === 0) {
+    R('sem_rosto', 'Não encontramos um rosto na foto',
+      'Use uma foto em que seu rosto apareça inteiro, de frente, sem máscara, boné ou nada cobrindo. Evite fotos muito escuras ou tremidas.');
+    return { ok: false, reasons, metrics: M };
+  }
+  if (nFaces > 1) {
+    R('varios_rostos', 'Há mais de uma pessoa na foto', 'Envie uma foto em que apareça somente você.');
+    return { ok: false, reasons, metrics: M };
+  }
+  const P = toPx(lm, img);
+  Object.assign(M, checkPose(img, P));
+
+  // Enquadramento
+  if (M.faceHeightFrac < T.faceHeightMin)
+    R('longe', 'Você está longe demais', 'O rosto ficou muito pequeno. Chegue mais perto ou enquadre da cabeça até os ombros.');
+  else if (M.faceHeightFrac > T.faceHeightMax)
+    R('perto', 'Você está perto demais', 'O rosto ocupa quase toda a foto. Afaste um pouco a câmera para mostrar a cabeça até os ombros, com um pouco de espaço ao redor.');
+  if (M.centerOffset > T.centerOffsetMax)
+    R('descentralizado', 'Rosto fora do centro', 'Centralize o rosto na foto.');
+  if (Math.abs(M.yaw) > T.yawMax)
+    R('rosto_virado', 'Rosto não está de frente', 'Olhe diretamente para a câmera, sem virar a cabeça para os lados.');
+  if (M.pitch < T.pitchMin)
+    R('camera_baixa', 'Foto tirada de baixo para cima', 'A câmera está abaixo do rosto. Deixe o celular na altura dos olhos e olhe para a lente.');
+  else if (M.pitch > T.pitchMax)
+    R('camera_alta', 'Foto tirada de cima para baixo', 'A câmera está acima do rosto. Deixe o celular na altura dos olhos e olhe para a lente.');
+  if (Math.abs(M.rollDeg) > T.rollMaxDeg)
+    R('inclinado', 'Cabeça inclinada', 'Mantenha a cabeça reta e a câmera na altura dos olhos.');
+
+  // Olhos abertos
+  M.blink = Math.max(blend(blendshapes, 'eyeBlinkLeft'), blend(blendshapes, 'eyeBlinkRight'));
+  const ear = (a, b, c, d, w1, w2) => (dist(P[a], P[b]) + dist(P[c], P[d])) / (2 * dist(P[w1], P[w2]));
+  M.ear = Math.min(ear(159, 145, 158, 153, 33, 133), ear(386, 374, 385, 380, 362, 263));
+  const openRatio = (top1, bot1, top2, bot2, i1, i2) => ((dist(P[top1], P[bot1]) + dist(P[top2], P[bot2])) / 2) / Math.max(1, dist(P[i1], P[i2]));
+  M.eyeOpen = Math.min(openRatio(159, 145, 158, 153, 469, 471), openRatio(386, 374, 385, 380, 476, 474));
+  // olhos apertados (sorriso largo, riso, luz forte): a íris fica difícil de ver
+  M.squint = (blend(blendshapes, 'eyeSquintLeft') + blend(blendshapes, 'eyeSquintRight')) / 2;
+  M.smile = (blend(blendshapes, 'mouthSmileLeft') + blend(blendshapes, 'mouthSmileRight')) / 2;
+  const apertados = M.squint > T.squintMax || (M.smile > T.smileForSquint && M.eyeOpen < T.smileEyeOpenMax);
+  if (apertados)
+    R('olhos_apertados', 'Olhos apertados (sorriso)', 'Os olhos ficaram apertados e a íris quase não aparece. Fique com o rosto relaxado, sem sorrir, e com os olhos bem abertos.');
+  if (!apertados && (M.blink > T.blinkMax || M.ear < T.earMin || M.eyeOpen < T.eyeOpenMin))
+    R('olhos_fechados', 'Olhos fechados ou semicerrados', 'Mantenha os dois olhos bem abertos, olhando para a câmera.');
+
+  // Expressão (opcional)
+  if (CONFIG.REJECT_SMILE) {
+    M.jawOpen = blend(blendshapes, 'jawOpen');
+    if (M.smile > T.smileMax || M.jawOpen > T.jawOpenMax)
+      R('expressao', 'Expressão não neutra', 'Mantenha o rosto relaxado, sem sorrir e com a boca fechada.');
+  }
+
+  // Foto em preto e branco
+  Object.assign(M, checkColor(img, P));
+  if (M.faceSat < T.faceSatMin || M.colorFrac < T.colorFracMin || M.faceChroma < T.faceChromaMin || M.strongFrac < T.strongFracMin)
+    R('preto_branco', 'Foto em preto e branco', 'Envie uma foto colorida, sem filtro. Desative filtros ou o modo preto e branco da câmera e tire outra foto.');
+
+  // Qualidade do rosto
+  Object.assign(M, checkFaceQuality(img, P));
+  if (M.faceLuma < T.faceLumaMin)
+    R('escura', 'Foto muito escura', 'Vá para um local bem iluminado, com a luz vindo de frente (de uma janela, por exemplo).');
+  else if (M.faceLuma > T.faceLumaMax)
+    R('estourada', 'Foto muito clara (estourada)', 'Há luz demais no rosto. Evite flash e luz direta muito forte.');
+  if (M.sharp < T.sharpMin)
+    R('desfocada', 'Foto desfocada', 'A imagem está sem nitidez. Segure o aparelho firme, limpe a lente e tire outra foto.');
+
+  // Fundo
+  const bg = checkBackground(img, P, T); Object.assign(M, bg);
+  if (bg.bgDarkAll) {
+    R('fundo', 'Fundo fora do padrão', 'O fundo está escuro. Use uma parede branca ou de cor bem clara.');
+  } else if (!bg.bgOk) {
+    let why = 'O fundo precisa ser liso e claro. Use uma parede lisa, sem objetos, quadros ou sombras atrás de você.';
+    if (bg.bgLuma < T.bgLumaMin) why = 'O fundo está escuro. Use uma parede branca ou de cor bem clara.';
+    else if (bg.bgSat > T.bgSatMax) why = 'O fundo é colorido. Use uma parede branca ou de cor bem clara e neutra.';
+    R('fundo', 'Fundo fora do padrão', why);
+  }
+
+  // Óculos
+  Object.assign(M, checkGlasses(img, P));
+  if (M.glassesRatio > T.glassesRatioMax)
+    R('oculos', 'Parece que você está de óculos', 'Tire os óculos (inclusive os de grau) e envie a foto novamente.');
+
+  // Reflexo nos olhos
+  Object.assign(M, checkGlare(img, P));
+  if (M.glare > T.glareFracMax)
+    R('reflexo', 'Reflexo de luz nos olhos', 'Há um brilho forte nos olhos. Evite flash e fontes de luz muito fortes de frente (janela ou lâmpada), e olhe para a câmera.');
+
+  // Sombra nos olhos
+  Object.assign(M, checkEyeShadow(img, P));
+  if (M.eyeShadow < T.eyeShadowRatioMin)
+    R('sombra_olhos', 'Sombra nos olhos', 'Há sombra sobre os olhos (boné, franja, luz vindo de cima). Tire o que estiver cobrindo a testa e use luz de frente, sem luz forte vindo do alto.');
+  else if (M.eyeAsym > T.eyeAsymMax)
+    R('luz_desigual', 'Iluminação desigual no rosto', 'Um lado do rosto está mais escuro que o outro. Fique de frente para a janela ou fonte de luz.');
+
+  return { ok: reasons.length === 0, reasons, metrics: M, P };
+}
+
+/* =====================================================================
+   RECORTE + REDUÇÃO PARA 200×200
+   ===================================================================== */
+/* ---- Extensão da cabeça: cabelo (topo) e barba (base) ----
+   Os pontos do rosto marcam só a pele (testa→queixo). Cabelo e barba ficam de fora,
+   então medimos: topo = onde termina o que é diferente do fundo; base = onde termina a barba escura. */
+function headExtent(img, P, bg) {
+  if (!bg) return null;
+  const fw = dist(P[234], P[454]), fh = dist(P[10], P[152]);
+  const cx = (P[234].x + P[454].x) / 2;
+  const rowFrac = (y, xa, xb, test) => {
+    let n = 0, t = 0; y = Math.round(y);
+    if (y < 0 || y >= img.h) return 0;
+    for (let x = Math.max(0, Math.floor(xa)); x < Math.min(img.w, Math.ceil(xb)); x++) { t++; if (test((y * img.w + x) * 4)) n++; }
+    return t ? n / t : 0;
+  };
+  // topo: diferença em relação à cor do fundo, faixa central acima da testa
+  const d2 = CONFIG.HEAD_BG_DIST ** 2;
+  const isFg = j => { const a = img.data[j] - bg[0], b = img.data[j + 1] - bg[1], c = img.data[j + 2] - bg[2]; return a * a + b * b + c * c > d2; };
+  let top = P[10].y, miss = 0;
+  for (let y = Math.floor(P[10].y); y >= 0; y--) {
+    if (rowFrac(y, cx - 0.6 * fw, cx + 0.6 * fw, isFg) >= 0.05) { top = y; miss = 0; } else if (++miss >= 4) break;
+  }
+  // base: barba = pixels bem mais escuros que a pele da bochecha, logo abaixo do queixo
+  const sk = [P[50], P[280]].map(p => percentile(boxLumas(img, boxFromCenter(p.x, p.y, 0.12 * fw, 0.12 * fw)), 0.5));
+  const skin = mean(sk), isDark = j => luma(img.data[j], img.data[j + 1], img.data[j + 2]) < CONFIG.BEARD_DARK * skin;
+  let bottom = P[152].y; miss = 0;
+  const lim = P[152].y + CONFIG.BEARD_MAX * fh;
+  // só procura barba se ela realmente existe no queixo (evita confundir sombra do pescoço ou gola escura)
+  let chinDark = 0;
+  for (let k = -2; k <= 2; k++) chinDark = Math.max(chinDark, rowFrac(P[152].y + k * 0.025 * fh, P[152].x - 0.2 * fw, P[152].x + 0.2 * fw, isDark));
+  const hasBeard = chinDark >= 0.3;
+  for (let y = Math.floor(P[152].y - 0.08 * fh); hasBeard && y <= lim && y < img.h; y++) {
+    if (rowFrac(y, P[152].x - 0.35 * fw, P[152].x + 0.35 * fw, isDark) >= 0.12) { bottom = Math.max(bottom, y); miss = 0; } else if (++miss >= 4) break;
+  }
+  return { topN: top / img.h, botN: bottom / img.h };
+}
+const maxHalf = (cx, cy, W, H) => Math.min(cx, W - cx, cy, H - cy);
+function cropTo200(bitmap, P_norm, bgColor, ext) {
+  const W = bitmap.width, H = bitmap.height;
+  const top = { x: P_norm[10].x * W, y: P_norm[10].y * H }, chin = { x: P_norm[152].x * W, y: P_norm[152].y * H };
+  const fh = dist(top, chin);
+  const cx = (top.x + chin.x) / 2, cy = (top.y + chin.y) / 2;
+  // Recorte quadrado ideal; se passar da borda (foto 3x4 já bem fechada), usa o maior quadrado
+  // que cabe na imagem em volta do rosto. Só recusa se o rosto ficaria cortado.
+  let S = fh * CONFIG.CROP_FACTOR, cyAdj = cy + CONFIG.CROP_SHIFT_Y * S;
+  if (ext && ext.botN > ext.topN) {
+    // recorte justo na cabeça inteira: do alto do cabelo ao fim da barba, com uma margem pequena
+    const hTop = ext.topN * H, hBot = ext.botN * H, headH = hBot - hTop;
+    if (headH >= fh * 0.9) { S = headH * (1 + 2 * CONFIG.HEAD_MARGIN); cyAdj = (hTop + hBot) / 2; }
+  }
+  if (S / 2 > maxHalf(cx, cyAdj, W, H)) {
+    // foto já fechada no rosto: usa o maior quadrado possível, com no mínimo 1,3x a altura do rosto
+    // (se a foto for mais estreita que isso, completa as laterais com a cor do fundo)
+    S = Math.min(S, Math.max(Math.min(W, H), fh * 1.3));
+  }
+  let x0 = cx - S / 2, y0 = cyAdj - S / 2;
+  if (S <= W) x0 = clamp(x0, 0, W - S);
+  if (S <= H) y0 = clamp(y0, 0, H - S);
+  // o rosto (testa ao queixo, e a largura) precisa estar dentro da foto original
+  const leftX = P_norm[234].x * W, rightX = P_norm[454].x * W;
+  if (top.y < 0 || chin.y > H || leftX < -0.02 * W || rightX > 1.02 * W || S < fh * 1.08) return { tooTight: true };
+
+  const side = Math.max(2, Math.round(S));
+  let cur = document.createElement('canvas'); cur.width = cur.height = side;
+  let g = cur.getContext('2d'); g.fillStyle = bgColor ? `rgb(${bgColor.join(',')})` : '#fff'; g.fillRect(0, 0, side, side);
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(bitmap, x0, y0, S, S, 0, 0, side, side);
+  // redução em passos (evita serrilhado)
+  while (cur.width / 2 >= CONFIG.OUT_SIZE) {
+    const n = document.createElement('canvas'); n.width = n.height = Math.round(cur.width / 2);
+    const c = n.getContext('2d'); c.imageSmoothingQuality = 'high'; c.drawImage(cur, 0, 0, n.width, n.height); cur = n;
+  }
+  const out = document.createElement('canvas'); out.width = out.height = CONFIG.OUT_SIZE;
+  const oc = out.getContext('2d'); oc.imageSmoothingQuality = 'high'; oc.drawImage(cur, 0, 0, CONFIG.OUT_SIZE, CONFIG.OUT_SIZE);
+  return { canvas: out };
+}
+const canvasToJpeg = c => new Promise(res => c.toBlob(res, 'image/jpeg', CONFIG.JPEG_QUALITY));
+const blobToBase64 = b => new Promise((res, rej) => { const r = new FileReader();
+  r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(b); });
+
+/* =====================================================================
+   DETECTOR (MediaPipe Face Landmarker, roda no navegador)
+   ===================================================================== */
+let landmarkerPromise = null;
+function loadLandmarker() {
+  if (landmarkerPromise) return landmarkerPromise;
+  const attempt = async (base, model) => {
+    const mod = await import(base + '/vision_bundle.mjs');
+    const fileset = await mod.FilesetResolver.forVisionTasks(base + '/wasm');
+    return mod.FaceLandmarker.createFromOptions(fileset, {
+      baseOptions: { modelAssetPath: model, delegate: 'CPU' },
+      runningMode: 'IMAGE', numFaces: 2, outputFaceBlendshapes: true,
+      minFaceDetectionConfidence: 0.5, minFacePresenceConfidence: 0.5,
+    });
+  };
+  landmarkerPromise = (async () => {
+    try { return await attempt(CONFIG.MP_LOCAL, CONFIG.MODEL_LOCAL); }
+    catch (e1) { console.warn('MediaPipe local indisponível, tentando CDN', e1);
+      return await attempt(CONFIG.MP_CDN, CONFIG.MODEL_CDN); }
+  })();
+  return landmarkerPromise;
+}
+
+async function readBitmap(file) {
+  try { return await createImageBitmap(file, { imageOrientation: 'from-image' }); }
+  catch { return await createImageBitmap(file); }
+}
+
+/** Analisa um arquivo. Retorna { ok, reasons, metrics, canvas? , jpeg? } */
+async function analyzeFile(file, detector) {
+  if (!/^image\//.test(file.type) && !/\.(jpe?g|png|webp|bmp|heic)$/i.test(file.name))
+    return { ok: false, reasons: [{ code: 'formato', titulo: 'Arquivo não é uma imagem', texto: 'Envie uma foto nos formatos JPG, PNG ou WEBP.' }], metrics: {} };
+  if (file.size > CONFIG.MAX_FILE_MB * 1048576)
+    return { ok: false, reasons: [{ code: 'grande', titulo: 'Arquivo muito grande', texto: `O arquivo passa de ${CONFIG.MAX_FILE_MB} MB. Envie uma foto menor.` }], metrics: {} };
+  let bmp;
+  try { bmp = await readBitmap(file); }
+  catch { return { ok: false, reasons: [{ code: 'ilegivel', titulo: 'Não foi possível abrir a imagem', texto: 'Se for foto em formato HEIC, tire a foto novamente em JPG ou faça uma captura de tela da foto.' }], metrics: {} }; }
+
+  if (Math.min(bmp.width, bmp.height) < CONFIG.T.minSide)
+    return { ok: false, reasons: [{ code: 'pequena', titulo: 'Imagem com resolução baixa', texto: `A foto é muito pequena (${bmp.width}×${bmp.height}). Use uma foto com pelo menos ${CONFIG.T.minSide} px no lado menor.` }], metrics: { w: bmp.width, h: bmp.height } };
+
+  // imagem de análise (reduzida)
+  const k = Math.min(1, CONFIG.ANALYSIS_MAX_SIDE / Math.max(bmp.width, bmp.height));
+  const aw = Math.round(bmp.width * k), ah = Math.round(bmp.height * k);
+  const ac = document.createElement('canvas'); ac.width = aw; ac.height = ah;
+  const actx = ac.getContext('2d', { willReadFrequently: true }); actx.imageSmoothingQuality = 'high';
+  actx.drawImage(bmp, 0, 0, aw, ah);
+  const img = makeImg(actx.getImageData(0, 0, aw, ah));
+
+  const res = await detector.detect(ac);
+  const faces = res.faceLandmarks || [];
+
+  // Imagem de análise normalizada: rosto com ~320 px de largura, para que as medidas
+  // (bordas, nitidez) não dependam da resolução da foto original.
+  let aimg = img, acan = ac;
+  if (faces[0]) {
+    const faceWpx = Math.abs(faces[0][454].x - faces[0][234].x) * aw;
+    const s2 = clamp(320 / Math.max(1, faceWpx), 0.2, 1);   // só reduz; nunca amplia (ampliar suaviza e parece desfoque)
+    const nw = Math.min(1600, Math.round(aw * s2)), nh = Math.round(ah * nw / aw);
+    const nc = document.createElement('canvas'); nc.width = nw; nc.height = nh;
+    const nctx = nc.getContext('2d', { willReadFrequently: true }); nctx.imageSmoothingQuality = 'high';
+    nctx.drawImage(bmp, 0, 0, nw, nh);
+    aimg = makeImg(nctx.getImageData(0, 0, nw, nh)); acan = nc;
+  }
+  const ev = evaluate(aimg, faces, res.faceBlendshapes);
+  ev.metrics.w = bmp.width; ev.metrics.h = bmp.height;
+  ev.analysisCanvas = acan; ev.faceLm = faces[0];
+  if (!ev.ok) return ev;
+
+  const ext = headExtent(aimg, toPx(faces[0], aimg), ev.metrics.bgColor);
+  if (ext) { ev.metrics.headTop = ext.topN; ev.metrics.headBottom = ext.botN; }
+  const crop = cropTo200(bmp, faces[0], ev.metrics.bgColor, ext);
+  if (crop.tooTight) {
+    ev.ok = false;
+    ev.reasons.push({ code: 'corte', titulo: 'Rosto cortado pela borda da foto', texto: 'Parte da cabeça ficou fora da foto. Afaste um pouco a câmera para aparecer a cabeça inteira, com um pouco de espaço ao redor.' });
+    return ev;
+  }
+  ev.canvas = crop.canvas;
+  return ev;
+}
+
+/* =====================================================================
+   INTERFACE
+   ===================================================================== */
+const state = { detector: null, jpeg: null, ok: false, busy: false };
+
+for (const [sigla, nome] of SECRETARIAS) {
+  const o = document.createElement('option'); o.value = sigla; o.textContent = `${sigla} — ${nome}`; $('secretaria').appendChild(o);
+}
+
+function normMatricula(v) { return String(v || '').replace(/\D/g, '').replace(/^0+/, ''); }
+function cpfValido(c) {
+  c = String(c || '').replace(/\D/g, '');
+  if (c.length !== 11 || /^(\d)\1{10}$/.test(c)) return false;
+  for (const n of [9, 10]) {
+    let sum = 0; for (let i = 0; i < n; i++) sum += +c[i] * (n + 1 - i);
+    const d = (sum * 10) % 11 % 10; if (d !== +c[n]) return false;
+  }
+  return true;
+}
+function maskCpf(v) {
+  const d = String(v || '').replace(/\D/g, '').slice(0, 11);
+  return d.replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1-$2');
+}
+function validate(showErrors) {
+  const nome = $('nome').value.trim().replace(/\s+/g, ' ');
+  const mat = normMatricula($('matricula').value);
+  const okNome = nome.split(' ').length >= 2 && nome.length >= 5;
+  const okMat = /^\d{3,10}$/.test(mat);
+  const email = $('email').value.trim().toLowerCase();
+  const okEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) && email.length <= 120;
+  const cpf = $('cpf').value.replace(/\D/g, '');
+  const okCpf = cpfValido(cpf);
+  const okSec = !!$('secretaria').value;
+  const okCons = $('consent').checked;
+  if (showErrors) {
+    $('fNome').classList.toggle('invalid', !okNome); $('fMat').classList.toggle('invalid', !okMat); $('fCpf').classList.toggle('invalid', !okCpf); $('fEmail').classList.toggle('invalid', !okEmail);
+    $('fSec').classList.toggle('invalid', !okSec);   $('fConsent').classList.toggle('invalid', !okCons);
+  }
+  return { ok: okNome && okMat && okCpf && okEmail && okSec && okCons, nome, mat, cpf, email, okNome, okMat, okCpf, okEmail, okSec, okCons };
+}
+// O botão fica sempre clicável (só trava durante o envio); ao clicar, a página mostra o que falta.
+function refreshSend() { $('send').disabled = state.busy; }
+$('cpf').addEventListener('input', () => { $('cpf').value = maskCpf($('cpf').value); });
+['nome', 'matricula', 'cpf', 'email', 'secretaria', 'consent'].forEach(id => $(id).addEventListener('input', () => { $('fNome').classList.remove('invalid'); }));
+$('consent').addEventListener('change', refreshSend);
+$('matricula').addEventListener('blur', () => { const m = normMatricula($('matricula').value); if (m) $('matricula').value = m; });
+
+function showResult(kind, html) {
+  const r = $('result'); r.className = 'result show ' + kind; r.innerHTML = html;
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function clearPhoto() {
+  state.jpeg = null; state.ok = false;
+  $('result').className = 'result'; $('previewBox').classList.remove('show'); $('file').value = '';
+  refreshSend();
+}
+
+async function handleFile(file) {
+  if (!file) return;
+  clearPhoto();
+  if (!state.detector) {
+    showResult('work', '<h3><i class="fas fa-circle-notch fa-spin"></i> Aguarde…</h3><p>O verificador ainda está carregando.</p>');
+    try { state.detector = await loadLandmarker(); } catch (e) { return fatalDetector(e); }
+    $('modelStatus').style.display = 'none';
+  }
+  showResult('work', '<h3><i class="fas fa-circle-notch fa-spin"></i> Conferindo sua foto…</h3>');
+  state.busy = true;
+  let ev;
+  try { ev = await analyzeFile(file, state.detector); }
+  catch (e) { console.error(e); state.busy = false;
+    return showResult('bad', '<h3><i class="fas fa-exclamation-triangle"></i> Não foi possível analisar</h3><p>Tente novamente com outra foto. Se o problema continuar, avise a equipe do Ponto Eletrônico.</p>'); }
+  state.busy = false;
+  if (DEBUG) debugShow(ev, file.name);
+
+  if (!ev.ok) {
+    const items = ev.reasons.map(r => `<li><b>${esc(r.titulo)}</b>${esc(r.texto)}</li>`).join('');
+    showResult('bad', `<h3><i class="fas fa-times-circle"></i> Foto não aprovada</h3><p>Corrija o que está abaixo e envie outra foto:</p><ul>${items}</ul>`);
+    return;
+  }
+  const blob = await canvasToJpeg(ev.canvas);
+  state.jpeg = blob; state.ok = true;
+  const pc = $('previewCanvas').getContext('2d'); pc.clearRect(0, 0, 200, 200); pc.drawImage(ev.canvas, 0, 0);
+  $('previewBox').classList.add('show');
+  showResult('ok', '<h3><i class="fas fa-check-circle"></i> Foto aprovada</h3><p>Sua foto está dentro do padrão e já foi ajustada para 200 × 200 px. Preencha os dados, autorize e clique em enviar.</p>');
+  refreshSend();
+}
+function fatalDetector(e) {
+  console.error(e);
+  $('modelStatus').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Não foi possível carregar o verificador de fotos.';
+  showResult('bad', '<h3><i class="fas fa-exclamation-triangle"></i> Verificador indisponível</h3><p>Verifique sua conexão com a internet e recarregue a página. Se continuar, avise a equipe do Ponto Eletrônico.</p>');
+}
+
+/* ---- Tirar foto na hora ---- */
+let camStream = null, camBusy = false;
+function stopCam() { camStream?.getTracks().forEach(t => t.stop()); camStream = null; $('camVideo').srcObject = null; $('camModal').hidden = true; $('camCount').textContent = ''; camBusy = false; $('camShot').disabled = false; }
+async function openCam() {
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
+  } catch (e) {
+    console.warn(e);
+    showResult('bad', '<h3><i class="fas fa-video-slash"></i> Não foi possível abrir a câmera</h3><p>Permita o acesso à câmera no navegador ou escolha uma foto já tirada.</p>');
+    return;
+  }
+  const v = $('camVideo'); v.srcObject = camStream; $('camModal').hidden = false;
+  try { await v.play(); } catch {}
+  if (v.videoWidth) $('camView').style.aspectRatio = v.videoWidth + ' / ' + v.videoHeight;
+  $('camShot').focus();
+}
+$('btnCam').addEventListener('click', () => {
+  const touch = matchMedia('(pointer: coarse)').matches;
+  // no celular, a câmera nativa dá melhor qualidade e foco; no computador usa a webcam
+  if (touch || !navigator.mediaDevices?.getUserMedia) { $('fileCam').click(); return; }
+  openCam();
+});
+$('fileCam').addEventListener('change', e => handleFile(e.target.files[0]));
+$('camCancel').addEventListener('click', stopCam);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('camModal').hidden) stopCam(); });
+$('camShot').addEventListener('click', async () => {
+  if (camBusy) return; camBusy = true; $('camShot').disabled = true;
+  for (let n = 3; n >= 1; n--) { $('camCount').textContent = n; await new Promise(r => setTimeout(r, 1000)); }
+  $('camCount').textContent = '';
+  const v = $('camVideo'), c = document.createElement('canvas');
+  c.width = v.videoWidth; c.height = v.videoHeight; c.getContext('2d').drawImage(v, 0, 0);   // sem espelhar
+  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.95));
+  stopCam();
+  handleFile(new File([blob], 'camera.jpg', { type: 'image/jpeg' }));
+});
+
+const drop = $('drop');
+drop.addEventListener('click', () => $('file').click());
+drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('file').click(); } });
+['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('dragover'); }));
+['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('dragover'); }));
+drop.addEventListener('drop', e => handleFile(e.dataTransfer.files[0]));
+$('file').addEventListener('change', e => handleFile(e.target.files[0]));
+$('reset').addEventListener('click', () => { clearPhoto(); $('sendMsg').className = 'result'; });
+$('again').addEventListener('click', () => { $('doneArea').classList.remove('show'); $('formArea').style.display = ''; clearPhoto(); $('consent').checked = false; refreshSend(); scrollTo({ top: 0, behavior: 'smooth' }); });
+
+$('send').addEventListener('click', async () => {
+  const v = validate(true);
+  const sm = $('sendMsg');
+  const falta = [];
+  if (!state.ok || !state.jpeg) falta.push('uma foto aprovada');
+  if (!v.okNome) falta.push('nome completo');
+  if (!v.okMat) falta.push('matrícula');
+  if (!v.okCpf) falta.push('CPF válido');
+  if (!v.okEmail) falta.push('e-mail válido');
+  if (!v.okSec) falta.push('secretaria');
+  if (!v.okCons) falta.push('a autorização');
+  if (falta.length) {
+    sm.className = 'result show bad';
+    sm.innerHTML = '<h3><i class="fas fa-exclamation-circle"></i> Ainda falta</h3><p>Confira: ' + falta.join(', ') + '.</p>';
+    (document.querySelector('.field.invalid') || $('drop')).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  sm.className = 'result';
+  if (CONFIG.ENDPOINT.startsWith('COLE_AQUI')) {
+    // modo teste: sem destino configurado, baixa o arquivo
+    const a = document.createElement('a'); a.href = URL.createObjectURL(state.jpeg); a.download = v.mat + '.jpg'; a.click();
+    sm.className = 'result show work'; sm.innerHTML = '<p><b>Modo teste:</b> o destino de envio ainda não foi configurado, então a foto foi baixada no seu aparelho como <b>' + esc(v.mat) + '.jpg</b>.</p>';
+    return;
+  }
+  state.busy = true; refreshSend();
+  sm.className = 'result show work'; sm.innerHTML = '<h3><i class="fas fa-circle-notch fa-spin"></i> Enviando…</h3>';
+  try {
+    const payload = { token: CONFIG.TOKEN, nome: v.nome, matricula: v.mat, cpf: v.cpf, email: v.email, secretaria: $('secretaria').value,
+      foto_base64: await blobToBase64(state.jpeg) };
+    const resp = await fetch(CONFIG.ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+    const j = await resp.json();
+    if (!j.ok) throw new Error(j.erro || 'Falha no envio');
+    sm.className = 'result'; $('formArea').style.display = 'none';
+    $('doneThumb').getContext('2d').drawImage($('previewCanvas'), 0, 0);
+    $('doneMeta').textContent = 'Matrícula ' + v.mat + ' · ' + $('secretaria').value;
+    $('doneArea').classList.add('show'); scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (e) {
+    console.error(e);
+    sm.className = 'result show bad';
+    sm.innerHTML = '<h3><i class="fas fa-times-circle"></i> Não foi possível enviar</h3><p>Verifique sua conexão e tente novamente. Se o erro continuar, avise a equipe do Ponto Eletrônico informando sua matrícula.</p>';
+  } finally { state.busy = false; refreshSend(); }
+});
+
+/* Pré-carrega o modelo assim que a página abre */
+loadLandmarker().then(d => { state.detector = d; $('modelStatus').style.display = 'none'; }).catch(e => fatalDetector(e));
+
+/* =====================================================================
+   MODO CALIBRAGEM (?debug=1)
+   ===================================================================== */
+const batchRows = [];
+function fmt(v) { return typeof v === 'number' ? (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(3)) : (Array.isArray(v) ? v.join(',') : String(v)); }
+const KEYS = ['faceHeightFrac', 'centerOffset', 'yaw', 'pitch', 'rollDeg', 'ear', 'eyeOpen', 'blink', 'squint', 'smile', 'faceSat', 'colorFrac', 'faceChroma', 'strongFrac', 'faceLuma', 'sharp', 'bgLuma', 'bgSat', 'bgStd', 'bgRange', 'bgBad', 'bgPatches', 'headTop', 'headBottom', 'glassesRatio', 'glare', 'eyeShadow', 'eyeAsym'];
+function debugShow(ev, name) {
+  $('lastMetrics').textContent = name + '\n' + JSON.stringify(ev.metrics, (k, v) => typeof v === 'number' ? +v.toFixed(3) : v, 2) +
+    '\n\nMotivos: ' + (ev.reasons.map(r => r.code).join(', ') || '(aprovada)');
+  if (ev.analysisCanvas && ev.faceLm) {
+    const c = $('dbgCanvas'), s = ev.analysisCanvas; c.width = s.width; c.height = s.height;
+    const g = c.getContext('2d'); g.drawImage(s, 0, 0);
+    g.fillStyle = 'rgba(255,0,0,.8)';
+    for (const p of ev.faceLm) g.fillRect(p.x * s.width - 1, p.y * s.height - 1, 2, 2);
+    const P = ev.P; if (P) {
+      g.strokeStyle = 'lime'; g.lineWidth = 2;
+      const fw = dist(P[234], P[454]), fh = dist(P[10], P[152]);
+      g.strokeRect(0, 0, P[234].x - 0.45 * fw, P[152].y + 0.6 * fh);                     // faixa lateral esquerda
+      g.strokeRect(P[454].x + 0.45 * fw, 0, s.width - (P[454].x + 0.45 * fw), P[152].y + 0.6 * fh); // direita
+    }
+  }
+}
+$('batch').addEventListener('change', async e => {
+  const files = [...e.target.files]; if (!files.length) return;
+  const det = state.detector || await loadLandmarker(); state.detector = det;
+  const t = $('batchTable'); batchRows.length = 0;
+  t.innerHTML = '<tr><th>arquivo</th><th>resultado</th><th>motivos</th>' + KEYS.map(k => `<th>${k}</th>`).join('') + '</tr>';
+  for (const f of files) {
+    let ev; try { ev = await analyzeFile(f, det); } catch (err) { ev = { ok: false, reasons: [{ code: 'erro:' + err.message }], metrics: {} }; }
+    const row = { arquivo: f.name, resultado: ev.ok ? 'APROVADA' : 'RECUSADA', motivos: ev.reasons.map(r => r.code).join('|') };
+    KEYS.forEach(k => row[k] = ev.metrics[k] ?? ''); batchRows.push(row);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${esc(f.name)}</td><td class="${ev.ok ? 'ok' : 'bad'}">${row.resultado}</td><td>${esc(row.motivos)}</td>` + KEYS.map(k => `<td>${row[k] === '' ? '' : fmt(row[k])}</td>`).join('');
+    t.appendChild(tr);
+  }
+  $('csvBtn').disabled = false;
+});
+$('csvBtn').addEventListener('click', () => {
+  const head = Object.keys(batchRows[0]);
+  const csv = [head.join(';')].concat(batchRows.map(r => head.map(h => String(r[h]).replace('.', ',')).join(';'))).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv' })); a.download = 'calibragem_fotos.csv'; a.click();
+});
+
+/* Para testes automatizados */
+window.__foto = { headExtent, cpfValido, maskCpf, CONFIG, evaluate, analyzeFile, makeImg, cropTo200, normMatricula, checkBackground, checkGlare, checkEyeShadow, checkGlasses };
+</script>
+</body>
+</html>
