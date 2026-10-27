@@ -337,6 +337,12 @@ function injectAccordions(containerId, items) {
 // ── GRUPOS DE TEMA: expandir/recolher ───────────────────
 function bindThemeGroups() {
   document.querySelectorAll('.theme-group-header').forEach(btn => {
+    const body = btn.nextElementSibling;
+    if (body) {
+      if (!body.id) body.id = `faq-theme-${Array.from(document.querySelectorAll('.theme-group-header')).indexOf(btn)}`;
+      btn.setAttribute('aria-controls', body.id);
+      body.inert = btn.getAttribute('aria-expanded') !== 'true';
+    }
     btn.removeEventListener('click', toggleThemeGroup);
     btn.addEventListener('click', toggleThemeGroup);
   });
@@ -352,11 +358,15 @@ function toggleThemeGroup(e) {
     if (h !== header) {
       h.setAttribute('aria-expanded', 'false');
       h.nextElementSibling?.classList.add('collapsed');
+      if (h.nextElementSibling) h.nextElementSibling.inert = true;
     }
   });
 
   header.setAttribute('aria-expanded', String(!isOpen));
-  if (body) body.classList.toggle('collapsed', isOpen);
+  if (body) {
+    body.classList.toggle('collapsed', isOpen);
+    body.inert = isOpen;
+  }
 }
 
 function escHtml(str) {
@@ -689,6 +699,12 @@ function highlight(text, indices) {
 // ── ACCORDION ──────────────────────────────────────────
 function bindAccordions() {
   document.querySelectorAll('.accordion-trigger').forEach(btn => {
+    const body = btn.nextElementSibling;
+    if (body) {
+      if (!body.id) body.id = `faq-answer-${Array.from(document.querySelectorAll('.accordion-trigger')).indexOf(btn)}`;
+      btn.setAttribute('aria-controls', body.id);
+      body.inert = btn.getAttribute('aria-expanded') !== 'true';
+    }
     btn.removeEventListener('click', toggleAccordion);
     btn.addEventListener('click', toggleAccordion);
   });
@@ -702,13 +718,15 @@ function toggleAccordion(e) {
   document.querySelectorAll('.accordion-trigger').forEach(t => {
     t.setAttribute('aria-expanded', 'false');
     t.nextElementSibling?.classList.remove('active');
+    if (t.nextElementSibling) t.nextElementSibling.inert = true;
   });
 
   if (!isOpen && body) {
     trigger.setAttribute('aria-expanded', 'true');
     body.classList.add('active');
+    body.inert = false;
     setTimeout(() => {
-      trigger.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      trigger.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
     }, 180);
   }
 }
@@ -717,6 +735,7 @@ function resetAccordions() {
   document.querySelectorAll('.accordion-trigger').forEach(t => {
     t.setAttribute('aria-expanded', 'false');
     t.nextElementSibling?.classList.remove('active');
+    if (t.nextElementSibling) t.nextElementSibling.inert = true;
   });
 }
 
@@ -780,6 +799,7 @@ function selectProfile(profile) {
 function goBack() {
   if (isAnimating) return;
   isAnimating = true;
+  const previousProfile = currentProfile;
   history.pushState({}, '', window.location.pathname);
 
   const mainView    = document.getElementById('mainView');
@@ -814,6 +834,7 @@ function goBack() {
 
     currentProfile = null;
     isAnimating    = false;
+    document.getElementById(previousProfile === 'gestor' ? 'cardGestor' : 'cardUsuario')?.focus();
   }, 240);
 }
 
@@ -877,15 +898,25 @@ function toggleChat() {
 
   if (chatOpen) {
     modal.style.display = 'flex';
+    modal.inert = false;
     requestAnimationFrame(() => modal.classList.add('chat-modal--open'));
     fab.setAttribute('aria-expanded', 'true');
+    fab.setAttribute('aria-label', 'Fechar assistente de ajuda');
     badge.style.display = 'none';
     if (!chatGreeted) { chatGreeted = true; chatWelcome(); }
-    else setTimeout(() => document.getElementById('chatInput')?.focus(), 300);
+    setTimeout(() => {
+      const target = document.getElementById('chatInput')?.disabled
+        ? modal.querySelector('[data-chat-profile]')
+        : document.getElementById('chatInput');
+      target?.focus();
+    }, 0);
   } else {
     modal.classList.remove('chat-modal--open');
+    modal.inert = true;
     setTimeout(() => { modal.style.display = 'none'; }, 280);
     fab.setAttribute('aria-expanded', 'false');
+    fab.setAttribute('aria-label', 'Abrir assistente de ajuda');
+    fab.focus();
   }
 }
 

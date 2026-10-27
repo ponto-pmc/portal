@@ -11,8 +11,10 @@
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <meta name="theme-color" content="#ffffff" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="stylesheet" href="accessibility.css" />
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Ir para o conteúdo principal</a>
 
   <!-- NAVBAR -->
   <nav class="site-nav" role="navigation" aria-label="Navegação principal">
@@ -27,7 +29,7 @@
         <li><a href="controle.html">Controle</a></li>
         <li><a href="imagem.html">Imagens</a></li>
         <li><a href="foto.html">Enviar Foto</a></li>
-        <li><a href="faq.html" class="active">Ajuda</a></li>
+        <li><a href="faq.html" class="active" aria-current="page">Ajuda</a></li>
         <li>
           <a href="https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx"
              target="_blank" rel="noopener"
@@ -38,16 +40,17 @@
       </ul>
       <div class="nav-actions">
         <button class="theme-toggle-btn" id="themeToggle" aria-label="Alternar tema">
-          <i class="fas fa-moon" id="themeIcon"></i>
+          <i class="fas fa-moon" id="themeIcon" aria-hidden="true"></i>
         </button>
-        <button class="nav-hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false">
-          <i class="fas fa-bars"></i>
+        <button class="nav-hamburger" id="hamburger" aria-controls="navLinks" aria-label="Abrir menu" aria-expanded="false">
+          <i class="fas fa-bars" aria-hidden="true"></i>
         </button>
       </div>
     </div>
   </nav>
 
   <!-- MAIN VIEW -->
+  <main id="main-content" tabindex="-1">
   <div id="mainView">
     <section class="hero-band faq-hero">
       <div class="container">
@@ -59,17 +62,17 @@
 
         <div class="profile-grid">
           <div class="profile-card view-transition" id="cardGestor" data-profile="gestor"
-               tabindex="0" role="button" aria-label="Sou Gestor">
+               tabindex="0" role="button" aria-label="Sou Gestor" aria-describedby="gestor-description">
             <div class="profile-icon"><i class="fas fa-user-tie"></i></div>
             <h3>Gestor</h3>
-            <p>Gestão de servidores, abono de ponto e relatórios de equipe.</p>
+            <p id="gestor-description">Gestão de servidores, abono de ponto e relatórios de equipe.</p>
             <span class="card-cta">Acessar <i class="fas fa-arrow-right"></i></span>
           </div>
           <div class="profile-card view-transition" id="cardUsuario" data-profile="usuario"
-               tabindex="0" role="button" aria-label="Sou Usuário">
+               tabindex="0" role="button" aria-label="Sou Servidor" aria-describedby="usuario-description">
             <div class="profile-icon"><i class="fas fa-user"></i></div>
             <h3>Servidor</h3>
-            <p>Configurar o app, fazer login, consultar ponto e redefinir senha.</p>
+            <p id="usuario-description">Configurar o app, fazer login, consultar ponto e redefinir senha.</p>
             <span class="card-cta">Acessar <i class="fas fa-arrow-right"></i></span>
           </div>
         </div>
@@ -149,6 +152,8 @@
     </div>
   </div>
 
+  </main>
+
   <footer class="site-footer">
     <div class="container">
       <div class="footer-inner">
@@ -164,7 +169,7 @@
   </footer>
 
   <!-- CHAT FLUTUANTE -->
-  <button id="chatFab" class="chat-fab" aria-label="Abrir assistente de ajuda" aria-expanded="false">
+  <button id="chatFab" class="chat-fab" aria-controls="chatModal" aria-label="Abrir assistente de ajuda" aria-expanded="false">
     <i class="fas fa-comment-dots chat-fab-icon"></i>
     <i class="fas fa-times chat-fab-close"></i>
     <span class="chat-fab-badge" id="chatBadge" style="display:none">1</span>
@@ -232,5 +237,7 @@
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
   <script src="faq.js"></script>
   <script src="pwa.js"></script>
+  <script src="accessibility.js" defer></script>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js" defer></script>
 </body>
 </html>

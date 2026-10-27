@@ -29,11 +29,20 @@ function toggleAcc(id) {
   document.querySelectorAll('.acc-item').forEach(i => {
     i.classList.remove('active');
     const b = i.querySelector('.acc-body');
-    if (b) b.style.maxHeight = '0px';
+    const trigger = i.querySelector('.acc-trigger');
+    trigger?.setAttribute('aria-expanded', 'false');
+    if (b) {
+      b.style.maxHeight = '0px';
+      b.setAttribute('aria-hidden', 'true');
+      b.inert = true;
+    }
   });
 
   if (!isOpen && body) {
     item.classList.add('active');
+    item.querySelector('.acc-trigger')?.setAttribute('aria-expanded', 'true');
+    body.setAttribute('aria-hidden', 'false');
+    body.inert = false;
     body.style.maxHeight = body.scrollHeight + 'px';
   }
 }
@@ -72,8 +81,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const nl = document.getElementById('navLinks');
   if (hb && nl && !window._ppNavListenerSet) {
     window._ppNavListenerSet = true;
-    hb.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
+    hb.addEventListener('click', (e) => {
+      e.stopPropagation();
       const open = nl.classList.toggle('open');
       hb.setAttribute('aria-expanded', String(open));
       hb.innerHTML = open ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
@@ -280,7 +289,7 @@ function calcular() {
   });
 
   setTimeout(() => {
-    resBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    resBox.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
   }, 150);
 }
 

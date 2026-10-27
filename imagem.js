@@ -52,8 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const nl = document.getElementById('navLinks');
   if (hb && nl && !window._ppNavListenerSet) {
     window._ppNavListenerSet = true;
-    hb.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
+    hb.addEventListener('click', (e) => {
+      e.stopPropagation();
       const open = nl.classList.toggle('open');
       hb.setAttribute('aria-expanded', String(open));
       hb.innerHTML = open ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
@@ -157,6 +157,7 @@ function showPanel(name) {
   };
   const target = document.getElementById(map[name]);
   if (target) target.style.display = name === 'fileList' ? 'block' : (name === 'upload' ? 'block' : 'block');
+  if (name === 'result' || name === 'error') target?.focus();
 }
 
 // ── PROGRESS ───────────────────────────────────────────
@@ -167,6 +168,7 @@ function setProgress(pct, text) {
   if (fill)  fill.style.width = pct + '%';
   if (pctEl) pctEl.textContent = Math.round(pct) + '%';
   if (txtEl) txtEl.textContent = text || '';
+  document.getElementById('progressBar')?.setAttribute('aria-valuenow', String(Math.round(pct)));
 }
 
 // ── PROCESS IMAGES ─────────────────────────────────────
@@ -309,6 +311,7 @@ function showNotification(msg, type = 'info') {
   }
   notif.textContent = msg;
   notif.className = `notification ${type}`;
+  notif.setAttribute('role', type === 'error' ? 'alert' : 'status');
   requestAnimationFrame(() => notif.classList.add('visible'));
   setTimeout(() => notif.classList.remove('visible'), 3200);
 }

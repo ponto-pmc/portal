@@ -16,8 +16,10 @@
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <meta name="theme-color" content="#ffffff" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="stylesheet" href="accessibility.css" />
 </head>
 <body class="monthly-page">
+  <a class="skip-link" href="#monthly-root">Ir para o conteúdo principal</a>
   <nav class="site-nav" role="navigation" aria-label="Navegação principal">
     <div class="inner">
       <a class="nav-logo" href="index.html" aria-label="Ir para página inicial">
@@ -38,16 +40,16 @@
       </ul>
       <div class="nav-actions">
         <button class="theme-toggle-btn" id="themeToggle" aria-label="Alternar tema">
-          <i class="fas fa-moon" id="themeIcon"></i>
+          <i class="fas fa-moon" id="themeIcon" aria-hidden="true"></i>
         </button>
-        <button class="nav-hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false">
-          <i class="fas fa-bars"></i>
+        <button class="nav-hamburger" id="hamburger" aria-controls="navLinks" aria-label="Abrir menu" aria-expanded="false">
+          <i class="fas fa-bars" aria-hidden="true"></i>
         </button>
       </div>
     </div>
   </nav>
 
-  <main id="monthly-root" aria-label="Controle mensal">
+  <main id="monthly-root" tabindex="-1" aria-label="Controle mensal">
 <div class="app-shell">
       <header class="topbar">
         <div class="brand-block">
@@ -82,7 +84,7 @@
         <div class="import-copy">
           <p class="section-kicker">Importar espelho</p>
           <h2>Preencha a jornada a partir do PDF</h2>
-          <p id="import-status">Arraste o espelho de ponto até aqui ou selecione um arquivo</p>
+          <p id="import-status" role="status" aria-live="polite">Arraste o espelho de ponto até aqui ou selecione um arquivo</p>
         </div>
         <button class="import-button" id="choose-file" type="button">Selecionar arquivo</button>
         <input id="file-input" type="file" accept=".pdf,application/pdf,image/png,image/jpeg" hidden />
@@ -135,7 +137,7 @@
               <strong id="negative-total" class="negative-text">00:00</strong>
             </div>
           </div>
-          <div class="balance-row">
+          <div class="balance-row" role="status" aria-live="polite">
             <span>Saldo</span>
             <strong id="balance-total">00:00</strong>
           </div>
@@ -162,5 +164,7 @@
   <script src="script.js"></script>
   <script src="controle-mensal-app.js"></script>
   <script src="pwa.js"></script>
+  <script src="accessibility.js" defer></script>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js" defer></script>
 </body>
 </html>

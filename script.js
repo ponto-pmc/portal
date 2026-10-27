@@ -150,9 +150,15 @@ function initCarousel() {
 
   wrapper.addEventListener('mouseenter', stopAutoSlide);
   wrapper.addEventListener('mouseleave', startAutoSlide);
+  const carousel = wrapper.closest('.modern-carousel');
+  carousel?.addEventListener('focusin', stopAutoSlide);
+  carousel?.addEventListener('focusout', () => {
+    setTimeout(() => { if (!carousel.contains(document.activeElement)) startAutoSlide(); }, 0);
+  });
   setupTouchNav(wrapper);
 
   wrapper.setAttribute('tabindex', '0');
+  wrapper.setAttribute('aria-label', 'Informações em destaque. Use as setas para mudar.');
   wrapper.addEventListener('keydown', e => {
     if (e.key === 'ArrowLeft')  { e.preventDefault(); moveCarousel(-1); }
     if (e.key === 'ArrowRight') { e.preventDefault(); moveCarousel(1); }
@@ -176,8 +182,13 @@ function updateCarousel() {
   // CORREÇÃO: não usar translateX — usar apenas opacity + z-index
   items.forEach((item, i) => {
     item.classList.toggle('active', i === slideIndex);
+    item.setAttribute('aria-hidden', String(i !== slideIndex));
+    item.inert = i !== slideIndex;
   });
-  dots.forEach((dot, i) => dot.classList.toggle('active', i === slideIndex));
+  dots.forEach((dot, i) => {
+    dot.classList.toggle('active', i === slideIndex);
+    dot.setAttribute('aria-pressed', String(i === slideIndex));
+  });
   setTimeout(() => { isTrans = false; }, 700);
 }
 
@@ -196,7 +207,11 @@ function currentSlide(n) {
   resetAutoSlide();
 }
 
-function startAutoSlide()  { if (!autoSlideId) autoSlideId = setInterval(() => moveCarousel(1), 5500); }
+function startAutoSlide()  {
+  const carousel = document.querySelector('.modern-carousel');
+  if (document.hidden || matchMedia('(prefers-reduced-motion: reduce)').matches || carousel?.contains(document.activeElement)) return;
+  if (!autoSlideId) autoSlideId = setInterval(() => moveCarousel(1), 5500);
+}
 function stopAutoSlide()   { clearInterval(autoSlideId); autoSlideId = null; }
 function resetAutoSlide()  { stopAutoSlide(); startAutoSlide(); }
 

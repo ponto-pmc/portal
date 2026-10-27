@@ -15,8 +15,10 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="faq.css" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="accessibility.css" />
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Ir para o conteúdo principal</a>
 
   <!-- NAVBAR -->
   <nav class="site-nav" role="navigation" aria-label="Navegação principal">
@@ -26,7 +28,7 @@
         <span class="nav-logo-text">Ponto<span>.</span>PMC</span>
       </a>
       <ul class="nav-links" id="navLinks" role="list">
-        <li><a href="index.html" class="active">Início</a></li>
+        <li><a href="index.html" class="active" aria-current="page">Início</a></li>
         <li><a href="calculadora.html">Calculadora</a></li>
         <li><a href="controle.html">Controle</a></li>
         <li><a href="imagem.html">Imagens</a></li>
@@ -42,10 +44,10 @@
       </ul>
       <div class="nav-actions">
         <button class="theme-toggle-btn" id="themeToggle" aria-label="Alternar tema">
-          <i class="fas fa-moon" id="themeIcon"></i>
+          <i class="fas fa-moon" id="themeIcon" aria-hidden="true"></i>
         </button>
-        <button class="nav-hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false">
-          <i class="fas fa-bars"></i>
+        <button class="nav-hamburger" id="hamburger" aria-controls="navLinks" aria-label="Abrir menu" aria-expanded="false">
+          <i class="fas fa-bars" aria-hidden="true"></i>
         </button>
       </div>
     </div>
@@ -113,7 +115,7 @@
   </div>
 
   <!-- MAIN CONTENT -->
-  <main>
+  <main id="main-content" tabindex="-1">
     <div class="container">
 
       <!-- CAROUSEL -->
@@ -152,13 +154,13 @@
 
             <div class="carousel-item">
               <div class="carousel-content">
-                <div class="carousel-image app-download-image" onclick="redirectToAppStore()">
-                  <img src="https://lh3.googleusercontent.com/d/1h_pU8L-ES1XYBt2Xg-W1vllGnlDdbgXD" alt="Aplicativo Forponto" loading="lazy"/>
+                <button type="button" class="carousel-image app-download-image" onclick="redirectToAppStore()" aria-label="Baixar aplicativo Forponto">
+                  <img src="https://lh3.googleusercontent.com/d/1h_pU8L-ES1XYBt2Xg-W1vllGnlDdbgXD" alt="" loading="lazy"/>
                   <div class="download-overlay">
-                    <i class="fas fa-download"></i>
+                    <i class="fas fa-download" aria-hidden="true"></i>
                     <span>Baixar App</span>
                   </div>
-                </div>
+                </button>
                 <div class="carousel-text">
                   <span class="eyebrow">Mobile</span>
                   <h3>Acesso via Smartphone</h3>
@@ -204,12 +206,12 @@
           </button>
         </div>
 
-        <div class="carousel-dots" role="tablist" aria-label="Slides">
-          <button class="dot active" onclick="currentSlide(1)" role="tab" aria-label="Slide 1"></button>
-          <button class="dot" onclick="currentSlide(2)" role="tab" aria-label="Slide 2"></button>
-          <button class="dot" onclick="currentSlide(3)" role="tab" aria-label="Slide 3"></button>
-          <button class="dot" onclick="currentSlide(4)" role="tab" aria-label="Slide 4"></button>
-          <button class="dot" onclick="currentSlide(5)" role="tab" aria-label="Slide 5"></button>
+        <div class="carousel-dots" role="group" aria-label="Escolher informação">
+          <button class="dot active" type="button" onclick="currentSlide(1)" aria-label="Mostrar informação 1" aria-pressed="true"></button>
+          <button class="dot" type="button" onclick="currentSlide(2)" aria-label="Mostrar informação 2" aria-pressed="false"></button>
+          <button class="dot" type="button" onclick="currentSlide(3)" aria-label="Mostrar informação 3" aria-pressed="false"></button>
+          <button class="dot" type="button" onclick="currentSlide(4)" aria-label="Mostrar informação 4" aria-pressed="false"></button>
+          <button class="dot" type="button" onclick="currentSlide(5)" aria-label="Mostrar informação 5" aria-pressed="false"></button>
         </div>
       </section>
 
@@ -264,46 +266,35 @@
 
         <div class="card-grid">
 
-          <div class="action-card" role="button" tabindex="0"
-            onclick="abrirLink('https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx')"
-            onkeypress="if(event.key==='Enter')abrirLink('https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx')">
+          <a class="action-card" href="https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx" target="_blank" rel="noopener noreferrer">
             <h2><i class="fas fa-user-check"></i> Consultar Ponto</h2>
             <p>Acesse o sistema oficial e consulte seus registros de frequência.</p>
-          </div>
+          </a>
 
-          <div class="action-card" role="button" tabindex="0"
-            onclick="abrirLink('foto.html')"
-            onkeypress="if(event.key==='Enter')abrirLink('foto.html')">
+          <a class="action-card" href="foto.html">
             <h2><i class="fas fa-file-alt"></i> Formulário de Cadastro</h2>
             <p>Envie sua foto para o cadastro facial do ponto eletrônico.</p>
-          </div>
+          </a>
 
-          <div class="action-card" role="button" tabindex="0"
-            onclick="abrirLink('calculadora.html')"
-            onkeypress="if(event.key==='Enter')abrirLink('calculadora.html')">
+          <a class="action-card" href="calculadora.html">
             <h2><i class="fas fa-calculator"></i> Calculadora de Desconto</h2>
             <p>Calcule descontos por faltas e ausências com facilidade.</p>
-          </div>
+          </a>
 
-          <div class="action-card" role="button" tabindex="0"
-            onclick="abrirLink('imagem.html')"
-            onkeypress="if(event.key==='Enter')abrirLink('imagem.html')">
+          <a class="action-card" href="imagem.html">
             <h2><i class="fas fa-image"></i> Processador de Imagem</h2>
             <p>Redimensione e ajuste imagens para o Help Desk automaticamente.</p>
-          </div>
+          </a>
 
-          <div class="action-card" role="button" tabindex="0"
-            onclick="abrirLink('faq.html')"
-            onkeypress="if(event.key==='Enter')abrirLink('faq.html')">
+          <a class="action-card" href="faq.html">
             <h2><i class="fas fa-question-circle"></i> Dúvidas Frequentes</h2>
             <p>Central de ajuda para as dúvidas mais comuns do sistema.</p>
-          </div>
+          </a>
 
-          <div class="action-card" role="button" tabindex="0"
-            onclick="abrirLink('http://egcontagemead.contagem.mg.gov.br/course/view.php?id=274')">
+          <a class="action-card" href="http://egcontagemead.contagem.mg.gov.br/course/view.php?id=274" target="_blank" rel="noopener noreferrer">
             <h2><i class="fas fa-graduation-cap"></i> Curso do Ponto Eletrônico</h2>
             <p>Capacitação da Escola de Governo sobre o sistema de ponto eletrônico.</p>
-          </div>
+          </a>
 
           <!-- DEPARTMENTS -->
           <section class="departments" aria-label="Secretarias contempladas">
@@ -411,7 +402,7 @@
   <script src="pwa.js"></script>
 
   <!-- CHAT (from faq.html) -->
-  <button id="chatFab" class="chat-fab" aria-label="Abrir assistente de ajuda" aria-expanded="false">
+  <button id="chatFab" class="chat-fab" aria-controls="chatModal" aria-label="Abrir assistente de ajuda" aria-expanded="false">
     <i class="fas fa-comment-dots chat-fab-icon"></i>
     <i class="fas fa-times chat-fab-close"></i>
     <span class="chat-fab-badge" id="chatBadge" style="display:none">1</span>
@@ -491,5 +482,7 @@
 
 
 
+  <script src="accessibility.js" defer></script>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js" defer></script>
 </body>
 </html>
