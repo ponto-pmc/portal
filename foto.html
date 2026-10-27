@@ -1066,6 +1066,10 @@ main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" />
   <!-- CSS do portal (tokens.css + imagem.css) embutido para a página funcionar sozinha -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
 </head>
 <body class="page-wrapper photo-wizard" data-form-stage="intro">
 
@@ -1298,7 +1302,7 @@ const CONFIG = {
   TOKEN:    'sKHwQaBbn-3G-DzAjq-RGINix73A_sr1',
 
   OUT_SIZE: 200,          // tamanho final (px) aceito pelo ponto
-  JPEG_QUALITY: 0.92,
+  JPEG_QUALITY: 0.98,
   MAX_FILE_MB: 15,
   ANALYSIS_MAX_SIDE: 1280, // lado maior usado na análise
   FOREHEAD_MARGIN: 0.06,   // folga acima do ponto da testa (× altura do rosto)
@@ -2312,7 +2316,7 @@ $('camShot').addEventListener('click', async () => {
   $('camCount').textContent = '';
   const v = $('camVideo'), c = document.createElement('canvas');
   c.width = v.videoWidth; c.height = v.videoHeight; c.getContext('2d').drawImage(v, 0, 0);   // sem espelhar
-  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.95));
+  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.98));
   stopCam();
   handleFile(new File([blob], 'camera.jpg', { type: 'image/jpeg' }));
 });
@@ -2425,5 +2429,6 @@ $('csvBtn').addEventListener('click', () => {
 /* Para testes automatizados */
 window.__foto = { emailValido, headExtent, cpfValido, maskCpf, CONFIG, evaluate, analyzeFile, makeImg, cropTo200, normMatricula, checkBackground, checkGlare, checkEyeShadow, checkGlasses };
 </script>
+  <script src="pwa.js"></script>
 </body>
 </html>
