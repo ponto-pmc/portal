@@ -3,11 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Envio de Foto — Portal Ponto Eletrônico</title>
+  <title>Envio de Foto</title>
   <link rel="icon" type="image/png" href="https://i.ibb.co/fVRw238j/Ponto-removebg-preview.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" />
-  <!-- CSS do portal (tokens.css + imagem.css) embutido para a página funcionar sozinha -->
   <style>
 /* =====================================================
    PORTAL PONTO ELETRÔNICO — Design Tokens v4
@@ -255,19 +252,12 @@ a { color: inherit; text-decoration: none; }
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  flex-shrink: 1;
-  min-width: 0;
+  flex-shrink: 0;
 }
 .nav-logo img {
   height: 22px;
   width: auto;
-  max-width: 130px;      /* se a imagem demorar/falhar, o texto alternativo não estoura a barra */
-  object-fit: contain;
-  overflow: hidden;
 }
-.nav-logo-text { white-space: nowrap; flex-shrink: 0; }
-/* nunca deixa a página ficar mais larga que a tela (o botão do menu sairia da área visível) */
-html { overflow-x: clip; }
 [data-theme="dark"] .nav-logo img { filter: brightness(0) invert(1); }
 .nav-logo-text {
   font-family: var(--font-display);
@@ -439,6 +429,20 @@ html { overflow-x: clip; }
   border-color: var(--accent);
 }
 .btn-primary:hover { background: var(--accent-dark); border-color: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(45,125,224,0.35); }
+
+#startPhotoForm, #wizardNext, #send {
+  background: #111;
+  border-color: #111;
+  color: #fff;
+}
+#startPhotoForm:hover, #wizardNext:hover, #send:hover,
+#startPhotoForm:focus-visible, #wizardNext:focus-visible, #send:focus-visible {
+  background: #fff;
+  border-color: #111;
+  color: #111;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .16);
+}
+[data-theme="dark"] :is(#startPhotoForm, #wizardNext, #send) { border-color: #fff; }
 
 .btn-outline {
   background: transparent;
@@ -884,9 +888,8 @@ main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
   .file-panel-actions { flex-direction: column; }
   .preview-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
 }
-  </style>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
-  <style>
+  
+
     /* ===== Formulário de foto (usa os tokens do portal) ===== */
     :root { --sp-7: 1.75rem; }  /* o tokens.css não define --sp-7, o que zerava o padding dos cards */
     .foto-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: var(--sp-6); align-items: start; margin-top: var(--sp-5); }
@@ -987,6 +990,8 @@ main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
     .done-meta { font-size: var(--text-xs); color: var(--text-muted); letter-spacing: .04em; }
     .done .actions { justify-content: center; margin-top: var(--sp-8); }
 
+    .wizard-head, .wizard-title, .wizard-controls, .foto-intro-actions { display: none; }
+
     /* ===== Celular ===== */
     @media (max-width: 640px) {
       main { padding: var(--sp-8) 0 var(--sp-16); }
@@ -1015,6 +1020,38 @@ main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
     }
     @media (max-width: 380px) { .field input[type=text], .field select { padding: .7rem .75rem; } }
 
+    /* Etapas do formulário com a aparência do portal */
+    @media (max-width: 640px) {
+      body.photo-wizard main { min-height: calc(100dvh - 62px); }
+      body.photo-wizard .btn-back-page { display: none; }
+      body.photo-wizard[data-form-stage="intro"] #formArea { display: none; }
+      body.photo-wizard[data-form-stage="intro"] .foto-intro-actions { display: block; margin-top: var(--sp-6); }
+      body.photo-wizard[data-form-stage="intro"] .foto-intro-actions .btn { width: 100%; justify-content: center; }
+      body.photo-wizard[data-form-stage="form"] .page-hero,
+      body.photo-wizard[data-form-stage="form"] .foto-intro-actions { display: none; }
+      body.photo-wizard #photoFormCard { scroll-margin-top: 78px; }
+      body.photo-wizard[data-form-stage="form"] .foto-grid { margin-top: 0; }
+      body.photo-wizard .wizard-step-hidden { display: none !important; }
+      body.photo-wizard .wizard-head {
+        display: grid; grid-template-columns: 36px 1fr 36px; align-items: center;
+        color: var(--text-muted); font-size: var(--text-xs); text-align: center;
+        margin-bottom: var(--sp-6);
+      }
+      body.photo-wizard .wizard-back {
+        width: 36px; height: 36px; display: grid; place-items: center;
+        color: var(--text-secondary); border: 0; background: transparent; border-radius: 50%;
+        cursor: pointer;
+      }
+      body.photo-wizard .wizard-back:focus-visible { outline: 2px solid var(--accent); }
+      body.photo-wizard .wizard-title {
+        display: block; font-size: var(--text-xl); line-height: 1.25;
+        letter-spacing: -.02em; font-weight: 700; text-transform: none;
+        margin: 0 0 var(--sp-6); color: var(--text-primary);
+      }
+      body.photo-wizard .wizard-controls { display: block; margin-top: var(--sp-8); }
+      body.photo-wizard .wizard-controls .btn { width: 100%; justify-content: center; }
+    }
+
     /* ===== Modo calibragem (?debug=1) ===== */
     #debugPanel { display: none; margin-top: var(--sp-5); }
     body.debug #debugPanel { display: block; }
@@ -1024,9 +1061,13 @@ main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
     #debugPanel pre { white-space: pre-wrap; font-size: var(--text-xs); background: var(--surface-2); padding: var(--sp-4); border-radius: var(--radius-md); }
     .debug-badge { display: none; background: var(--warning); color: #fff; font-size: var(--text-xs); font-weight: 700; padding: 2px 10px; border-radius: 99px; margin-left: 10px; vertical-align: middle; }
     body.debug .debug-badge { display: inline-block; }
-  </style>
+</style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" />
+  <!-- CSS do portal (tokens.css + imagem.css) embutido para a página funcionar sozinha -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
 </head>
-<body class="page-wrapper">
+<body class="page-wrapper photo-wizard" data-form-stage="intro">
 
   <nav class="site-nav" role="navigation" aria-label="Navegação principal">
     <div class="inner">
@@ -1050,47 +1091,6 @@ main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
     </div>
   </nav>
 
-  <!-- Menu + tema: ligados NA HORA (inline), sem esperar CDNs/scripts da página -->
-  <script>
-  (function () {
-    var w = window, d = document;
-    w.THEME_KEY = 'pp-theme'; w._ppThemeInit = true;
-    w.applyTheme = function (dark) {
-      d.documentElement.dataset.theme = dark ? 'dark' : 'light';
-      var i = d.getElementById('themeIcon'); if (i) i.className = dark ? 'fas fa-sun' : 'fas fa-moon';
-    };
-    try { w.applyTheme(localStorage.getItem('pp-theme') === 'dark'); } catch (e) {}
-
-    var tg = d.getElementById('themeToggle');
-    if (tg && !w._ppThemeListenerSet) {
-      w._ppThemeListenerSet = true;
-      tg.addEventListener('click', function () {
-        var dark = d.documentElement.dataset.theme !== 'dark';
-        w.applyTheme(dark);
-        try { localStorage.setItem('pp-theme', dark ? 'dark' : 'light'); } catch (e) {}
-      });
-    }
-
-    var hb = d.getElementById('hamburger'), nl = d.getElementById('navLinks');
-    if (!hb || !nl || w._ppNavListenerSet) return;
-    w._ppNavListenerSet = true;
-    function setOpen(o) {
-      nl.classList.toggle('open', o);
-      hb.setAttribute('aria-expanded', String(o));
-      hb.innerHTML = o ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
-    }
-    hb.addEventListener('click', function (e) { e.stopPropagation(); setOpen(!nl.classList.contains('open')); });
-    d.addEventListener('click', function (e) {
-      if (nl.classList.contains('open') && !hb.contains(e.target) && !nl.contains(e.target)) setOpen(false);
-    });
-    nl.addEventListener('click', function (e) { if (e.target.closest('a')) setOpen(false); });
-    d.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
-    var nav = d.querySelector('.site-nav');
-    if (nav) w.addEventListener('scroll', function () { nav.classList.toggle('scrolled', w.scrollY > 10); }, { passive: true });
-  })();
-  </script>
-
-
   <main>
     <div class="container">
 
@@ -1101,13 +1101,22 @@ main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
         <h1><i class="fas fa-camera"></i> Envio de Foto <span class="debug-badge">calibragem</span></h1>
         <p>Envie sua foto para o cadastro no relógio de ponto facial. O sistema confere se ela está dentro do padrão e já ajusta o tamanho automaticamente.</p>
       </div>
+      <div class="foto-intro-actions">
+        <button class="btn btn-primary btn-lg" id="startPhotoForm" type="button">Continuar <i class="fas fa-arrow-right"></i></button>
+      </div>
 
       <div id="formArea">
         <div class="foto-grid">
 
           <!-- COLUNA ESQUERDA: dados + foto -->
-          <div class="card">
-            <h2><span class="ico-box"><i class="fas fa-id-card"></i></span> Seus dados</h2>
+          <div class="card" id="photoFormCard">
+            <div class="wizard-head" id="wizardHead" aria-live="polite">
+              <button type="button" class="wizard-back" id="wizardBack" aria-label="Voltar à etapa anterior"><i class="fas fa-chevron-left"></i></button>
+              <span id="wizardProgress">1 de 7</span>
+              <span class="wizard-head-spacer" aria-hidden="true"></span>
+            </div>
+            <h2 class="wizard-title" id="wizardTitle" tabindex="-1"></h2>
+            <h2 id="dataHeading"><span class="ico-box"><i class="fas fa-id-card"></i></span> Seus dados</h2>
 
             <div class="field" id="fNome">
               <label for="nome">Nome completo</label>
@@ -1160,18 +1169,18 @@ main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
               <div class="err">Selecione sua secretaria.</div>
             </div>
 
-            <h2 style="margin-top:var(--sp-10)"><span class="ico-box"><i class="fas fa-image"></i></span> Sua foto</h2>
+            <h2 id="photoHeading" style="margin-top:var(--sp-10)"><span class="ico-box"><i class="fas fa-image"></i></span> Sua foto</h2>
 
             <div class="drop" id="drop" tabindex="0" role="button" aria-label="Selecionar foto">
               <i class="fas fa-cloud-upload-alt"></i>
               <strong>Toque para escolher ou arraste a foto</strong>
-              <span>JPG, PNG ou WEBP</span>
-              <input type="file" id="file" accept="image/*" hidden />
+              <span>JPG, PNG, HEIC, TIFF e outros formatos de imagem · saída em JPG</span>
+              <input type="file" id="file" accept="image/*,.heic,.heif,.tif,.tiff,.jfif,.jpe" hidden />
             </div>
-            <div class="cam-row">
+            <div class="cam-row" id="camRow">
               <span>ou</span>
               <button class="btn btn-outline" id="btnCam" type="button"><i class="fas fa-camera"></i> Tirar foto agora</button>
-              <input type="file" id="fileCam" accept="image/*" capture="user" hidden />
+              <input type="file" id="fileCam" accept="image/*,.heic,.heif,.tif,.tiff,.jfif,.jpe" capture="user" hidden />
             </div>
             <div class="loading-model" id="modelStatus"><i class="fas fa-circle-notch fa-spin"></i> Preparando o verificador de fotos…</div>
 
@@ -1195,10 +1204,13 @@ main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
               <button class="btn btn-ghost" id="reset" type="button"><i class="fas fa-redo-alt"></i> Limpar</button>
             </div>
             <div class="result" id="sendMsg" role="status" aria-live="polite" style="margin-top:var(--sp-5)"></div>
+            <div class="wizard-controls" id="wizardControls">
+              <button class="btn btn-primary btn-lg" id="wizardNext" type="button">Continuar <i class="fas fa-arrow-right"></i></button>
+            </div>
           </div>
 
           <!-- COLUNA DIREITA: orientações -->
-          <div>
+          <div id="photoTipsContainer">
             <div class="side-card">
               <div class="side-head"><span class="ico-box"><i class="fas fa-lightbulb"></i></span><h3>Como tirar a foto</h3></div>
               <ul class="tips">
@@ -1227,7 +1239,7 @@ main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
           <p style="font-size:var(--text-sm);color:var(--text-secondary);margin-bottom:var(--sp-4)">
             Selecione várias fotos de uma vez (aprovadas e reprovadas em casos reais) para ver as métricas de cada uma e ajustar os limites no bloco <code>CONFIG.T</code> do arquivo.
           </p>
-          <input type="file" id="batch" accept="image/*" multiple />
+          <input type="file" id="batch" accept="image/*,.heic,.heif,.tif,.tiff,.jfif,.jpe" multiple />
           <div class="actions"><button class="btn btn-outline btn-sm" id="csvBtn" type="button" disabled>Baixar CSV</button></div>
           <div style="overflow:auto;margin-top:var(--sp-4)"><table id="batchTable"></table></div>
           <pre id="lastMetrics">Envie uma foto para ver as métricas.</pre>
@@ -1253,7 +1265,7 @@ main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
         <div class="footer-logo"><img src="https://legislacao.contagem.mg.gov.br/imgs/Marca-PMC-cor.png" alt="Logo Prefeitura de Contagem" /></div>
         <div>
           <p class="footer-copy">© 2026 Equipe Ponto Eletrônico — Prefeitura Municipal de Contagem</p>
-          <p class="footer-dev">Desenvolvido por Equipe Ponto Eletrônico — SEAD · <span id="versaoPagina" style="opacity:.6"></span></p>
+          <p class="footer-dev">Desenvolvido por Equipe Ponto Eletrônico — SEAD</p>
         </div>
       </div>
     </div>
@@ -1285,12 +1297,10 @@ const CONFIG = {
   ENDPOINT: 'https://script.google.com/macros/s/AKfycbzsDkA3yCzRNpLZ3ourM0fh3s9fIJiFeNriVKS73hMU5cPXcjc5kqP0Ok_s2ex0aNT4rA/exec',
   TOKEN:    'sKHwQaBbn-3G-DzAjq-RGINix73A_sr1',
 
-  VERSAO: 'foto-2026.10.27-c',   // aparece no rodapé: confira se o celular está com a versão nova
   OUT_SIZE: 200,          // tamanho final (px) aceito pelo ponto
   JPEG_QUALITY: 0.92,
   MAX_FILE_MB: 15,
   ANALYSIS_MAX_SIDE: 1280, // lado maior usado na análise
-  HAIR_CAP: 1.4,           // cabelo volumoso: o recorte nunca passa de (fator × altura do rosto testa→queixo); o rosto fica inteiro e o cabelo pode ser cortado nas pontas
   FOREHEAD_MARGIN: 0.06,   // folga acima do ponto da testa (× altura do rosto)
   SIDE_MARGIN: 0.01,       // o rosto (orelha a orelha) precisa ficar a pelo menos 1% da borda lateral
   CHIN_PAD: 0.05,          // folga abaixo do ponto do queixo detectado (× altura do rosto). O ponto fica ~3-4% acima da ponta real; sem essa folga o queixo corta. Também é o espaço mínimo exigido na foto original.
@@ -1298,7 +1308,6 @@ const CONFIG = {
   HEAD_BG_DIST: 50,        // quanto o pixel precisa diferir do fundo para contar como cabelo
   BEARD_DARK: 0.62,        // barba = pixel mais escuro que essa fração do brilho da pele
   BEARD_MAX: 0.4,          // até quanto abaixo do queixo procurar barba (× altura do rosto)
-  CROP_SHIFT_Y: -0.04,     // com cabelo limitado, desloca o recorte para cima (fração do lado) para sobrar mais cabelo em cima
 
   // MediaPipe: tenta primeiro a cópia local (pasta vendor/mediapipe), depois a CDN.
   MP_LOCAL: 'vendor/mediapipe',
@@ -1323,10 +1332,8 @@ const CONFIG = {
     yawMax: 0.14,           // |posição do nariz − 0,5| (rosto virado)
     rollMaxDeg: 12,         // cabeça inclinada
     pitchMin: 0.45, pitchMax: 0.64, // razão vertical nariz (rosto para cima/baixo)
-    faceSatMin: 0.10,       // saturação média do rosto (preto e branco fica perto de 0)
-    colorFracMin: 0.25,     // fração do rosto com cor perceptível
-    faceChromaMin: 30,      // diferença média entre o maior e o menor canal (RGB) no rosto
-    strongFracMin: 0.35,    // fração do rosto com cor forte (diferença > 30); P&B tingido fica perto de 0
+    grayChromaMax: 10,      // só considera P&B quando quase todos os canais RGB são iguais
+    grayColorFracMax: 0.02, // tolera pequenos artefatos de compressão JPEG
     faceLumaMin: 70, faceLumaMax: 232,   // rosto escuro / estourado
     sharpMin: 15,           // nitidez nos olhos/sobrancelhas (p98 do laplaciano)
     // fundo
@@ -1339,15 +1346,9 @@ const CONFIG = {
     cropBgNear: 50,         // pixel parecido com o fundo (para achar vão de parede entre um objeto e a pessoa)
     cropGapFrac: 0.03,      // vão de parede lisa (fração da largura do recorte) que separa objeto de cabelo
     bgSideGap: 0.5,         // distância mínima (× largura do rosto) entre o recorte lateral e o rosto
-    edgeDarkMax: 90,         // pixel mais escuro que isso (na borda do recorte) é cabelo/roupa
-    edgeChromaDist: 24,      // distância de cor (sem brilho) para ainda ser "parede"
-    edgeLumaDist: 60,        // diferença de brilho tolerada para ainda ser "parede" (gradiente de luz)
-    edgeHairDist: 38,        // distância de cor (sem brilho) para ainda ser "cabelo" (comparado ao cabelo acima da testa)
-    edgeForeignMax: 0.12,
-    edgeForeignLoose: 0.30,  // idem, para trecho já liso ou faixa do topo    // fração de pixels que não são parede nem escuros a partir da qual vira "objeto"
     bgDarkIgnore: 85,       // recorte mais escuro que isso é tratado como cabelo/roupa
     // óculos
-    glassesRatioMax: 3.2,   // energia de bordas (ponte/aro) ÷ bochecha (só pega armação evidente)
+    glassesRatioMax: 1,     // ponte e aros inferiores devem aparecer juntos, acima da textura da pele
     // reflexo nos olhos
     glareFracMax: 0.07,     // fração de pixels estourados dentro da íris
     // sombra nos olhos
@@ -1356,7 +1357,6 @@ const CONFIG = {
     eyeStrandRatio: 0.55,   // pixel da parte branca do olho mais escuro que essa fração da pele = mecha/sombra
     eyeCoverRatioMax: 0.55, // contraste do olho mais "chapado" ÷ olho mais nítido: abaixo disso, um olho parece coberto
     eyeCoverAsymMin: 0.18,  // e o brilho das duas pálpebras difere mais que isso (eyeAsym)
-    hairForeheadMax: 0.25,  // fração de "cabelo" na testa (faixa central)
     hairEyeAboveMax: 0.30,  // entre a sobrancelha e o olho
     hairEyeUnderMax: 0.30,  // embaixo do olho
     hairTempleMax: 0.25,    // têmporas
@@ -1400,20 +1400,19 @@ const $ = id => document.getElementById(id);
   const apply = d => { document.documentElement.dataset.theme = d ? 'dark' : 'light';
     const i = $('themeIcon'); if (i) i.className = d ? 'fas fa-sun' : 'fas fa-moon'; };
   try { apply(localStorage.getItem(KEY) === 'dark'); } catch { apply(false); }
-  if (!window._ppThemeListenerSet) $('themeToggle')?.addEventListener('click', () => {
+  $('themeToggle')?.addEventListener('click', () => {
     const d = document.documentElement.dataset.theme !== 'dark'; apply(d);
     try { localStorage.setItem(KEY, d ? 'dark' : 'light'); } catch {}
   });
   const nav = document.querySelector('.site-nav');
   addEventListener('scroll', () => nav?.classList.toggle('scrolled', scrollY > 10), { passive: true });
   const hb = $('hamburger'), nl = $('navLinks');
-  if (!window._ppNavListenerSet) hb?.addEventListener('click', () => {
+  hb?.addEventListener('click', () => {
     const open = nl.classList.toggle('open'); hb.setAttribute('aria-expanded', String(open));
     hb.innerHTML = open ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
   });
 })();
 if (DEBUG) document.body.classList.add('debug');
-{ const v = document.getElementById('versaoPagina'); if (v) v.textContent = CONFIG.VERSAO; }
 
 /* =====================================================================
    FUNÇÕES PURAS DE ANÁLISE (recebem pixels + pontos do rosto)
@@ -1523,19 +1522,23 @@ function checkBackground(img, P, T) {
   return m;
 }
 
-/* ---- Óculos: bordas na ponte do nariz e abaixo dos olhos vs bochecha ---- */
+/* ---- Óculos: ponte e aros abaixo dos olhos vs pele abaixo da armação ---- */
 function checkGlasses(img, P) {
   const rb = ptsBox(P, IDX.rEye), lb = ptsBox(P, IDX.lEye);
   const eyeW = (rb.x1 - rb.x0 + lb.x1 - lb.x0) / 2;
   const bridge = boxFromCenter((P[133].x + P[362].x) / 2, (P[168].y + P[6].y) / 2, (P[362].x - P[133].x) * 0.8, Math.abs(P[6].y - P[168].y) * 1.0);
-  const underR = { x0: rb.x0, x1: rb.x1, y0: rb.y1 + 0.12 * eyeW, y1: rb.y1 + 0.42 * eyeW };
-  const underL = { x0: lb.x0, x1: lb.x1, y0: lb.y1 + 0.12 * eyeW, y1: lb.y1 + 0.42 * eyeW };
-  const cheekR = boxFromCenter(P[50].x, P[50].y + 0.1 * eyeW, 0.8 * eyeW, 0.5 * eyeW);
-  const cheekL = boxFromCenter(P[280].x, P[280].y + 0.1 * eyeW, 0.8 * eyeW, 0.5 * eyeW);
+  // Aros grandes descem bem abaixo dos olhos. A referência antiga caía sobre o próprio aro.
+  const lowerRim = b => ({ x0: b.x0 - 0.25 * eyeW, x1: b.x1 + 0.25 * eyeW,
+    y0: b.y1 + 0.16 * eyeW, y1: b.y1 + 0.68 * eyeW });
+  const cheekR = boxFromCenter(P[50].x, P[50].y + 0.65 * eyeW, 0.7 * eyeW, 0.4 * eyeW);
+  const cheekL = boxFromCenter(P[280].x, P[280].y + 0.65 * eyeW, 0.7 * eyeW, 0.4 * eyeW);
   const ref = (boxEdge(img, cheekR) + boxEdge(img, cheekL)) / 2;
-  const eb = boxEdge(img, bridge), er = boxEdge(img, underR), el = boxEdge(img, underL);
-  const score = Math.max(eb, (er + el) / 2, Math.max(er, el) * 0.85) / (ref + 3);
-  return { glassesRatio: score, edgeBridge: eb, edgeUnder: (er + el) / 2, edgeCheek: ref };
+  const eb = boxEdge(img, bridge), er = boxEdge(img, lowerRim(rb)), el = boxEdge(img, lowerRim(lb));
+  const bridgeRatio = eb / (ref + 3), rimRatio = Math.min(er, el) / (ref + 3);
+  // Exige evidência nos dois aros e na ponte para não confundir sombras ou sobrancelhas com óculos.
+  const score = Math.min(bridgeRatio / 1.5, rimRatio / 1.2);
+  return { glassesRatio: score, glassesBridgeRatio: bridgeRatio, glassesRimRatio: rimRatio,
+    edgeBridge: eb, edgeUnder: (er + el) / 2, edgeCheek: ref };
 }
 
 /* ---- Reflexo (pixels estourados e sem cor dentro da íris) ---- */
@@ -1586,7 +1589,7 @@ function checkFaceQuality(img, P) {
   return { faceLuma: mean(vals), sharp: percentile(lap, 0.98) };
 }
 
-/* ---- Cor: recusa foto preto e branco (ou quase sem cor) ---- */
+/* ---- Cor: detecta somente imagens realmente acromáticas ---- */
 function checkColor(img, P) {
   const f = fixBox(img, { x0: P[234].x, x1: P[454].x, y0: P[10].y, y1: P[152].y });
   let sum = 0, n = 0, colored = 0, strong = 0, csum = 0;
@@ -1596,19 +1599,25 @@ function checkColor(img, P) {
     if (mx < 40) continue;                       // ignora sombras profundas
     sum += (mx - mn) / mx; csum += mx - mn; n++; if (mx - mn > 14) colored++; if (mx - mn > 30) strong++;
   }
-  // variação de tom na imagem toda: foto sépia/monocromática tem um tom só
-  let hs = 0, hc = 0, hn = 0;
+  // Pele pode ser pouco saturada; a evidência de cor vem da foto toda.
+  // Em P&B de verdade, R, G e B ficam quase iguais em praticamente todos os pixels.
+  let imageN = 0, imageColor = 0;
+  const chromas = [];
   const step = Math.max(1, Math.round(Math.min(img.w, img.h) / 200));
   for (let y = 0; y < img.h; y += step) for (let x = 0; x < img.w; x += step) {
     const j = (y * img.w + x) * 4, r = img.data[j], g = img.data[j + 1], b = img.data[j + 2];
-    const mx = Math.max(r, g, b), mn = Math.min(r, g, b); if (mx - mn < 14) continue;
-    let h; const d = mx - mn;
-    if (mx === r) h = ((g - b) / d) % 6; else if (mx === g) h = (b - r) / d + 2; else h = (r - g) / d + 4;
-    h *= Math.PI / 3; hs += Math.sin(h); hc += Math.cos(h); hn++;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+    if (mx < 40 || mx > 245) continue;
+    const chroma = mx - mn;
+    chromas.push(chroma); imageN++;
+    if (chroma >= CONFIG.T.grayChromaMax) imageColor++;
   }
-  const R = hn ? Math.hypot(hs, hc) / hn : 1;
-  const hueSpread = hn ? Math.sqrt(Math.max(0, -2 * Math.log(Math.max(R, 1e-6)))) * 180 / Math.PI : 0;   // desvio circular em graus
-  return { faceSat: n ? sum / n : 0, colorFrac: n ? colored / n : 0, faceChroma: n ? csum / n : 0, strongFrac: n ? strong / n : 0, hueSpread };
+  const imageColorFrac = imageN ? imageColor / imageN : 0;
+  const imageChromaP95 = percentile(chromas, 0.95);
+  const grayscale = imageN >= 100 && imageColorFrac < CONFIG.T.grayColorFracMax && imageChromaP95 < CONFIG.T.grayChromaMax;
+  return { faceSat: n ? sum / n : 0, colorFrac: n ? colored / n : 0,
+    faceChroma: n ? csum / n : 0, strongFrac: n ? strong / n : 0,
+    imageColorFrac, imageChromaP95, grayscale };
 }
 
 /* ---- Pose e enquadramento ---- */
@@ -1696,7 +1705,7 @@ function evaluate(img, faces, blendshapes) {
 
   // Foto em preto e branco
   Object.assign(M, checkColor(img, P));
-  if (M.faceSat < T.faceSatMin || M.colorFrac < T.colorFracMin || M.faceChroma < T.faceChromaMin || M.strongFrac < T.strongFracMin)
+  if (M.grayscale)
     R('preto_branco', 'Foto em preto e branco', 'Envie uma foto colorida, sem filtro. Desative filtros ou o modo preto e branco da câmera e tire outra foto.');
 
   // Qualidade do rosto
@@ -1732,16 +1741,14 @@ function evaluate(img, faces, blendshapes) {
   // Sombra nos olhos
   Object.assign(M, checkEyeShadow(img, P));
   if (M.eyeShadow < T.eyeShadowRatioMin)
-    R('sombra_olhos', 'Sombra nos olhos', 'Há sombra sobre os olhos (boné, franja, luz vindo de cima). Tire o que estiver cobrindo a testa e use luz de frente, sem luz forte vindo do alto.');
+    R('sombra_olhos', 'Sombra nos olhos', 'Há sombra sobre os olhos (boné, franja ou luz vindo de cima). Deixe os olhos visíveis e use luz de frente, sem luz forte vindo do alto.');
   else if (M.eyeAsym > T.eyeAsymMax)
     R('luz_desigual', 'Iluminação desigual no rosto', 'Um lado do rosto está mais escuro que o outro. Fique de frente para a janela ou fonte de luz.');
 
-  // Cabelo cobrindo o rosto (testa, olhos, têmporas, bochechas): o rosto e os olhos precisam estar limpos
+  // Cabelo na testa é permitido; reprova somente quando há evidência de olho coberto.
   Object.assign(M, checkHairOnFace(img, P, T));
   if (M.eyeContrastRatio < T.eyeCoverRatioMax && M.eyeAsym > T.eyeCoverAsymMin)
-    R('cabelo_olhos', 'Um dos olhos está coberto', 'Um dos olhos parece estar escondido por cabelo ou sombra. Prenda o cabelo para trás e deixe os dois olhos, a testa e as laterais do rosto totalmente à mostra.');
-  else if (M.hairForehead > T.hairForeheadMax)
-    R('cabelo_testa', 'Cabelo cobrindo a testa', 'Há franja ou mechas de cabelo sobre a testa. Prenda o cabelo para trás e deixe a testa e os olhos totalmente à mostra.');
+    R('cabelo_olhos', 'Um dos olhos está coberto', 'Um dos olhos parece estar escondido por cabelo ou sombra. Afaste o cabelo dos olhos e deixe os dois totalmente visíveis.');
 
   return { ok: reasons.length === 0, reasons, metrics: M, P };
 }
@@ -1750,9 +1757,8 @@ function evaluate(img, faces, blendshapes) {
    RECORTE + REDUÇÃO PARA 200×200
    ===================================================================== */
 
-/** Cabelo (mechas, franja) cobrindo o rosto. Mede a fração de pixels MUITO mais escuros que a pele nas zonas que
- *  precisam estar limpas: testa, em cima e embaixo dos olhos, têmporas e parte alta das bochechas.
- *  (A barba, mais abaixo, não entra na conta.) */
+/** Mede regiões escuras do rosto para diagnóstico e a visibilidade dos olhos.
+ *  Cabelo sobre a testa é permitido; a região da testa não reprova a foto. */
 function checkHairOnFace(img, P, T) {
   const fw = dist(P[234], P[454]), fh = dist(P[10], P[152]);
   const sk = [P[50], P[280]].map(p => percentile(boxLumas(img, boxFromCenter(p.x, p.y, 0.12 * fw, 0.12 * fw)), 0.5));
@@ -1816,72 +1822,9 @@ function checkHairOnFace(img, P, T) {
  *  moldura, parede de outra cor) e reprova. */
 function checkCropBackground(img, P, T) {
   const bg = checkBackground(img, P, T);
-  const raw = (bg.bgRaw || []).slice();
-  const out = { ok: false, why: 'plain', patches: bg.bgPatches };
-
-  // Varredura das bordas do recorte: toda a coluna esquerda e direita (do alto até o queixo) e a faixa acima da
-  // cabeça. Aí não deveria haver nada além de parede lisa (ou cabelo/roupa escuros): prateleira, luminária,
-  // janela, quadro e móveis aparecem como trecho NÃO liso e NÃO escuro.
-  const fwid = dist(P[234], P[454]), fhei = dist(P[10], P[152]);
-  const es = Math.max(8, T.bgPatch * img.w), edge = [];
-  const addEdge = (x, y, top) => {
-    const st = patchStats(img, x, y, es); if (!st) return;
-    st.name = 'E' + Math.round(x) + ',' + Math.round(y); st.x = x; st.y = y; st.side = es; st.edge = true; st.top = !!top;
-    st.dark = st.luma < T.bgDarkIgnore;
-    st.plain = st.luma >= T.bgLumaMin && st.sat <= T.bgSatMax && st.std <= T.bgStdMax && st.range <= T.bgRangeMax;
-    edge.push(st);
-  };
-  const edgeBottom = (P[1].y + P[152].y) / 2;     // até a altura da boca: abaixo disso aparecem ombros, roupa e cabelo longo
-  for (let y = 0; y + es <= edgeBottom; y += es) {
-    if (es <= P[234].x - 0.08 * fwid) addEdge(0, y);
-    if (img.w - es >= P[454].x + 0.08 * fwid) addEdge(img.w - es, y);
-  }
-  for (let x = es; x + 2 * es <= img.w; x += es)
-    if (es <= P[10].y - 0.15 * fhei && (x + es < P[234].x - 0.08 * fwid || x > P[454].x + 0.08 * fwid)) addEdge(x, 0, true);
-  const seen = new Set(raw.map(p => p.name));
-  for (const e of edge) if (!seen.has(e.name)) raw.push(e);
-  out.edgeInfo = edge.map(e => `${e.name}:${e.luma.toFixed(0)}/${e.sat.toFixed(2)}/${e.std.toFixed(0)}/${e.range.toFixed(0)}${e.plain ? '+' : e.dark ? 'd' : '-'}`).join(' ');
-  // Em cada trecho da borda: que fração dos pixels NÃO é parede (cor/brilho parecidos com os da parede) NEM escura
-  // (cabelo/roupa)? Cabelo encostando na borda dá "parede + escuro" e passa; prateleira, luminária, janela,
-  // quadro ou outra cor dão uma fração alta de pixels "estranhos".
-  const wallRef = (raw.find(p => p.plain && !p.edge) || raw.find(p => p.plain) || raw[0] || {}).rgb;
-  if (wallRef) {
-    const wl = luma(wallRef[0], wallRef[1], wallRef[2]), wch = [wallRef[0] - wl, wallRef[1] - wl, wallRef[2] - wl];
-    const isWall = (r, g, b, l) => Math.hypot(r - l - wch[0], g - l - wch[1], b - l - wch[2]) <= T.edgeChromaDist && Math.abs(l - wl) <= T.edgeLumaDist;
-    // cor do cabelo: pixels que não são parede nem escuros, ao lado da testa e acima dela
-    const eyeY = (P[33].y + P[263].y) / 2, hs = [];
-    const sample = (x0, x1, y0, y1) => {
-      for (let yy = Math.max(0, Math.floor(y0)); yy < Math.min(img.h, Math.ceil(y1)); yy++)
-        for (let xx = Math.max(0, Math.floor(x0)); xx < Math.min(img.w, Math.ceil(x1)); xx++) {
-          const j = (yy * img.w + xx) * 4, r = img.data[j], g = img.data[j + 1], b = img.data[j + 2], l = luma(r, g, b);
-          if (l >= T.edgeDarkMax && !isWall(r, g, b, l)) hs.push([r, g, b]);
-        }
-    };
-    sample(P[234].x + 0.15 * fwid, P[454].x - 0.15 * fwid, P[10].y - 0.25 * fhei, P[10].y - 0.02 * fhei);   // só acima da testa (sem pele)
-    const hairRef = hs.length >= 40 ? [0, 1, 2].map(k => percentile(hs.map(c => c[k]), 0.5)) : null;
-    const hairL = hairRef ? luma(hairRef[0], hairRef[1], hairRef[2]) : 0;
-    const hairCh = hairRef ? [hairRef[0] - hairL, hairRef[1] - hairL, hairRef[2] - hairL] : null;
-    out.hairRef = hairRef ? hairRef.map(Math.round).join(',') + '(' + hs.length + ')' : null;
-    for (const e of edge) {
-      let n = 0, bad = 0;
-      for (let yy = Math.floor(e.y); yy < Math.min(img.h, Math.ceil(e.y + es)); yy++)
-        for (let xx = Math.floor(e.x); xx < Math.min(img.w, Math.ceil(e.x + es)); xx++) {
-          const j = (yy * img.w + xx) * 4, r = img.data[j], g = img.data[j + 1], b = img.data[j + 2], l = luma(r, g, b);
-          n++;
-          if (l < T.edgeDarkMax) continue;                                     // cabelo/roupa escuros
-          if (isWall(r, g, b, l)) continue;                                    // parede
-          if (hairRef && l >= 0.4 * hairL && l <= 1.5 * hairL &&
-              Math.hypot(r - l - hairCh[0], g - l - hairCh[1], b - l - hairCh[2]) <= T.edgeHairDist) continue; // cabelo claro/ruivo (mesma cor do cabelo da testa, com luz/sombra)
-          bad++;
-        }
-      e.foreign = n ? bad / n : 0;
-    }
-    out.edgeInfo = edge.map(e => `${e.name}:f${e.foreign.toFixed(2)}${e.plain ? '+' : e.dark ? 'd' : '-'}`).join(' ');
-    // trecho já "liso" pelas medidas (ou faixa do topo, onde cabelo volumoso aparece) tem tolerância maior
-    const busyEdge = edge.find(e => e.foreign > ((e.plain || e.top) ? T.edgeForeignLoose : T.edgeForeignMax));
-    if (busyEdge) return Object.assign(out, { why: 'object', bad: busyEdge.name });
-  }
+  const raw = bg.bgRaw || [];
   const plains = raw.filter(p => p.plain);
+  const out = { ok: false, why: 'plain', patches: bg.bgPatches };
   if (!plains.length) return Object.assign(out, { why: raw.length && raw.every(p => p.dark) ? 'dark' : 'plain' });
   // todas as partes lisas precisam ter praticamente a mesma cor (parede única)
   const ref = plains[0].rgb;
@@ -1914,12 +1857,13 @@ function headExtent(img, P, bg) {
     for (let x = Math.max(0, Math.floor(xa)); x < Math.min(img.w, Math.ceil(xb)); x++) { t++; if (test((y * img.w + x) * 4)) n++; }
     return t ? n / t : 0;
   };
-  // topo: diferença em relação à cor do fundo, faixa central acima da testa
-  const d2 = CONFIG.HEAD_BG_DIST ** 2;
+  // topo: acompanha o cabelo acima da testa, tolerando pequenos vãos entre mechas
+  const d2 = (CONFIG.HEAD_BG_DIST * 0.7) ** 2;
   const isFg = j => { const a = img.data[j] - bg[0], b = img.data[j + 1] - bg[1], c = img.data[j + 2] - bg[2]; return a * a + b * b + c * c > d2; };
   let top = P[10].y, miss = 0;
+  const maxGap = Math.max(4, Math.round(0.04 * fh));
   for (let y = Math.floor(P[10].y); y >= 0; y--) {
-    if (rowFrac(y, cx - 0.6 * fw, cx + 0.6 * fw, isFg) >= 0.05) { top = y; miss = 0; } else if (++miss >= 4) break;
+    if (rowFrac(y, cx - 0.65 * fw, cx + 0.65 * fw, isFg) >= 0.05) { top = y; miss = 0; } else if (++miss >= maxGap) break;
   }
   // base: barba = pixels bem mais escuros que a pele da bochecha, logo abaixo do queixo
   const sk = [P[50], P[280]].map(p => percentile(boxLumas(img, boxFromCenter(p.x, p.y, 0.12 * fw, 0.12 * fw)), 0.5));
@@ -1934,7 +1878,7 @@ function headExtent(img, P, bg) {
     if (rowFrac(y, P[152].x - 0.35 * fw, P[152].x + 0.35 * fw, isDark) >= 0.12) { bottom = Math.max(bottom, y); miss = 0; } else if (++miss >= 4) break;
   }
   // barba que continua até a última linha da foto = barba cortada pela borda
-  return { topN: top / img.h, botN: bottom / img.h, beardCut: hasBeard && bottom >= img.h - 3 };
+  return { topN: top / img.h, botN: bottom / img.h, topCut: top <= 2, beardCut: hasBeard && bottom >= img.h - 3 };
 }
 function cropTo200(bitmap, P_norm, bgColor, ext) {
   const W = bitmap.width, H = bitmap.height;
@@ -1944,39 +1888,32 @@ function cropTo200(bitmap, P_norm, bgColor, ext) {
 
   const fw = faceR - faceL;
 
-  // 1) O ROSTO (testa, queixo/barba e laterais) precisa estar INTEIRO na foto original. Se não estiver, recusa
-  //    na hora e explica (não se inventa o que falta). O cabelo é secundário: pode ser cortado nas pontas.
+  // 1) O rosto inteiro e o topo do cabelo precisam existir na foto original.
+  //    As pontas laterais do cabelo podem ficar fora do quadrado final.
   const faceTop = top.y - CONFIG.FOREHEAD_MARGIN * fh;
-  if (faceTop < 0) return { tooTight: true, parte: 'topo' };
+  if (faceTop < 0 || ext?.topCut) return { tooTight: true, parte: 'topo' };
   if (faceL < CONFIG.SIDE_MARGIN * W || faceR > (1 - CONFIG.SIDE_MARGIN) * W) return { tooTight: true, parte: 'lado' };
   let faceBot = chin.y + CONFIG.CHIN_PAD * fh;
   if (ext && ext.botN > ext.topN) faceBot = Math.max(faceBot, ext.botN * H);    // barba, quando houver
   const cutBottom = faceBot > H || (ext && ext.beardCut);
   faceBot = Math.min(faceBot, H);
-  const faceH = faceBot - faceTop;
-
-  // 2) Tamanho do recorte (quadrado). Quer o cabelo inteiro, mas com limite: cabelo muito volumoso não pode
-  //    afastar o recorte do rosto. Nunca menor que o rosto.
+  // 2) O quadrado precisa conter o topo do cabelo e a base do rosto/barba.
+  //    A largura do cabelo não determina o lado do quadrado.
   let hTop = faceTop;
   if (ext && ext.botN > ext.topN) hTop = Math.min(hTop, ext.topN * H);
-  hTop = Math.max(0, hTop);
-  const headH = faceBot - hTop;
-  const Smin = Math.max(faceH, fw * 1.04);
-  const Shead = Math.max(headH * (1 + 2 * CONFIG.HEAD_MARGIN), fw * 1.1);
-  const Scap = Math.max(CONFIG.HAIR_CAP * fh, faceH * 1.05, fw * 1.1);
-  const S = Math.min(Shead, Scap, Math.min(W, H));
-  if (S < Smin - 0.5) return { tooTight: true, parte: 'perto' };
+  const headPad = CONFIG.HEAD_MARGIN * (faceBot - hTop);
+  const requiredTop = Math.max(0, hTop - headPad);
+  const requiredBottom = Math.min(H, faceBot + headPad);
+  const S = Math.max(requiredBottom - requiredTop, fw * 1.1);
+  if (S > Math.min(W, H)) return { tooTight: true, parte: 'perto' };
   if (cutBottom) return { tooTight: true, parte: 'queixo' };
 
-  // 3) Posição: cabelo inteiro => centraliza a cabeça; cabelo limitado => centraliza o rosto, com um pouco
-  //    mais de espaço em cima. Sempre dentro da foto e com o rosto inteiro dentro do recorte.
+  // 3) Posiciona o quadrado sem cortar o topo ou o rosto; nas laterais, prioriza o rosto.
   const lowX = Math.max(0, faceR - S), highX = Math.min(W - S, faceL);
-  const lowY = Math.max(0, faceBot - S), highY = Math.min(H - S, faceTop);
+  const lowY = Math.max(0, requiredBottom - S), highY = Math.min(H - S, requiredTop);
   if (lowX > highX + 0.5 || lowY > highY + 0.5) return { tooTight: true, parte: 'perto' };
-  const hairFits = Shead <= Scap + 0.5;
-  const cyW = hairFits ? (hTop + faceBot) / 2 : (faceTop + faceBot) / 2 + CONFIG.CROP_SHIFT_Y * S;
   const x0 = clamp((faceL + faceR) / 2 - S / 2, lowX, highX);
-  const y0 = clamp(cyW - S / 2, lowY, highY);
+  const y0 = clamp((requiredTop + requiredBottom - S) / 2, lowY, highY);
 
   const side = Math.max(2, Math.round(S));
   let cur = document.createElement('canvas'); cur.width = cur.height = side;
@@ -1992,7 +1929,10 @@ function cropTo200(bitmap, P_norm, bgColor, ext) {
   const oc = out.getContext('2d'); oc.imageSmoothingQuality = 'high'; oc.drawImage(cur, 0, 0, CONFIG.OUT_SIZE, CONFIG.OUT_SIZE);
   return { canvas: out, win: { x0, y0, S } };
 }
-const canvasToJpeg = c => new Promise(res => c.toBlob(res, 'image/jpeg', CONFIG.JPEG_QUALITY));
+const canvasToJpeg = c => new Promise((resolve, reject) => c.toBlob(blob => {
+  if (blob?.type === 'image/jpeg') resolve(blob);
+  else reject(new Error('Não foi possível converter a foto para JPG'));
+}, 'image/jpeg', CONFIG.JPEG_QUALITY));
 const blobToBase64 = b => new Promise((res, rej) => { const r = new FileReader();
   r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(b); });
 
@@ -2020,19 +1960,74 @@ function loadLandmarker() {
 }
 
 async function readBitmap(file) {
-  try { return await createImageBitmap(file, { imageOrientation: 'from-image' }); }
-  catch { return await createImageBitmap(file); }
+  const decodeNative = async blob => {
+    try { return await createImageBitmap(blob, { imageOrientation: 'from-image' }); }
+    catch { return createImageBitmap(blob); }
+  };
+  // Alguns navegadores exibem formatos que createImageBitmap ainda não decodifica.
+  const decodeImageElement = blob => new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(blob), image = new Image();
+    image.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+        canvas.getContext('2d').drawImage(image, 0, 0);
+        resolve(canvas);
+      } catch (error) { reject(error); }
+      finally { URL.revokeObjectURL(url); }
+    };
+    image.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Formato não reconhecido pelo navegador')); };
+    image.src = url;
+  });
+  try { return await decodeNative(file); }
+  catch { try { return await decodeImageElement(file); } catch {} }
+
+  const heif = /\.(heic|heif)$/i.test(file.name) || /^image\/(heic|heif|heic-sequence|heif-sequence)$/i.test(file.type);
+  if (heif) {
+    const convert = await loadImageDecoder('vendor/image-decoders/heic2any.min.js', 'heic2any');
+    const result = await convert({ blob: file, toType: 'image/png' });
+    return decodeNative(Array.isArray(result) ? result[0] : result);
+  }
+
+  const tiff = /\.(tif|tiff)$/i.test(file.name) || /^image\/tiff$/i.test(file.type);
+  if (tiff) {
+    await loadImageDecoder('vendor/image-decoders/pako.min.js', 'pako');
+    const UTIF = await loadImageDecoder('vendor/image-decoders/UTIF.js', 'UTIF');
+    const buffer = await file.arrayBuffer(), ifd = UTIF.decode(buffer)[0];
+    if (!ifd) throw new Error('TIFF sem imagem');
+    UTIF.decodeImage(buffer, ifd);
+    if (!ifd.width || !ifd.height) throw new Error('TIFF sem imagem');
+    const canvas = document.createElement('canvas');
+    canvas.width = ifd.width; canvas.height = ifd.height;
+    const ctx = canvas.getContext('2d'), pixels = ctx.createImageData(ifd.width, ifd.height);
+    pixels.data.set(UTIF.toRGBA8(ifd)); ctx.putImageData(pixels, 0, 0);
+    return canvas;
+  }
+  throw new Error('Formato de imagem não decodificável');
+}
+
+const imageDecoderLoads = new Map();
+function loadImageDecoder(src, globalName) {
+  if (window[globalName]) return Promise.resolve(window[globalName]);
+  if (!imageDecoderLoads.has(src)) {
+    imageDecoderLoads.set(src, new Promise((resolve, reject) => {
+      const script = document.createElement('script'); script.src = src;
+      script.onload = () => window[globalName] ? resolve(window[globalName]) : reject(new Error('Decodificador indisponível'));
+      script.onerror = () => reject(new Error('Não foi possível carregar o decodificador'));
+      document.head.appendChild(script);
+    }).catch(error => { imageDecoderLoads.delete(src); throw error; }));
+  }
+  return imageDecoderLoads.get(src);
 }
 
 /** Analisa um arquivo. Retorna { ok, reasons, metrics, canvas? , jpeg? } */
 async function analyzeFile(file, detector) {
-  if (!/^image\//.test(file.type) && !/\.(jpe?g|png|webp|bmp|heic)$/i.test(file.name))
-    return { ok: false, reasons: [{ code: 'formato', titulo: 'Arquivo não é uma imagem', texto: 'Envie uma foto nos formatos JPG, PNG ou WEBP.' }], metrics: {} };
   if (file.size > CONFIG.MAX_FILE_MB * 1048576)
     return { ok: false, reasons: [{ code: 'grande', titulo: 'Arquivo muito grande', texto: `O arquivo passa de ${CONFIG.MAX_FILE_MB} MB. Envie uma foto menor.` }], metrics: {} };
   let bmp;
   try { bmp = await readBitmap(file); }
-  catch { return { ok: false, reasons: [{ code: 'ilegivel', titulo: 'Não foi possível abrir a imagem', texto: 'Se for foto em formato HEIC, tire a foto novamente em JPG ou faça uma captura de tela da foto.' }], metrics: {} }; }
+  catch (error) { console.warn('Não foi possível decodificar a foto:', error);
+    return { ok: false, reasons: [{ code: 'ilegivel', titulo: 'Não foi possível abrir a imagem', texto: 'O arquivo não contém uma foto válida ou usa um formato que este navegador não consegue ler. Tente outro arquivo de imagem.' }], metrics: {} }; }
 
   if (Math.min(bmp.width, bmp.height) < CONFIG.T.minSide)
     return { ok: false, reasons: [{ code: 'pequena', titulo: 'Imagem com resolução baixa', texto: `A foto é muito pequena (${bmp.width}×${bmp.height}). Use uma foto com pelo menos ${CONFIG.T.minSide} px no lado menor.` }], metrics: { w: bmp.width, h: bmp.height } };
@@ -2085,7 +2080,7 @@ async function analyzeFile(file, detector) {
   const cg = cc.getContext('2d', { willReadFrequently: true }); cg.imageSmoothingQuality = 'high';
   cg.drawImage(bmp, crop.win.x0, crop.win.y0, crop.win.S, crop.win.S, 0, 0, cs, cs);
   const cimg = makeImg(cg.getImageData(0, 0, cs, cs)), Pc = {};
-  for (const i of [1, 10, 152, 234, 454, 33, 263]) Pc[i] = { x: (faces[0][i].x * bmp.width - crop.win.x0) / crop.win.S * cs, y: (faces[0][i].y * bmp.height - crop.win.y0) / crop.win.S * cs };
+  for (const i of [152, 234, 454, 33, 263]) Pc[i] = { x: (faces[0][i].x * bmp.width - crop.win.x0) / crop.win.S * cs, y: (faces[0][i].y * bmp.height - crop.win.y0) / crop.win.S * cs };
   const bgc = checkCropBackground(cimg, Pc, CONFIG.T);
   ev.metrics.bgCropPatches = bgc.patches; ev.metrics.bgCropOk = bgc.ok; ev.metrics.bgCropWhy = bgc.why + ' ' + (bgc.runs || []).join(',');
   if (!bgc.ok) {
@@ -2135,7 +2130,7 @@ function syncMat() {
   if (t !== 'sim') $('fMat').classList.remove('invalid');
   $('fTem').classList.remove('invalid');
 }
-document.querySelectorAll('input[name=temMat]').forEach(r => r.addEventListener('change', () => { syncMat(); if (temMatricula() === 'sim') $('matricula').focus(); }));
+document.querySelectorAll('input[name=temMat]').forEach(r => r.addEventListener('change', () => { syncMat(); if (temMatricula() === 'sim' && !matchMedia('(max-width: 640px)').matches) $('matricula').focus(); wizardRender(); }));
 function validate(showErrors) {
   const nome = $('nome').value.trim().replace(/\s+/g, ' ');
   const mat = normMatricula($('matricula').value);
@@ -2157,6 +2152,76 @@ function validate(showErrors) {
 }
 // O botão fica sempre clicável (só trava durante o envio); ao clicar, a página mostra o que falta.
 function refreshSend() { $('send').disabled = state.busy; }
+
+// No celular, apresenta um campo por vez, como no fluxo de inscrição de referência.
+const wizardFields = ['fNome', 'fTem', 'fMat', 'fCpf', 'fEmail', 'fSec', 'photo', 'fConsent'];
+const wizardLabels = {
+  fNome: 'Qual é o seu nome completo?',
+  fTem: 'Você já tem matrícula?',
+  fMat: 'Qual é a sua matrícula?',
+  fCpf: 'Qual é o seu CPF?',
+  fEmail: 'Qual é o seu e-mail?',
+  fSec: 'Qual é a sua secretaria ou órgão?',
+  photo: 'Escolha a foto para o cadastro',
+  fConsent: 'Autorize o envio da foto'
+};
+const wizardPhotoIds = ['drop', 'camRow', 'modelStatus', 'result', 'previewBox'];
+let wizardStep = 'fNome';
+function wizardSteps() { return wizardFields.filter(id => id !== 'fMat' || temMatricula() === 'sim'); }
+function wizardRender() {
+  const steps = wizardSteps();
+  if (!steps.includes(wizardStep)) wizardStep = 'fCpf';
+  const current = steps.indexOf(wizardStep);
+  $('wizardProgress').textContent = `${current + 1} de ${steps.length}`;
+  $('wizardTitle').textContent = wizardLabels[wizardStep];
+  $('wizardBack').setAttribute('aria-label', current ? 'Voltar à etapa anterior' : 'Voltar ao início');
+  ['dataHeading', 'photoHeading', ...wizardFields.filter(id => id !== 'photo'), ...wizardPhotoIds].forEach(id => {
+    $(id).classList.toggle('wizard-step-hidden', id !== wizardStep && !(wizardStep === 'photo' && wizardPhotoIds.includes(id)));
+  });
+  $('photoTipsContainer').classList.toggle('wizard-step-hidden', wizardStep !== 'photo');
+  $('send').parentElement.classList.toggle('wizard-step-hidden', wizardStep !== 'fConsent');
+  $('sendMsg').classList.toggle('wizard-step-hidden', wizardStep !== 'fConsent');
+  $('wizardControls').classList.toggle('wizard-step-hidden', wizardStep === 'fConsent');
+}
+function wizardShowStep(id) {
+  wizardStep = id;
+  wizardRender();
+  $('photoFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function wizardCurrentValid() {
+  const v = validate(false);
+  const checks = { fNome: v.okNome, fTem: v.okTem, fMat: v.okMat, fCpf: v.okCpf, fEmail: v.okEmail, fSec: v.okSec, fConsent: v.okCons };
+  if (wizardStep === 'photo') {
+    if (state.ok && state.jpeg) return true;
+    if (!state.busy) showResult('bad', '<h3><i class="fas fa-exclamation-circle"></i> Escolha uma foto aprovada</h3><p>Selecione ou tire uma foto para continuar.</p>');
+    return false;
+  }
+  const valid = checks[wizardStep];
+  $(wizardStep).classList.toggle('invalid', !valid);
+  if (!valid) $(wizardStep).querySelector('input:not([type=radio]), select, input[type=radio]')?.focus();
+  return valid;
+}
+$('wizardBack').addEventListener('click', () => {
+  const steps = wizardSteps(), index = steps.indexOf(wizardStep);
+  if (index > 0) wizardShowStep(steps[index - 1]);
+  else if (matchMedia('(max-width: 640px)').matches) {
+    document.body.dataset.formStage = 'intro';
+    scrollTo({ top: 0, behavior: 'smooth' });
+    $('startPhotoForm').focus({ preventScroll: true });
+  } else location.href = 'index.html';
+});
+$('startPhotoForm').addEventListener('click', () => {
+  document.body.dataset.formStage = 'form';
+  scrollTo({ top: 0, behavior: 'smooth' });
+  $('wizardTitle').focus({ preventScroll: true });
+});
+$('wizardNext').addEventListener('click', () => {
+  if (!wizardCurrentValid()) return;
+  const steps = wizardSteps(), index = steps.indexOf(wizardStep);
+  if (index < steps.length - 1) wizardShowStep(steps[index + 1]);
+});
+wizardRender();
+refreshSend();
 $('cpf').addEventListener('input', () => { $('cpf').value = maskCpf($('cpf').value); });
 $('email').addEventListener('blur', () => { const v = $('email').value.trim(); $('email').value = v; $('fEmail').classList.toggle('invalid', !!v && !emailValido(v)); });
 $('email').addEventListener('input', () => { if (emailValido($('email').value)) $('fEmail').classList.remove('invalid'); });
@@ -2200,7 +2265,10 @@ async function handleFile(file) {
     showResult('bad', `<h3><i class="fas fa-times-circle"></i> Foto não aprovada</h3><p>Corrija o que está abaixo e envie outra foto:</p><ul>${items}</ul>`);
     return;
   }
-  const blob = await canvasToJpeg(ev.canvas);
+  let blob;
+  try { blob = await canvasToJpeg(ev.canvas); }
+  catch (error) { console.error(error);
+    return showResult('bad', '<h3><i class="fas fa-exclamation-triangle"></i> Não foi possível converter</h3><p>Tente novamente com outra foto.</p>'); }
   state.jpeg = blob; state.ok = true;
   const pc = $('previewCanvas').getContext('2d'); pc.clearRect(0, 0, 200, 200); pc.drawImage(ev.canvas, 0, 0);
   $('previewBox').classList.add('show');
@@ -2257,7 +2325,7 @@ drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') 
 drop.addEventListener('drop', e => handleFile(e.dataTransfer.files[0]));
 $('file').addEventListener('change', e => handleFile(e.target.files[0]));
 $('reset').addEventListener('click', () => { clearPhoto(); $('sendMsg').className = 'result'; });
-$('again').addEventListener('click', () => { $('doneArea').classList.remove('show'); $('formArea').style.display = ''; clearPhoto(); $('consent').checked = false; refreshSend(); scrollTo({ top: 0, behavior: 'smooth' }); });
+$('again').addEventListener('click', () => { $('doneArea').classList.remove('show'); $('formArea').style.display = ''; clearPhoto(); $('consent').checked = false; wizardStep = 'fNome'; wizardRender(); refreshSend(); scrollTo({ top: 0, behavior: 'smooth' }); });
 
 $('send').addEventListener('click', async () => {
   const v = validate(true);
@@ -2274,6 +2342,11 @@ $('send').addEventListener('click', async () => {
   if (falta.length) {
     sm.className = 'result show bad';
     sm.innerHTML = '<h3><i class="fas fa-exclamation-circle"></i> Ainda falta</h3><p>Confira: ' + falta.join(', ') + '.</p>';
+    if (matchMedia('(max-width: 640px)').matches) {
+      const firstMissing = !v.okNome ? 'fNome' : !v.okTem ? 'fTem' : !v.okMat ? 'fMat' : !v.okCpf ? 'fCpf' : !v.okEmail ? 'fEmail' : !v.okSec ? 'fSec' : (!state.ok || !state.jpeg) ? 'photo' : 'fConsent';
+      wizardShowStep(firstMissing);
+      return;
+    }
     (document.querySelector('.field.invalid') || $('drop')).scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
@@ -2311,7 +2384,7 @@ loadLandmarker().then(d => { state.detector = d; $('modelStatus').style.display 
    ===================================================================== */
 const batchRows = [];
 function fmt(v) { return typeof v === 'number' ? (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(3)) : (Array.isArray(v) ? v.join(',') : String(v)); }
-const KEYS = ['faceHeightFrac', 'centerOffset', 'yaw', 'pitch', 'rollDeg', 'ear', 'eyeOpen', 'blink', 'squint', 'smile', 'faceSat', 'colorFrac', 'faceChroma', 'strongFrac', 'faceLuma', 'sharp', 'bgLuma', 'bgSat', 'bgStd', 'bgRange', 'bgBad', 'bgPatches', 'headTop', 'headBottom', 'hairForehead', 'eyeContrast', 'eyeContrastRatio', 'eyeContrastR', 'eyeContrastL', 'eyeStrand', 'hairEyeAbove', 'hairEyeUnder', 'hairTemple', 'hairCheek', 'glassesRatio', 'glare', 'eyeShadow', 'eyeAsym'];
+const KEYS = ['faceHeightFrac', 'centerOffset', 'yaw', 'pitch', 'rollDeg', 'ear', 'eyeOpen', 'blink', 'squint', 'smile', 'faceSat', 'colorFrac', 'faceChroma', 'strongFrac', 'imageColorFrac', 'imageChromaP95', 'grayscale', 'faceLuma', 'sharp', 'bgLuma', 'bgSat', 'bgStd', 'bgRange', 'bgBad', 'bgPatches', 'headTop', 'headBottom', 'hairForehead', 'eyeContrast', 'eyeContrastRatio', 'eyeContrastR', 'eyeContrastL', 'eyeStrand', 'hairEyeAbove', 'hairEyeUnder', 'hairTemple', 'hairCheek', 'glassesRatio', 'glassesBridgeRatio', 'glassesRimRatio', 'glare', 'eyeShadow', 'eyeAsym'];
 function debugShow(ev, name) {
   $('lastMetrics').textContent = name + '\n' + JSON.stringify(ev.metrics, (k, v) => typeof v === 'number' ? +v.toFixed(3) : v, 2) +
     '\n\nMotivos: ' + (ev.reasons.map(r => r.code).join(', ') || '(aprovada)');
@@ -2350,7 +2423,7 @@ $('csvBtn').addEventListener('click', () => {
 });
 
 /* Para testes automatizados */
-window.__foto = { emailValido, headExtent, cpfValido, maskCpf, CONFIG, evaluate, analyzeFile, makeImg, cropTo200, normMatricula, checkBackground, checkCropBackground, checkGlare, checkEyeShadow, checkGlasses };
+window.__foto = { emailValido, headExtent, cpfValido, maskCpf, CONFIG, evaluate, analyzeFile, makeImg, cropTo200, normMatricula, checkBackground, checkGlare, checkEyeShadow, checkGlasses };
 </script>
 </body>
 </html>
