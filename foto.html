@@ -1241,12 +1241,15 @@ const CONFIG = {
   JPEG_QUALITY: 0.92,
   MAX_FILE_MB: 15,
   ANALYSIS_MAX_SIDE: 1280, // lado maior usado na análise
-  CROP_FACTOR: 1.32,       // lado do recorte = fator × altura do rosto (testa→queixo). Menor = mais perto do rosto
+  HAIR_CAP: 1.4,           // cabelo volumoso: o recorte nunca passa de (fator × altura do rosto testa→queixo); o rosto fica inteiro e o cabelo pode ser cortado nas pontas
+  FOREHEAD_MARGIN: 0.06,   // folga acima do ponto da testa (× altura do rosto)
+  SIDE_MARGIN: 0.01,       // o rosto (orelha a orelha) precisa ficar a pelo menos 1% da borda lateral
+  CHIN_PAD: 0.05,          // folga abaixo do ponto do queixo detectado (× altura do rosto). O ponto fica ~3-4% acima da ponta real; sem essa folga o queixo corta. Também é o espaço mínimo exigido na foto original.
   HEAD_MARGIN: 0.01,       // folga em volta da cabeça (cabelo até barba), fração da altura da cabeça
   HEAD_BG_DIST: 50,        // quanto o pixel precisa diferir do fundo para contar como cabelo
   BEARD_DARK: 0.62,        // barba = pixel mais escuro que essa fração do brilho da pele
   BEARD_MAX: 0.4,          // até quanto abaixo do queixo procurar barba (× altura do rosto)
-  CROP_SHIFT_Y: -0.035,    // desloca o recorte para cima (fração do lado) para incluir o cabelo
+  CROP_SHIFT_Y: -0.04,     // com cabelo limitado, desloca o recorte para cima (fração do lado) para sobrar mais cabelo em cima
 
   // MediaPipe: tenta primeiro a cópia local (pasta vendor/mediapipe), depois a CDN.
   MP_LOCAL: 'vendor/mediapipe',
@@ -1283,6 +1286,9 @@ const CONFIG = {
     bgSatMax: 0.28,         // saturação média máxima (fundo "sem cor")
     bgStdMax: 30,           // desvio padrão do brilho (fundo liso)
     bgRangeMax: 70,         // amplitude p90−p10 do brilho
+    cropBgColorDist: 22,    // cor das partes lisas do fundo no recorte: diferença máxima entre elas
+    cropBgNear: 50,         // pixel parecido com o fundo (para achar vão de parede entre um objeto e a pessoa)
+    cropGapFrac: 0.03,      // vão de parede lisa (fração da largura do recorte) que separa objeto de cabelo
     bgSideGap: 0.5,         // distância mínima (× largura do rosto) entre o recorte lateral e o rosto
     bgDarkIgnore: 85,       // recorte mais escuro que isso é tratado como cabelo/roupa
     // óculos
@@ -1291,6 +1297,13 @@ const CONFIG = {
     glareFracMax: 0.07,     // fração de pixels estourados dentro da íris
     // sombra nos olhos
     eyeShadowRatioMin: 0.50,// brilho da pálpebra ÷ brilho da bochecha
+    hairDarkRatio: 0.68,    // pixel mais escuro que essa fração do brilho da pele = possível cabelo
+    eyeStrandRatio: 0.55,   // pixel da parte branca do olho mais escuro que essa fração da pele = mecha/sombra
+    hairForeheadMax: 0.25,  // fração de "cabelo" na testa (faixa central)
+    hairEyeAboveMax: 0.30,  // entre a sobrancelha e o olho
+    hairEyeUnderMax: 0.30,  // embaixo do olho
+    hairTempleMax: 0.25,    // têmporas
+    hairCheekMax: 0.30,     // parte alta das bochechas
     eyeAsymMax: 0.45,       // diferença entre os dois olhos
     secondFaceMin: 0.45,    // 2º rosto só conta se tiver ao menos essa fração da largura do 1º
     // sorriso (se REJECT_SMILE)
@@ -1431,7 +1444,7 @@ function checkBackground(img, P, T) {
   const patches = [];
   for (const [name, x, y] of spots) {
     const st = patchStats(img, x, y, side); if (!st) continue;
-    st.name = name; st.dark = st.luma < T.bgDarkIgnore;
+    st.name = name; st.x = x; st.y = y; st.side = side; st.dark = st.luma < T.bgDarkIgnore;
     st.plain = st.luma >= T.bgLumaMin && st.sat <= T.bgSatMax && st.std <= T.bgStdMax && st.range <= T.bgRangeMax;
     patches.push(st);
   }
@@ -1448,6 +1461,7 @@ function checkBackground(img, P, T) {
   m.bgStd = considered.length ? Math.max(...considered.map(p => p.std)) : NaN;
   m.bgRange = considered.length ? Math.max(...considered.map(p => p.range)) : NaN;
   m.bgDarkTop = darkTop;
+  m.bgRaw = patches;
   return m;
 }
 
@@ -1657,6 +1671,11 @@ function evaluate(img, faces, blendshapes) {
   if (M.glare > T.glareFracMax)
     R('reflexo', 'Reflexo de luz nos olhos', 'Há um brilho forte nos olhos. Evite flash e fontes de luz muito fortes de frente (janela ou lâmpada), e olhe para a câmera.');
 
+  // Cabelo cobrindo o rosto (testa, olhos, têmporas, bochechas): o rosto e os olhos precisam estar limpos
+  Object.assign(M, checkHairOnFace(img, P, T));
+  if (M.hairForehead > T.hairForeheadMax)
+    R('cabelo_testa', 'Cabelo cobrindo a testa', 'Há franja ou mechas de cabelo sobre a testa. Prenda o cabelo para trás e deixe a testa e os olhos totalmente à mostra.');
+
   // Sombra nos olhos
   Object.assign(M, checkEyeShadow(img, P));
   if (M.eyeShadow < T.eyeShadowRatioMin)
@@ -1670,9 +1689,91 @@ function evaluate(img, faces, blendshapes) {
 /* =====================================================================
    RECORTE + REDUÇÃO PARA 200×200
    ===================================================================== */
+
+/** Cabelo (mechas, franja) cobrindo o rosto. Mede a fração de pixels MUITO mais escuros que a pele nas zonas que
+ *  precisam estar limpas: testa, em cima e embaixo dos olhos, têmporas e parte alta das bochechas.
+ *  (A barba, mais abaixo, não entra na conta.) */
+function checkHairOnFace(img, P, T) {
+  const fw = dist(P[234], P[454]), fh = dist(P[10], P[152]);
+  const sk = [P[50], P[280]].map(p => percentile(boxLumas(img, boxFromCenter(p.x, p.y, 0.12 * fw, 0.12 * fw)), 0.5));
+  const skin = mean(sk);
+  const thr = T.hairDarkRatio * skin;
+  const frac = (x0, y0, x1, y1) => {
+    const b = fixBox(img, { x0, y0, x1, y1 }); let n = 0, t = 0;
+    for (let y = b.y0; y < b.y1; y++) for (let x = b.x0; x < b.x1; x++) { t++; if (img.gray[y * img.w + x] < thr) n++; }
+    return t >= 12 ? n / t : 0;
+  };
+  const minY = ids => Math.min(...ids.map(i => P[i].y)), maxY = ids => Math.max(...ids.map(i => P[i].y));
+  const browTop = minY([70, 63, 105, 66, 107, 336, 296, 334, 293, 300]);
+  const browBotR = maxY([46, 53, 52, 65, 55]), browBotL = maxY([276, 283, 282, 295, 285]);
+  const rb = ptsBox(P, IDX.rEye), lb = ptsBox(P, IDX.lEye);
+  const m = { hairSkin: skin };
+  // testa: entre ~30% da distância "ponto do topo → sobrancelha" e a sobrancelha
+  const fy0 = P[10].y + 0.30 * (browTop - P[10].y), fy1 = browTop - 0.03 * fh;
+  m.hairForehead = fy1 - fy0 >= 4 ? frac(P[105].x, fy0, P[334].x, fy1) : 0;
+  // pálpebra (entre a sobrancelha e o olho) e abaixo do olho
+  const above = (b, browBot) => { const y0 = browBot + 0.045 * fh, y1 = b.y0 - 0.005 * fh; return y1 - y0 >= 4 ? frac(b.x0, y0, b.x1, y1) : 0; };
+  const under = b => frac(b.x0, b.y1 + 0.02 * fh, b.x1, b.y1 + 0.10 * fh);
+  m.hairEyeAbove = Math.max(above(rb, browBotR), above(lb, browBotL));
+  m.hairEyeUnder = Math.max(under(rb), under(lb));
+  // mecha cruzando o olho: faixa horizontal no meio da abertura, só na parte branca (esclera), fora da íris
+  const eyeStrand = (b, iris) => {
+    const cx = P[iris[0]].x, cy = P[iris[0]].y, r = Math.max(2, dist(P[iris[1]], P[iris[3]]) / 2);
+    const w = b.x1 - b.x0, hgt = Math.max(3, b.y1 - b.y0);
+    const y0 = cy - 0.22 * hgt, y1 = cy + 0.22 * hgt;
+    let n = 0, t = 0; const bb = fixBox(img, { x0: b.x0 + 0.12 * w, y0, x1: b.x1 - 0.12 * w, y1 });
+    for (let y = bb.y0; y < bb.y1; y++) for (let x = bb.x0; x < bb.x1; x++) {
+      if (Math.abs(x - cx) < 1.35 * r) continue;           // pula a íris/pupila
+      t++; if (img.gray[y * img.w + x] < T.eyeStrandRatio * skin) n++;
+    }
+    return t >= 10 ? n / t : 0;
+  };
+  m.eyeStrand = Math.max(eyeStrand(rb, [468, 469, 470, 471, 472]), eyeStrand(lb, [473, 474, 475, 476, 477]));
+  // têmporas: do canto externo do olho até a borda do rosto, na altura dos olhos
+  const eyeW = (rb.x1 - rb.x0 + lb.x1 - lb.x0) / 2;
+  m.hairTemple = Math.max(
+    frac(P[234].x + 0.03 * fw, rb.y0 - 0.05 * fh, rb.x0 - 0.05 * eyeW, rb.y1 + 0.05 * fh),
+    frac(lb.x1 + 0.05 * eyeW, lb.y0 - 0.05 * fh, P[454].x - 0.03 * fw, lb.y1 + 0.05 * fh));
+  // parte alta das bochechas (acima da ponta do nariz)
+  const cy0 = Math.max(rb.y1, lb.y1) + 0.10 * fh, cy1 = P[1].y;
+  m.hairCheek = cy1 - cy0 >= 4 ? Math.max(frac(P[234].x + 0.03 * fw, cy0, P[129].x, cy1), frac(P[358].x, cy0, P[454].x - 0.03 * fw, cy1)) : 0;
+  return m;
+}
+
 /* ---- Extensão da cabeça: cabelo (topo) e barba (base) ----
    Os pontos do rosto marcam só a pele (testa→queixo). Cabelo e barba ficam de fora,
    então medimos: topo = onde termina o que é diferente do fundo; base = onde termina a barba escura. */
+
+/** Fundo dentro do RECORTE FINAL. Um trecho que não é "parede lisa" só é aceito se for cabelo/corpo ligado à
+ *  cabeça (contínuo até o rosto). Se houver parede lisa entre ele e a pessoa, é objeto solto (porta, quadro,
+ *  moldura, parede de outra cor) e reprova. */
+function checkCropBackground(img, P, T) {
+  const bg = checkBackground(img, P, T);
+  const raw = bg.bgRaw || [];
+  const plains = raw.filter(p => p.plain);
+  const out = { ok: false, why: 'plain', patches: bg.bgPatches };
+  if (!plains.length) return Object.assign(out, { why: raw.length && raw.every(p => p.dark) ? 'dark' : 'plain' });
+  // todas as partes lisas precisam ter praticamente a mesma cor (parede única)
+  const ref = plains[0].rgb;
+  const chroma = c => { const l = luma(c[0], c[1], c[2]); return [c[0] - l, c[1] - l, c[2] - l]; };
+  const cd = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+  const refC = chroma(ref);
+  if (plains.some(p => cd(chroma(p.rgb), refC) > T.cropBgColorDist)) return Object.assign(out, { why: 'color' });
+  const near = (x, y) => { const j = (Math.min(img.h - 1, Math.max(0, Math.round(y))) * img.w + Math.min(img.w - 1, Math.max(0, Math.round(x)))) * 4;
+    return Math.hypot(img.data[j] - ref[0], img.data[j + 1] - ref[1], img.data[j + 2] - ref[2]) <= T.cropBgNear; };
+  const faceCx = (P[234].x + P[454].x) / 2, minGap = T.cropGapFrac * img.w;
+  for (const p of raw) {
+    if (p.plain) continue;
+    // anda do trecho em direção ao centro do rosto; se achar um vão de parede lisa, o trecho é objeto solto
+    const y = p.y + p.side / 2, x0 = p.x + p.side / 2, dir = faceCx >= x0 ? 1 : -1;
+    let run = 0, maxRun = 0;
+    for (let x = x0; dir > 0 ? x <= faceCx : x >= faceCx; x += dir) { if (near(x, y)) { run++; if (run > maxRun) maxRun = run; } else run = 0; }
+    (out.runs = out.runs || []).push(p.name + ':' + maxRun + '/' + Math.round(minGap));
+    if (maxRun >= minGap) return Object.assign(out, { why: 'object', bad: p.name });
+  }
+  out.ok = true; return out;
+}
+
 function headExtent(img, P, bg) {
   if (!bg) return null;
   const fw = dist(P[234], P[454]), fh = dist(P[10], P[152]);
@@ -1693,42 +1794,59 @@ function headExtent(img, P, bg) {
   // base: barba = pixels bem mais escuros que a pele da bochecha, logo abaixo do queixo
   const sk = [P[50], P[280]].map(p => percentile(boxLumas(img, boxFromCenter(p.x, p.y, 0.12 * fw, 0.12 * fw)), 0.5));
   const skin = mean(sk), isDark = j => luma(img.data[j], img.data[j + 1], img.data[j + 2]) < CONFIG.BEARD_DARK * skin;
-  let bottom = P[152].y; miss = 0;
+  let bottom = P[152].y + CONFIG.CHIN_PAD * fh; miss = 0;
   const lim = P[152].y + CONFIG.BEARD_MAX * fh;
   // só procura barba se ela realmente existe no queixo (evita confundir sombra do pescoço ou gola escura)
   let chinDark = 0;
-  for (let k = -2; k <= 2; k++) chinDark = Math.max(chinDark, rowFrac(P[152].y + k * 0.025 * fh, P[152].x - 0.2 * fw, P[152].x + 0.2 * fw, isDark));
+  for (let k = 1; k <= 4; k++) chinDark = Math.max(chinDark, rowFrac(P[152].y - k * 0.03 * fh, P[152].x - 0.2 * fw, P[152].x + 0.2 * fw, isDark));
   const hasBeard = chinDark >= 0.3;
   for (let y = Math.floor(P[152].y - 0.08 * fh); hasBeard && y <= lim && y < img.h; y++) {
     if (rowFrac(y, P[152].x - 0.35 * fw, P[152].x + 0.35 * fw, isDark) >= 0.12) { bottom = Math.max(bottom, y); miss = 0; } else if (++miss >= 4) break;
   }
-  return { topN: top / img.h, botN: bottom / img.h };
+  // barba que continua até a última linha da foto = barba cortada pela borda
+  return { topN: top / img.h, botN: bottom / img.h, beardCut: hasBeard && bottom >= img.h - 3 };
 }
-const maxHalf = (cx, cy, W, H) => Math.min(cx, W - cx, cy, H - cy);
 function cropTo200(bitmap, P_norm, bgColor, ext) {
   const W = bitmap.width, H = bitmap.height;
   const top = { x: P_norm[10].x * W, y: P_norm[10].y * H }, chin = { x: P_norm[152].x * W, y: P_norm[152].y * H };
   const fh = dist(top, chin);
-  const cx = (top.x + chin.x) / 2, cy = (top.y + chin.y) / 2;
-  // Recorte quadrado ideal; se passar da borda (foto 3x4 já bem fechada), usa o maior quadrado
-  // que cabe na imagem em volta do rosto. Só recusa se o rosto ficaria cortado.
-  let S = fh * CONFIG.CROP_FACTOR, cyAdj = cy + CONFIG.CROP_SHIFT_Y * S;
-  if (ext && ext.botN > ext.topN) {
-    // recorte justo na cabeça inteira: do alto do cabelo ao fim da barba, com uma margem pequena
-    const hTop = ext.topN * H, hBot = ext.botN * H, headH = hBot - hTop;
-    if (headH >= fh * 0.9) { S = headH * (1 + 2 * CONFIG.HEAD_MARGIN); cyAdj = (hTop + hBot) / 2; }
-  }
-  if (S / 2 > maxHalf(cx, cyAdj, W, H)) {
-    // foto já fechada no rosto: usa o maior quadrado possível, com no mínimo 1,3x a altura do rosto
-    // (se a foto for mais estreita que isso, completa as laterais com a cor do fundo)
-    S = Math.min(S, Math.max(Math.min(W, H), fh * 1.3));
-  }
-  let x0 = cx - S / 2, y0 = cyAdj - S / 2;
-  if (S <= W) x0 = clamp(x0, 0, W - S);
-  if (S <= H) y0 = clamp(y0, 0, H - S);
-  // o rosto (testa ao queixo, e a largura) precisa estar dentro da foto original
-  const leftX = P_norm[234].x * W, rightX = P_norm[454].x * W;
-  if (top.y < 0 || chin.y > H || leftX < -0.02 * W || rightX > 1.02 * W || S < fh * 1.08) return { tooTight: true };
+  const faceL = P_norm[234].x * W, faceR = P_norm[454].x * W;
+
+  const fw = faceR - faceL;
+
+  // 1) O ROSTO (testa, queixo/barba e laterais) precisa estar INTEIRO na foto original. Se não estiver, recusa
+  //    na hora e explica (não se inventa o que falta). O cabelo é secundário: pode ser cortado nas pontas.
+  const faceTop = top.y - CONFIG.FOREHEAD_MARGIN * fh;
+  if (faceTop < 0) return { tooTight: true, parte: 'topo' };
+  if (faceL < CONFIG.SIDE_MARGIN * W || faceR > (1 - CONFIG.SIDE_MARGIN) * W) return { tooTight: true, parte: 'lado' };
+  let faceBot = chin.y + CONFIG.CHIN_PAD * fh;
+  if (ext && ext.botN > ext.topN) faceBot = Math.max(faceBot, ext.botN * H);    // barba, quando houver
+  const cutBottom = faceBot > H || (ext && ext.beardCut);
+  faceBot = Math.min(faceBot, H);
+  const faceH = faceBot - faceTop;
+
+  // 2) Tamanho do recorte (quadrado). Quer o cabelo inteiro, mas com limite: cabelo muito volumoso não pode
+  //    afastar o recorte do rosto. Nunca menor que o rosto.
+  let hTop = faceTop;
+  if (ext && ext.botN > ext.topN) hTop = Math.min(hTop, ext.topN * H);
+  hTop = Math.max(0, hTop);
+  const headH = faceBot - hTop;
+  const Smin = Math.max(faceH, fw * 1.04);
+  const Shead = Math.max(headH * (1 + 2 * CONFIG.HEAD_MARGIN), fw * 1.1);
+  const Scap = Math.max(CONFIG.HAIR_CAP * fh, faceH * 1.05, fw * 1.1);
+  const S = Math.min(Shead, Scap, Math.min(W, H));
+  if (S < Smin - 0.5) return { tooTight: true, parte: 'perto' };
+  if (cutBottom) return { tooTight: true, parte: 'queixo' };
+
+  // 3) Posição: cabelo inteiro => centraliza a cabeça; cabelo limitado => centraliza o rosto, com um pouco
+  //    mais de espaço em cima. Sempre dentro da foto e com o rosto inteiro dentro do recorte.
+  const lowX = Math.max(0, faceR - S), highX = Math.min(W - S, faceL);
+  const lowY = Math.max(0, faceBot - S), highY = Math.min(H - S, faceTop);
+  if (lowX > highX + 0.5 || lowY > highY + 0.5) return { tooTight: true, parte: 'perto' };
+  const hairFits = Shead <= Scap + 0.5;
+  const cyW = hairFits ? (hTop + faceBot) / 2 : (faceTop + faceBot) / 2 + CONFIG.CROP_SHIFT_Y * S;
+  const x0 = clamp((faceL + faceR) / 2 - S / 2, lowX, highX);
+  const y0 = clamp(cyW - S / 2, lowY, highY);
 
   const side = Math.max(2, Math.round(S));
   let cur = document.createElement('canvas'); cur.width = cur.height = side;
@@ -1742,7 +1860,7 @@ function cropTo200(bitmap, P_norm, bgColor, ext) {
   }
   const out = document.createElement('canvas'); out.width = out.height = CONFIG.OUT_SIZE;
   const oc = out.getContext('2d'); oc.imageSmoothingQuality = 'high'; oc.drawImage(cur, 0, 0, CONFIG.OUT_SIZE, CONFIG.OUT_SIZE);
-  return { canvas: out };
+  return { canvas: out, win: { x0, y0, S } };
 }
 const canvasToJpeg = c => new Promise(res => c.toBlob(res, 'image/jpeg', CONFIG.JPEG_QUALITY));
 const blobToBase64 = b => new Promise((res, rej) => { const r = new FileReader();
@@ -1822,7 +1940,29 @@ async function analyzeFile(file, detector) {
   const crop = cropTo200(bmp, faces[0], ev.metrics.bgColor, ext);
   if (crop.tooTight) {
     ev.ok = false;
-    ev.reasons.push({ code: 'corte', titulo: 'Rosto cortado pela borda da foto', texto: 'Parte da cabeça ficou fora da foto. Afaste um pouco a câmera para aparecer a cabeça inteira, com um pouco de espaço ao redor.' });
+    const M = {
+      queixo: { code: 'corte', titulo: 'Pouco espaço abaixo do queixo ou da barba', texto: 'O queixo (ou a barba) ficou rente à borda de baixo da foto, então não dá para recortar com segurança sem cortar o rosto. Afaste a câmera e mostre os ombros, com espaço abaixo do queixo.' },
+      topo:   { code: 'corte', titulo: 'Topo da cabeça cortado', texto: 'O alto da cabeça ou do cabelo ficou rente à borda da foto, então não dá para recortar sem cortar. Afaste a câmera para aparecer a cabeça inteira, com espaço acima.' },
+      lado:   { code: 'corte', titulo: 'Rosto cortado na lateral', texto: 'O rosto ficou rente à lateral da foto, então não dá para recortar sem cortar. Afaste a câmera e centralize o rosto, com espaço dos dois lados.' },
+      perto:  { code: 'corte', titulo: 'Rosto muito perto da câmera', texto: 'O rosto está grande demais para a foto: não é possível recortar sem cortar parte do rosto ou do cabelo. Afaste a câmera e enquadre da cabeça até os ombros, com espaço ao redor.' },
+    };
+    ev.reasons.push(M[crop.parte] || { code: 'corte', titulo: 'Rosto cortado pela borda da foto', texto: 'Parte da cabeça ficou fora da foto. Afaste um pouco a câmera para aparecer a cabeça inteira, com um pouco de espaço ao redor.' });
+    return ev;
+  }
+  // O fundo também é conferido DENTRO do recorte final (é o que vai para o ponto): porta, quadro,
+  // moldura ou parede de cor diferente que apareçam só na área recortada precisam reprovar.
+  const cs = 240, cc = document.createElement('canvas'); cc.width = cc.height = cs;
+  const cg = cc.getContext('2d', { willReadFrequently: true }); cg.imageSmoothingQuality = 'high';
+  cg.drawImage(bmp, crop.win.x0, crop.win.y0, crop.win.S, crop.win.S, 0, 0, cs, cs);
+  const cimg = makeImg(cg.getImageData(0, 0, cs, cs)), Pc = {};
+  for (const i of [152, 234, 454, 33, 263]) Pc[i] = { x: (faces[0][i].x * bmp.width - crop.win.x0) / crop.win.S * cs, y: (faces[0][i].y * bmp.height - crop.win.y0) / crop.win.S * cs };
+  const bgc = checkCropBackground(cimg, Pc, CONFIG.T);
+  ev.metrics.bgCropPatches = bgc.patches; ev.metrics.bgCropOk = bgc.ok; ev.metrics.bgCropWhy = bgc.why + ' ' + (bgc.runs || []).join(',');
+  if (!bgc.ok) {
+    ev.ok = false;
+    ev.reasons.push({ code: 'fundo', titulo: 'Fundo fora do padrão', texto: bgc.why === 'dark'
+      ? 'O fundo está escuro. Use uma parede branca ou de cor bem clara.'
+      : 'Aparece algo atrás de você na área da foto (porta, moldura, quadro, objeto, sombra ou parede de outra cor). Use uma parede lisa, clara e sem nada ao redor, e fique um pouco afastado dela.' });
     return ev;
   }
   ev.canvas = crop.canvas;
@@ -2041,7 +2181,7 @@ loadLandmarker().then(d => { state.detector = d; $('modelStatus').style.display 
    ===================================================================== */
 const batchRows = [];
 function fmt(v) { return typeof v === 'number' ? (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(3)) : (Array.isArray(v) ? v.join(',') : String(v)); }
-const KEYS = ['faceHeightFrac', 'centerOffset', 'yaw', 'pitch', 'rollDeg', 'ear', 'eyeOpen', 'blink', 'squint', 'smile', 'faceSat', 'colorFrac', 'faceChroma', 'strongFrac', 'faceLuma', 'sharp', 'bgLuma', 'bgSat', 'bgStd', 'bgRange', 'bgBad', 'bgPatches', 'headTop', 'headBottom', 'glassesRatio', 'glare', 'eyeShadow', 'eyeAsym'];
+const KEYS = ['faceHeightFrac', 'centerOffset', 'yaw', 'pitch', 'rollDeg', 'ear', 'eyeOpen', 'blink', 'squint', 'smile', 'faceSat', 'colorFrac', 'faceChroma', 'strongFrac', 'faceLuma', 'sharp', 'bgLuma', 'bgSat', 'bgStd', 'bgRange', 'bgBad', 'bgPatches', 'headTop', 'headBottom', 'hairForehead', 'eyeStrand', 'hairEyeAbove', 'hairEyeUnder', 'hairTemple', 'hairCheek', 'glassesRatio', 'glare', 'eyeShadow', 'eyeAsym'];
 function debugShow(ev, name) {
   $('lastMetrics').textContent = name + '\n' + JSON.stringify(ev.metrics, (k, v) => typeof v === 'number' ? +v.toFixed(3) : v, 2) +
     '\n\nMotivos: ' + (ev.reasons.map(r => r.code).join(', ') || '(aprovada)');
