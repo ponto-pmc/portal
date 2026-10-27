@@ -1299,6 +1299,8 @@ const CONFIG = {
     eyeShadowRatioMin: 0.50,// brilho da pálpebra ÷ brilho da bochecha
     hairDarkRatio: 0.68,    // pixel mais escuro que essa fração do brilho da pele = possível cabelo
     eyeStrandRatio: 0.55,   // pixel da parte branca do olho mais escuro que essa fração da pele = mecha/sombra
+    eyeCoverRatioMax: 0.55, // contraste do olho mais "chapado" ÷ olho mais nítido: abaixo disso, um olho parece coberto
+    eyeCoverAsymMin: 0.18,  // e o brilho das duas pálpebras difere mais que isso (eyeAsym)
     hairForeheadMax: 0.25,  // fração de "cabelo" na testa (faixa central)
     hairEyeAboveMax: 0.30,  // entre a sobrancelha e o olho
     hairEyeUnderMax: 0.30,  // embaixo do olho
@@ -1671,17 +1673,19 @@ function evaluate(img, faces, blendshapes) {
   if (M.glare > T.glareFracMax)
     R('reflexo', 'Reflexo de luz nos olhos', 'Há um brilho forte nos olhos. Evite flash e fontes de luz muito fortes de frente (janela ou lâmpada), e olhe para a câmera.');
 
-  // Cabelo cobrindo o rosto (testa, olhos, têmporas, bochechas): o rosto e os olhos precisam estar limpos
-  Object.assign(M, checkHairOnFace(img, P, T));
-  if (M.hairForehead > T.hairForeheadMax)
-    R('cabelo_testa', 'Cabelo cobrindo a testa', 'Há franja ou mechas de cabelo sobre a testa. Prenda o cabelo para trás e deixe a testa e os olhos totalmente à mostra.');
-
   // Sombra nos olhos
   Object.assign(M, checkEyeShadow(img, P));
   if (M.eyeShadow < T.eyeShadowRatioMin)
     R('sombra_olhos', 'Sombra nos olhos', 'Há sombra sobre os olhos (boné, franja, luz vindo de cima). Tire o que estiver cobrindo a testa e use luz de frente, sem luz forte vindo do alto.');
   else if (M.eyeAsym > T.eyeAsymMax)
     R('luz_desigual', 'Iluminação desigual no rosto', 'Um lado do rosto está mais escuro que o outro. Fique de frente para a janela ou fonte de luz.');
+
+  // Cabelo cobrindo o rosto (testa, olhos, têmporas, bochechas): o rosto e os olhos precisam estar limpos
+  Object.assign(M, checkHairOnFace(img, P, T));
+  if (M.eyeContrastRatio < T.eyeCoverRatioMax && M.eyeAsym > T.eyeCoverAsymMin)
+    R('cabelo_olhos', 'Um dos olhos está coberto', 'Um dos olhos parece estar escondido por cabelo ou sombra. Prenda o cabelo para trás e deixe os dois olhos, a testa e as laterais do rosto totalmente à mostra.');
+  else if (M.hairForehead > T.hairForeheadMax)
+    R('cabelo_testa', 'Cabelo cobrindo a testa', 'Há franja ou mechas de cabelo sobre a testa. Prenda o cabelo para trás e deixe a testa e os olhos totalmente à mostra.');
 
   return { ok: reasons.length === 0, reasons, metrics: M, P };
 }
@@ -1729,6 +1733,13 @@ function checkHairOnFace(img, P, T) {
     return t >= 10 ? n / t : 0;
   };
   m.eyeStrand = Math.max(eyeStrand(rb, [468, 469, 470, 471, 472]), eyeStrand(lb, [473, 474, 475, 476, 477]));
+  // contraste dentro de cada olho: olho visível tem branco (esclera) e íris escura; olho coberto por cabelo é uma região "chapada"
+  const eyeContrast = b => { const w = b.x1 - b.x0, h = b.y1 - b.y0;
+    const l = boxLumas(img, { x0: b.x0 + 0.08 * w, y0: b.y0 + 0.05 * h, x1: b.x1 - 0.08 * w, y1: b.y1 - 0.05 * h });
+    return l.length >= 20 ? (percentile(l, 0.95) - percentile(l, 0.05)) / (skin || 1) : 1; };
+  m.eyeContrastR = eyeContrast(rb); m.eyeContrastL = eyeContrast(lb);
+  m.eyeContrast = Math.min(m.eyeContrastR, m.eyeContrastL);
+  m.eyeContrastRatio = m.eyeContrast / Math.max(m.eyeContrastR, m.eyeContrastL, 0.01);
   // têmporas: do canto externo do olho até a borda do rosto, na altura dos olhos
   const eyeW = (rb.x1 - rb.x0 + lb.x1 - lb.x0) / 2;
   m.hairTemple = Math.max(
@@ -2181,7 +2192,7 @@ loadLandmarker().then(d => { state.detector = d; $('modelStatus').style.display 
    ===================================================================== */
 const batchRows = [];
 function fmt(v) { return typeof v === 'number' ? (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(3)) : (Array.isArray(v) ? v.join(',') : String(v)); }
-const KEYS = ['faceHeightFrac', 'centerOffset', 'yaw', 'pitch', 'rollDeg', 'ear', 'eyeOpen', 'blink', 'squint', 'smile', 'faceSat', 'colorFrac', 'faceChroma', 'strongFrac', 'faceLuma', 'sharp', 'bgLuma', 'bgSat', 'bgStd', 'bgRange', 'bgBad', 'bgPatches', 'headTop', 'headBottom', 'hairForehead', 'eyeStrand', 'hairEyeAbove', 'hairEyeUnder', 'hairTemple', 'hairCheek', 'glassesRatio', 'glare', 'eyeShadow', 'eyeAsym'];
+const KEYS = ['faceHeightFrac', 'centerOffset', 'yaw', 'pitch', 'rollDeg', 'ear', 'eyeOpen', 'blink', 'squint', 'smile', 'faceSat', 'colorFrac', 'faceChroma', 'strongFrac', 'faceLuma', 'sharp', 'bgLuma', 'bgSat', 'bgStd', 'bgRange', 'bgBad', 'bgPatches', 'headTop', 'headBottom', 'hairForehead', 'eyeContrast', 'eyeContrastRatio', 'eyeContrastR', 'eyeContrastL', 'eyeStrand', 'hairEyeAbove', 'hairEyeUnder', 'hairTemple', 'hairCheek', 'glassesRatio', 'glare', 'eyeShadow', 'eyeAsym'];
 function debugShow(ev, name) {
   $('lastMetrics').textContent = name + '\n' + JSON.stringify(ev.metrics, (k, v) => typeof v === 'number' ? +v.toFixed(3) : v, 2) +
     '\n\nMotivos: ' + (ev.reasons.map(r => r.code).join(', ') || '(aprovada)');

@@ -45,7 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const hamburger = document.getElementById('hamburger');
   const navLinks  = document.getElementById('navLinks');
 
-  if (hamburger && navLinks) {
+  if (hamburger && navLinks && !window._ppNavListenerSet) {
+    window._ppNavListenerSet = true;
     hamburger.addEventListener('click', (e) => {
       e.stopPropagation();
       const open = navLinks.classList.toggle('open');

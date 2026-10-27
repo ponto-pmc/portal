@@ -70,7 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── HAMBURGER ─────────────────────────────────────────
   const hb = document.getElementById('hamburger');
   const nl = document.getElementById('navLinks');
-  if (hb && nl) {
+  if (hb && nl && !window._ppNavListenerSet) {
+    window._ppNavListenerSet = true;
     hb.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       const open = nl.classList.toggle('open');
