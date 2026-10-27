@@ -77,7 +77,7 @@ updateInstallButton();
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch((error) => {
+    navigator.serviceWorker.register(new URL('sw.js', document.baseURI), { scope: './' }).catch((error) => {
       console.warn('Service worker indisponível:', error);
     });
   });
