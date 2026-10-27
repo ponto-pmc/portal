@@ -8,7 +8,11 @@
   <link rel="stylesheet" href="calculadora.css" />
   <link rel="stylesheet" href="faq.css" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
 </head>
 <body class="page-wrapper">
 
@@ -44,47 +48,6 @@
       </div>
     </div>
   </nav>
-
-  <!-- Menu + tema: ligados NA HORA (inline), sem esperar CDNs/scripts da página -->
-  <script>
-  (function () {
-    var w = window, d = document;
-    w.THEME_KEY = 'pp-theme'; w._ppThemeInit = true;
-    w.applyTheme = function (dark) {
-      d.documentElement.dataset.theme = dark ? 'dark' : 'light';
-      var i = d.getElementById('themeIcon'); if (i) i.className = dark ? 'fas fa-sun' : 'fas fa-moon';
-    };
-    try { w.applyTheme(localStorage.getItem('pp-theme') === 'dark'); } catch (e) {}
-
-    var tg = d.getElementById('themeToggle');
-    if (tg && !w._ppThemeListenerSet) {
-      w._ppThemeListenerSet = true;
-      tg.addEventListener('click', function () {
-        var dark = d.documentElement.dataset.theme !== 'dark';
-        w.applyTheme(dark);
-        try { localStorage.setItem('pp-theme', dark ? 'dark' : 'light'); } catch (e) {}
-      });
-    }
-
-    var hb = d.getElementById('hamburger'), nl = d.getElementById('navLinks');
-    if (!hb || !nl || w._ppNavListenerSet) return;
-    w._ppNavListenerSet = true;
-    function setOpen(o) {
-      nl.classList.toggle('open', o);
-      hb.setAttribute('aria-expanded', String(o));
-      hb.innerHTML = o ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
-    }
-    hb.addEventListener('click', function (e) { e.stopPropagation(); setOpen(!nl.classList.contains('open')); });
-    d.addEventListener('click', function (e) {
-      if (nl.classList.contains('open') && !hb.contains(e.target) && !nl.contains(e.target)) setOpen(false);
-    });
-    nl.addEventListener('click', function (e) { if (e.target.closest('a')) setOpen(false); });
-    d.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
-    var nav = d.querySelector('.site-nav');
-    if (nav) w.addEventListener('scroll', function () { nav.classList.toggle('scrolled', w.scrollY > 10); }, { passive: true });
-  })();
-  </script>
-
 
   <main>
     <div class="container">
@@ -230,11 +193,11 @@
   </footer>
 
   <!-- PapaParse & Fuse (needed by chat/FAQ) -->
-  <script defer src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
-  <script defer src="faq.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+  <script src="faq.js"></script>
 
-  <script defer src="calculadora.js"></script>
+  <script src="calculadora.js"></script>
 
   <!-- CHAT (from faq.html) -->
   <button id="chatFab" class="chat-fab" aria-label="Abrir assistente de ajuda" aria-expanded="false">
@@ -293,5 +256,6 @@
       <p class="chat-disclaimer">Respostas baseadas no manual oficial · busca local</p>
     </div>
   </div>
+  <script src="pwa.js"></script>
 </body>
 </html>
