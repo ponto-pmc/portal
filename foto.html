@@ -338,13 +338,16 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 900px) {
   .nav-links {
     position: fixed;
-    top: 62px; left: 0; right: 0;
+    top: 62px; left: 0; right: 0; bottom: 0;
+    height: calc(100vh - 62px);
+    height: calc(100dvh - 62px);
     background: var(--bg);
-    border-bottom: 1px solid var(--border);
-    padding: var(--sp-4) var(--sp-6) var(--sp-6);
+    padding: var(--sp-8) var(--sp-6) var(--sp-10);
     flex-direction: column;
-    align-items: stretch;
-    gap: 0;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-1);
+    overflow-y: auto;
     transform: translateY(-8px);
     opacity: 0;
     pointer-events: none;
@@ -358,13 +361,32 @@ a { color: inherit; text-decoration: none; }
     visibility: visible;
     transition: transform 0.2s var(--ease-out), opacity 0.2s var(--ease-out), visibility 0s linear 0s;
   }
+  .nav-links li { width: 100%; text-align: center; }
   .nav-links a {
+    display: block;
     padding: var(--sp-4) var(--sp-2);
-    font-size: var(--text-base);
-    border-bottom: 1px solid var(--border);
-    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    border-bottom: 0;
+    color: var(--text-primary);
   }
-  .nav-links li:last-child { padding-top: var(--sp-3); }
+  .nav-links a.active { color: var(--accent); }
+  .nav-links li:last-child { padding-top: var(--sp-8); }
+  .nav-links .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 260px;
+    padding: 0.9rem 1.5rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    border-radius: var(--radius-md);
+    color: var(--white);
+  }
+  .nav-links .btn-primary:hover { color: var(--white); }
   .nav-hamburger { display: flex; }
   .site-nav .inner { padding: 0 var(--sp-5); }
 }
@@ -866,6 +888,21 @@ main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
         .card h2 { font-family: var(--font-body); font-weight: 700; font-size: var(--text-sm); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 var(--sp-6); color: var(--text-primary); display: flex; gap: var(--sp-4); align-items: center; }
     .ico-box { width: 38px; height: 38px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; background: var(--off-white); border: 1.5px solid var(--border); border-radius: var(--radius-md); color: var(--text-secondary); font-size: .95rem; }
     .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); }
+    [hidden] { display: none !important; }
+    .row2.single { grid-template-columns: 1fr; }
+    .yn { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+    .yn input { position: absolute; opacity: 0; pointer-events: none; }
+    .yn label.opt { display: flex; align-items: center; gap: var(--sp-3); padding: .8rem 1rem; border: 1px solid var(--border-mid, var(--border)); border-radius: var(--radius-md); cursor: pointer; text-transform: none; letter-spacing: 0; font-weight: 600; font-size: var(--text-sm); color: var(--text-primary); background: var(--surface, transparent); margin: 0; transition: border-color .15s, background .15s; }
+    .yn label.opt::before { content: ''; width: 16px; height: 16px; flex: none; border-radius: 50%; border: 2px solid var(--border-mid, var(--border)); transition: all .15s; }
+    .yn input:checked + label.opt { border-color: var(--accent); background: var(--surface-2, transparent); }
+    .yn input:checked + label.opt::before { border-color: var(--accent); background: radial-gradient(var(--accent) 45%, transparent 50%); }
+    .yn input:focus-visible + label.opt { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .field.invalid .yn label.opt { border-color: var(--error); }
+    .callout { display: flex; gap: var(--sp-3); align-items: flex-start; margin-top: var(--sp-3); padding: var(--sp-3) var(--sp-4); border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface-2, transparent); font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.5; }
+    .callout i { margin-top: .2rem; color: var(--accent); }
+    .callout.warn { border-color: #d9a441; }
+    .callout.warn i { color: #b7791f; }
+    @media (max-width: 380px) { .yn { grid-template-columns: 1fr; } }
     @media (max-width: 540px) { .row2 { grid-template-columns: 1fr; } }
     /* cartões laterais */
     .side-card { background: var(--off-white); border: 1.5px solid var(--border); border-radius: var(--radius-xl); padding: var(--sp-8); margin-bottom: var(--sp-6); }
@@ -1030,25 +1067,43 @@ main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
               <div class="err">Informe seu nome completo.</div>
             </div>
 
-            <div class="row2">
-              <div class="field" id="fMat">
-                <label for="matricula">Matrícula</label>
-                <input type="text" id="matricula" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="Ex.: 1453013" />
-                <div class="hint">Somente a matrícula, sem zeros à esquerda.</div>
-                <div class="err" id="matErr">Informe uma matrícula válida (somente números).</div>
+            <div class="field" id="fTem">
+              <label>Você já tem matrícula?</label>
+              <div class="yn" role="radiogroup" aria-label="Você já tem matrícula?">
+                <input type="radio" name="temMat" id="temSim" value="sim" />
+                <label class="opt" for="temSim">Sim, tenho</label>
+                <input type="radio" name="temMat" id="temNao" value="nao" />
+                <label class="opt" for="temNao">Ainda não tenho</label>
               </div>
-              <div class="field" id="fCpf">
-                <label for="cpf">CPF</label>
-                <input type="text" id="cpf" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="000.000.000-00" />
-                <div class="hint">Somente números.</div>
-                <div class="err">Informe um CPF válido.</div>
+              <div class="err">Responda se você já tem matrícula.</div>
+              <div class="callout warn" id="avisoMat" style="margin:var(--sp-3) 0 0">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Não lembra a matrícula? Ela é <b>essencial</b> e não pode ficar de fora, porque é com ela que sua foto é identificada no ponto.</span>
               </div>
+              <div class="callout" id="infoNao" hidden>
+                <i class="fas fa-info-circle"></i>
+                <span>Use esta opção somente se você realmente ainda não recebeu a sua matrícula.</span>
+              </div>
+            </div>
+
+            <div class="field" id="fMat" hidden>
+              <label for="matricula">Matrícula</label>
+              <input type="text" id="matricula" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="Ex.: 1453013" />
+              <div class="hint">Somente a matrícula, sem zeros à esquerda.</div>
+              <div class="err" id="matErr">Informe uma matrícula válida (somente números).</div>
+            </div>
+
+            <div class="field" id="fCpf">
+              <label for="cpf">CPF</label>
+              <input type="text" id="cpf" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="000.000.000-00" />
+              <div class="hint">Somente números.</div>
+              <div class="err">Informe um CPF válido.</div>
             </div>
 
             <div class="field" id="fEmail">
               <label for="email">E-mail</label>
               <input type="text" id="email" inputmode="email" autocomplete="email" maxlength="120" placeholder="nome@exemplo.com" />
-              <div class="err">Informe um e-mail válido.</div>
+              <div class="err">Informe um e-mail válido, como nome@exemplo.com.</div>
             </div>
 
             <div class="field" id="fSec">
@@ -1082,7 +1137,7 @@ main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
             <div class="field" style="margin-top:var(--sp-6)" id="fConsent">
               <label class="check">
                 <input type="checkbox" id="consent" />
-                <span>Autorizo o uso desta foto e dos meus dados (nome, matrícula, CPF e e-mail) exclusivamente para o cadastro no sistema de ponto eletrônico facial da Prefeitura de Contagem. A foto só é enviada se estiver dentro do padrão.</span>
+                <span>Autorizo o uso desta foto e dos meus dados (nome, matrícula quando houver, CPF e e-mail) exclusivamente para o cadastro no sistema de ponto eletrônico facial da Prefeitura de Contagem. A foto só é enviada se estiver dentro do padrão.</span>
               </label>
               <div class="err">É necessário autorizar para enviar.</div>
             </div>
@@ -1797,28 +1852,49 @@ function maskCpf(v) {
   const d = String(v || '').replace(/\D/g, '').slice(0, 11);
   return d.replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1-$2');
 }
+function emailValido(e) {
+  e = String(e || '').trim().toLowerCase();
+  return e.length <= 120 && /^(?!\.)(?!.*\.\.)[a-z0-9._%+\-]{1,64}(?<!\.)@(?:[a-z0-9](?:[a-z0-9\-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$/.test(e);
+}
+function temMatricula() { const r = document.querySelector('input[name=temMat]:checked'); return r ? r.value : ''; }
+function syncMat() {
+  const t = temMatricula();
+  $('fMat').hidden = t !== 'sim';
+  $('infoNao').hidden = t !== 'nao';
+  $('avisoMat').hidden = t === 'nao';
+  if (t !== 'sim') $('fMat').classList.remove('invalid');
+  $('fTem').classList.remove('invalid');
+}
+document.querySelectorAll('input[name=temMat]').forEach(r => r.addEventListener('change', () => { syncMat(); if (temMatricula() === 'sim') $('matricula').focus(); }));
 function validate(showErrors) {
   const nome = $('nome').value.trim().replace(/\s+/g, ' ');
   const mat = normMatricula($('matricula').value);
   const okNome = nome.split(' ').length >= 2 && nome.length >= 5;
-  const okMat = /^\d{3,10}$/.test(mat);
+  const tem = temMatricula();
+  const okTem = !!tem;
+  const okMat = tem === 'nao' || (tem === 'sim' && /^\d{3,10}$/.test(mat));
   const email = $('email').value.trim().toLowerCase();
-  const okEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) && email.length <= 120;
+  const okEmail = emailValido(email);
   const cpf = $('cpf').value.replace(/\D/g, '');
   const okCpf = cpfValido(cpf);
   const okSec = !!$('secretaria').value;
   const okCons = $('consent').checked;
   if (showErrors) {
-    $('fNome').classList.toggle('invalid', !okNome); $('fMat').classList.toggle('invalid', !okMat); $('fCpf').classList.toggle('invalid', !okCpf); $('fEmail').classList.toggle('invalid', !okEmail);
+    $('fNome').classList.toggle('invalid', !okNome); $('fTem').classList.toggle('invalid', !okTem); $('fMat').classList.toggle('invalid', tem === 'sim' && !okMat); $('fCpf').classList.toggle('invalid', !okCpf); $('fEmail').classList.toggle('invalid', !okEmail);
     $('fSec').classList.toggle('invalid', !okSec);   $('fConsent').classList.toggle('invalid', !okCons);
   }
-  return { ok: okNome && okMat && okCpf && okEmail && okSec && okCons, nome, mat, cpf, email, okNome, okMat, okCpf, okEmail, okSec, okCons };
+  return { tem, okTem, semMat: tem === 'nao', ok: okNome && okTem && okMat && okCpf && okEmail && okSec && okCons, nome, mat, cpf, email, okNome, okMat, okCpf, okEmail, okSec, okCons };
 }
 // O botão fica sempre clicável (só trava durante o envio); ao clicar, a página mostra o que falta.
 function refreshSend() { $('send').disabled = state.busy; }
 $('cpf').addEventListener('input', () => { $('cpf').value = maskCpf($('cpf').value); });
+$('email').addEventListener('blur', () => { const v = $('email').value.trim(); $('email').value = v; $('fEmail').classList.toggle('invalid', !!v && !emailValido(v)); });
+$('email').addEventListener('input', () => { if (emailValido($('email').value)) $('fEmail').classList.remove('invalid'); });
+$('cpf').addEventListener('blur', () => { const v = $('cpf').value; $('fCpf').classList.toggle('invalid', !!v && !cpfValido(v)); });
+$('cpf').addEventListener('input', () => { if (cpfValido($('cpf').value)) $('fCpf').classList.remove('invalid'); });
 ['nome', 'matricula', 'cpf', 'email', 'secretaria', 'consent'].forEach(id => $(id).addEventListener('input', () => { $('fNome').classList.remove('invalid'); }));
 $('consent').addEventListener('change', refreshSend);
+$('matricula').addEventListener('input', () => { const v = $('matricula').value, n = v.replace(/\D/g, ''); if (v !== n) $('matricula').value = n; });
 $('matricula').addEventListener('blur', () => { const m = normMatricula($('matricula').value); if (m) $('matricula').value = m; });
 
 function showResult(kind, html) {
@@ -1919,7 +1995,8 @@ $('send').addEventListener('click', async () => {
   const falta = [];
   if (!state.ok || !state.jpeg) falta.push('uma foto aprovada');
   if (!v.okNome) falta.push('nome completo');
-  if (!v.okMat) falta.push('matrícula');
+  if (!v.okTem) falta.push('se você tem matrícula');
+  else if (!v.okMat) falta.push('matrícula');
   if (!v.okCpf) falta.push('CPF válido');
   if (!v.okEmail) falta.push('e-mail válido');
   if (!v.okSec) falta.push('secretaria');
@@ -1933,26 +2010,26 @@ $('send').addEventListener('click', async () => {
   sm.className = 'result';
   if (CONFIG.ENDPOINT.startsWith('COLE_AQUI')) {
     // modo teste: sem destino configurado, baixa o arquivo
-    const a = document.createElement('a'); a.href = URL.createObjectURL(state.jpeg); a.download = v.mat + '.jpg'; a.click();
-    sm.className = 'result show work'; sm.innerHTML = '<p><b>Modo teste:</b> o destino de envio ainda não foi configurado, então a foto foi baixada no seu aparelho como <b>' + esc(v.mat) + '.jpg</b>.</p>';
+    const a = document.createElement('a'); a.href = URL.createObjectURL(state.jpeg); a.download = (v.semMat ? v.cpf : v.mat) + '.jpg'; a.click();
+    sm.className = 'result show work'; sm.innerHTML = '<p><b>Modo teste:</b> o destino de envio ainda não foi configurado, então a foto foi baixada no seu aparelho como <b>' + esc(v.semMat ? v.cpf : v.mat) + '.jpg</b>.</p>';
     return;
   }
   state.busy = true; refreshSend();
   sm.className = 'result show work'; sm.innerHTML = '<h3><i class="fas fa-circle-notch fa-spin"></i> Enviando…</h3>';
   try {
-    const payload = { token: CONFIG.TOKEN, nome: v.nome, matricula: v.mat, cpf: v.cpf, email: v.email, secretaria: $('secretaria').value,
+    const payload = { token: CONFIG.TOKEN, nome: v.nome, matricula: v.semMat ? '' : v.mat, sem_matricula: v.semMat, cpf: v.cpf, email: v.email, secretaria: $('secretaria').value,
       foto_base64: await blobToBase64(state.jpeg) };
     const resp = await fetch(CONFIG.ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
     const j = await resp.json();
     if (!j.ok) throw new Error(j.erro || 'Falha no envio');
     sm.className = 'result'; $('formArea').style.display = 'none';
     $('doneThumb').getContext('2d').drawImage($('previewCanvas'), 0, 0);
-    $('doneMeta').textContent = 'Matrícula ' + v.mat + ' · ' + $('secretaria').value;
+    $('doneMeta').textContent = (v.semMat ? 'CPF ' + maskCpf(v.cpf) : 'Matrícula ' + v.mat) + ' · ' + $('secretaria').value;
     $('doneArea').classList.add('show'); scrollTo({ top: 0, behavior: 'smooth' });
   } catch (e) {
     console.error(e);
     sm.className = 'result show bad';
-    sm.innerHTML = '<h3><i class="fas fa-times-circle"></i> Não foi possível enviar</h3><p>Verifique sua conexão e tente novamente. Se o erro continuar, avise a equipe do Ponto Eletrônico informando sua matrícula.</p>';
+    sm.innerHTML = '<h3><i class="fas fa-times-circle"></i> Não foi possível enviar</h3><p>Verifique sua conexão e tente novamente. Se o erro continuar, avise a equipe do Ponto Eletrônico informando sua matrícula (ou o CPF, se ainda não tiver matrícula).</p>';
   } finally { state.busy = false; refreshSend(); }
 });
 
@@ -2003,7 +2080,7 @@ $('csvBtn').addEventListener('click', () => {
 });
 
 /* Para testes automatizados */
-window.__foto = { headExtent, cpfValido, maskCpf, CONFIG, evaluate, analyzeFile, makeImg, cropTo200, normMatricula, checkBackground, checkGlare, checkEyeShadow, checkGlasses };
+window.__foto = { emailValido, headExtent, cpfValido, maskCpf, CONFIG, evaluate, analyzeFile, makeImg, cropTo200, normMatricula, checkBackground, checkGlare, checkEyeShadow, checkGlasses };
 </script>
 </body>
 </html>
