@@ -255,12 +255,19 @@ a { color: inherit; text-decoration: none; }
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
 }
 .nav-logo img {
   height: 22px;
   width: auto;
+  max-width: 130px;      /* se a imagem demorar/falhar, o texto alternativo não estoura a barra */
+  object-fit: contain;
+  overflow: hidden;
 }
+.nav-logo-text { white-space: nowrap; flex-shrink: 0; }
+/* nunca deixa a página ficar mais larga que a tela (o botão do menu sairia da área visível) */
+html { overflow-x: clip; }
 [data-theme="dark"] .nav-logo img { filter: brightness(0) invert(1); }
 .nav-logo-text {
   font-family: var(--font-display);
@@ -1043,6 +1050,47 @@ main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
     </div>
   </nav>
 
+  <!-- Menu + tema: ligados NA HORA (inline), sem esperar CDNs/scripts da página -->
+  <script>
+  (function () {
+    var w = window, d = document;
+    w.THEME_KEY = 'pp-theme'; w._ppThemeInit = true;
+    w.applyTheme = function (dark) {
+      d.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      var i = d.getElementById('themeIcon'); if (i) i.className = dark ? 'fas fa-sun' : 'fas fa-moon';
+    };
+    try { w.applyTheme(localStorage.getItem('pp-theme') === 'dark'); } catch (e) {}
+
+    var tg = d.getElementById('themeToggle');
+    if (tg && !w._ppThemeListenerSet) {
+      w._ppThemeListenerSet = true;
+      tg.addEventListener('click', function () {
+        var dark = d.documentElement.dataset.theme !== 'dark';
+        w.applyTheme(dark);
+        try { localStorage.setItem('pp-theme', dark ? 'dark' : 'light'); } catch (e) {}
+      });
+    }
+
+    var hb = d.getElementById('hamburger'), nl = d.getElementById('navLinks');
+    if (!hb || !nl || w._ppNavListenerSet) return;
+    w._ppNavListenerSet = true;
+    function setOpen(o) {
+      nl.classList.toggle('open', o);
+      hb.setAttribute('aria-expanded', String(o));
+      hb.innerHTML = o ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
+    }
+    hb.addEventListener('click', function (e) { e.stopPropagation(); setOpen(!nl.classList.contains('open')); });
+    d.addEventListener('click', function (e) {
+      if (nl.classList.contains('open') && !hb.contains(e.target) && !nl.contains(e.target)) setOpen(false);
+    });
+    nl.addEventListener('click', function (e) { if (e.target.closest('a')) setOpen(false); });
+    d.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+    var nav = d.querySelector('.site-nav');
+    if (nav) w.addEventListener('scroll', function () { nav.classList.toggle('scrolled', w.scrollY > 10); }, { passive: true });
+  })();
+  </script>
+
+
   <main>
     <div class="container">
 
@@ -1205,7 +1253,7 @@ main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
         <div class="footer-logo"><img src="https://legislacao.contagem.mg.gov.br/imgs/Marca-PMC-cor.png" alt="Logo Prefeitura de Contagem" /></div>
         <div>
           <p class="footer-copy">© 2026 Equipe Ponto Eletrônico — Prefeitura Municipal de Contagem</p>
-          <p class="footer-dev">Desenvolvido por Equipe Ponto Eletrônico — SEAD</p>
+          <p class="footer-dev">Desenvolvido por Equipe Ponto Eletrônico — SEAD · <span id="versaoPagina" style="opacity:.6"></span></p>
         </div>
       </div>
     </div>
@@ -1237,6 +1285,7 @@ const CONFIG = {
   ENDPOINT: 'https://script.google.com/macros/s/AKfycbzsDkA3yCzRNpLZ3ourM0fh3s9fIJiFeNriVKS73hMU5cPXcjc5kqP0Ok_s2ex0aNT4rA/exec',
   TOKEN:    'sKHwQaBbn-3G-DzAjq-RGINix73A_sr1',
 
+  VERSAO: 'foto-2026.10.27-c',   // aparece no rodapé: confira se o celular está com a versão nova
   OUT_SIZE: 200,          // tamanho final (px) aceito pelo ponto
   JPEG_QUALITY: 0.92,
   MAX_FILE_MB: 15,
@@ -1290,6 +1339,12 @@ const CONFIG = {
     cropBgNear: 50,         // pixel parecido com o fundo (para achar vão de parede entre um objeto e a pessoa)
     cropGapFrac: 0.03,      // vão de parede lisa (fração da largura do recorte) que separa objeto de cabelo
     bgSideGap: 0.5,         // distância mínima (× largura do rosto) entre o recorte lateral e o rosto
+    edgeDarkMax: 90,         // pixel mais escuro que isso (na borda do recorte) é cabelo/roupa
+    edgeChromaDist: 24,      // distância de cor (sem brilho) para ainda ser "parede"
+    edgeLumaDist: 60,        // diferença de brilho tolerada para ainda ser "parede" (gradiente de luz)
+    edgeHairDist: 38,        // distância de cor (sem brilho) para ainda ser "cabelo" (comparado ao cabelo acima da testa)
+    edgeForeignMax: 0.12,
+    edgeForeignLoose: 0.30,  // idem, para trecho já liso ou faixa do topo    // fração de pixels que não são parede nem escuros a partir da qual vira "objeto"
     bgDarkIgnore: 85,       // recorte mais escuro que isso é tratado como cabelo/roupa
     // óculos
     glassesRatioMax: 3.2,   // energia de bordas (ponte/aro) ÷ bochecha (só pega armação evidente)
@@ -1345,19 +1400,20 @@ const $ = id => document.getElementById(id);
   const apply = d => { document.documentElement.dataset.theme = d ? 'dark' : 'light';
     const i = $('themeIcon'); if (i) i.className = d ? 'fas fa-sun' : 'fas fa-moon'; };
   try { apply(localStorage.getItem(KEY) === 'dark'); } catch { apply(false); }
-  $('themeToggle')?.addEventListener('click', () => {
+  if (!window._ppThemeListenerSet) $('themeToggle')?.addEventListener('click', () => {
     const d = document.documentElement.dataset.theme !== 'dark'; apply(d);
     try { localStorage.setItem(KEY, d ? 'dark' : 'light'); } catch {}
   });
   const nav = document.querySelector('.site-nav');
   addEventListener('scroll', () => nav?.classList.toggle('scrolled', scrollY > 10), { passive: true });
   const hb = $('hamburger'), nl = $('navLinks');
-  hb?.addEventListener('click', () => {
+  if (!window._ppNavListenerSet) hb?.addEventListener('click', () => {
     const open = nl.classList.toggle('open'); hb.setAttribute('aria-expanded', String(open));
     hb.innerHTML = open ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
   });
 })();
 if (DEBUG) document.body.classList.add('debug');
+{ const v = document.getElementById('versaoPagina'); if (v) v.textContent = CONFIG.VERSAO; }
 
 /* =====================================================================
    FUNÇÕES PURAS DE ANÁLISE (recebem pixels + pontos do rosto)
@@ -1760,9 +1816,72 @@ function checkHairOnFace(img, P, T) {
  *  moldura, parede de outra cor) e reprova. */
 function checkCropBackground(img, P, T) {
   const bg = checkBackground(img, P, T);
-  const raw = bg.bgRaw || [];
-  const plains = raw.filter(p => p.plain);
+  const raw = (bg.bgRaw || []).slice();
   const out = { ok: false, why: 'plain', patches: bg.bgPatches };
+
+  // Varredura das bordas do recorte: toda a coluna esquerda e direita (do alto até o queixo) e a faixa acima da
+  // cabeça. Aí não deveria haver nada além de parede lisa (ou cabelo/roupa escuros): prateleira, luminária,
+  // janela, quadro e móveis aparecem como trecho NÃO liso e NÃO escuro.
+  const fwid = dist(P[234], P[454]), fhei = dist(P[10], P[152]);
+  const es = Math.max(8, T.bgPatch * img.w), edge = [];
+  const addEdge = (x, y, top) => {
+    const st = patchStats(img, x, y, es); if (!st) return;
+    st.name = 'E' + Math.round(x) + ',' + Math.round(y); st.x = x; st.y = y; st.side = es; st.edge = true; st.top = !!top;
+    st.dark = st.luma < T.bgDarkIgnore;
+    st.plain = st.luma >= T.bgLumaMin && st.sat <= T.bgSatMax && st.std <= T.bgStdMax && st.range <= T.bgRangeMax;
+    edge.push(st);
+  };
+  const edgeBottom = (P[1].y + P[152].y) / 2;     // até a altura da boca: abaixo disso aparecem ombros, roupa e cabelo longo
+  for (let y = 0; y + es <= edgeBottom; y += es) {
+    if (es <= P[234].x - 0.08 * fwid) addEdge(0, y);
+    if (img.w - es >= P[454].x + 0.08 * fwid) addEdge(img.w - es, y);
+  }
+  for (let x = es; x + 2 * es <= img.w; x += es)
+    if (es <= P[10].y - 0.15 * fhei && (x + es < P[234].x - 0.08 * fwid || x > P[454].x + 0.08 * fwid)) addEdge(x, 0, true);
+  const seen = new Set(raw.map(p => p.name));
+  for (const e of edge) if (!seen.has(e.name)) raw.push(e);
+  out.edgeInfo = edge.map(e => `${e.name}:${e.luma.toFixed(0)}/${e.sat.toFixed(2)}/${e.std.toFixed(0)}/${e.range.toFixed(0)}${e.plain ? '+' : e.dark ? 'd' : '-'}`).join(' ');
+  // Em cada trecho da borda: que fração dos pixels NÃO é parede (cor/brilho parecidos com os da parede) NEM escura
+  // (cabelo/roupa)? Cabelo encostando na borda dá "parede + escuro" e passa; prateleira, luminária, janela,
+  // quadro ou outra cor dão uma fração alta de pixels "estranhos".
+  const wallRef = (raw.find(p => p.plain && !p.edge) || raw.find(p => p.plain) || raw[0] || {}).rgb;
+  if (wallRef) {
+    const wl = luma(wallRef[0], wallRef[1], wallRef[2]), wch = [wallRef[0] - wl, wallRef[1] - wl, wallRef[2] - wl];
+    const isWall = (r, g, b, l) => Math.hypot(r - l - wch[0], g - l - wch[1], b - l - wch[2]) <= T.edgeChromaDist && Math.abs(l - wl) <= T.edgeLumaDist;
+    // cor do cabelo: pixels que não são parede nem escuros, ao lado da testa e acima dela
+    const eyeY = (P[33].y + P[263].y) / 2, hs = [];
+    const sample = (x0, x1, y0, y1) => {
+      for (let yy = Math.max(0, Math.floor(y0)); yy < Math.min(img.h, Math.ceil(y1)); yy++)
+        for (let xx = Math.max(0, Math.floor(x0)); xx < Math.min(img.w, Math.ceil(x1)); xx++) {
+          const j = (yy * img.w + xx) * 4, r = img.data[j], g = img.data[j + 1], b = img.data[j + 2], l = luma(r, g, b);
+          if (l >= T.edgeDarkMax && !isWall(r, g, b, l)) hs.push([r, g, b]);
+        }
+    };
+    sample(P[234].x + 0.15 * fwid, P[454].x - 0.15 * fwid, P[10].y - 0.25 * fhei, P[10].y - 0.02 * fhei);   // só acima da testa (sem pele)
+    const hairRef = hs.length >= 40 ? [0, 1, 2].map(k => percentile(hs.map(c => c[k]), 0.5)) : null;
+    const hairL = hairRef ? luma(hairRef[0], hairRef[1], hairRef[2]) : 0;
+    const hairCh = hairRef ? [hairRef[0] - hairL, hairRef[1] - hairL, hairRef[2] - hairL] : null;
+    out.hairRef = hairRef ? hairRef.map(Math.round).join(',') + '(' + hs.length + ')' : null;
+    for (const e of edge) {
+      let n = 0, bad = 0;
+      for (let yy = Math.floor(e.y); yy < Math.min(img.h, Math.ceil(e.y + es)); yy++)
+        for (let xx = Math.floor(e.x); xx < Math.min(img.w, Math.ceil(e.x + es)); xx++) {
+          const j = (yy * img.w + xx) * 4, r = img.data[j], g = img.data[j + 1], b = img.data[j + 2], l = luma(r, g, b);
+          n++;
+          if (l < T.edgeDarkMax) continue;                                     // cabelo/roupa escuros
+          if (isWall(r, g, b, l)) continue;                                    // parede
+          if (hairRef && l >= 0.4 * hairL && l <= 1.5 * hairL &&
+              Math.hypot(r - l - hairCh[0], g - l - hairCh[1], b - l - hairCh[2]) <= T.edgeHairDist) continue; // cabelo claro/ruivo (mesma cor do cabelo da testa, com luz/sombra)
+          bad++;
+        }
+      e.foreign = n ? bad / n : 0;
+    }
+    out.edgeInfo = edge.map(e => `${e.name}:f${e.foreign.toFixed(2)}${e.plain ? '+' : e.dark ? 'd' : '-'}`).join(' ');
+    // trecho já "liso" pelas medidas (ou faixa do topo, onde cabelo volumoso aparece) tem tolerância maior
+    const busyEdge = edge.find(e => e.foreign > ((e.plain || e.top) ? T.edgeForeignLoose : T.edgeForeignMax));
+    if (busyEdge) return Object.assign(out, { why: 'object', bad: busyEdge.name });
+  }
+  const plains = raw.filter(p => p.plain);
   if (!plains.length) return Object.assign(out, { why: raw.length && raw.every(p => p.dark) ? 'dark' : 'plain' });
   // todas as partes lisas precisam ter praticamente a mesma cor (parede única)
   const ref = plains[0].rgb;
@@ -1966,7 +2085,7 @@ async function analyzeFile(file, detector) {
   const cg = cc.getContext('2d', { willReadFrequently: true }); cg.imageSmoothingQuality = 'high';
   cg.drawImage(bmp, crop.win.x0, crop.win.y0, crop.win.S, crop.win.S, 0, 0, cs, cs);
   const cimg = makeImg(cg.getImageData(0, 0, cs, cs)), Pc = {};
-  for (const i of [152, 234, 454, 33, 263]) Pc[i] = { x: (faces[0][i].x * bmp.width - crop.win.x0) / crop.win.S * cs, y: (faces[0][i].y * bmp.height - crop.win.y0) / crop.win.S * cs };
+  for (const i of [1, 10, 152, 234, 454, 33, 263]) Pc[i] = { x: (faces[0][i].x * bmp.width - crop.win.x0) / crop.win.S * cs, y: (faces[0][i].y * bmp.height - crop.win.y0) / crop.win.S * cs };
   const bgc = checkCropBackground(cimg, Pc, CONFIG.T);
   ev.metrics.bgCropPatches = bgc.patches; ev.metrics.bgCropOk = bgc.ok; ev.metrics.bgCropWhy = bgc.why + ' ' + (bgc.runs || []).join(',');
   if (!bgc.ok) {
@@ -2231,7 +2350,7 @@ $('csvBtn').addEventListener('click', () => {
 });
 
 /* Para testes automatizados */
-window.__foto = { emailValido, headExtent, cpfValido, maskCpf, CONFIG, evaluate, analyzeFile, makeImg, cropTo200, normMatricula, checkBackground, checkGlare, checkEyeShadow, checkGlasses };
+window.__foto = { emailValido, headExtent, cpfValido, maskCpf, CONFIG, evaluate, analyzeFile, makeImg, cropTo200, normMatricula, checkBackground, checkCropBackground, checkGlare, checkEyeShadow, checkGlasses };
 </script>
 </body>
 </html>
