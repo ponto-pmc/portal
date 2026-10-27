@@ -255,21 +255,40 @@ function resizeImage(file) {
     img.onload = async () => {
       URL.revokeObjectURL(url);
       try {
+        // Um JPEG que já está no tamanho final não precisa ser decodificado e
+        // comprimido novamente: isso só acrescentaria artefatos.
+        if (img.naturalWidth === TARGET_W && img.naturalHeight === TARGET_H &&
+            (file.type === 'image/jpeg' || (!file.type && /\.jpe?g$/i.test(file.name)))) {
+          resolve(file);
+          return;
+        }
+
+        // Recorte central quadrado antes de reduzir, sem esticar o rosto.
+        const side = Math.min(img.naturalWidth, img.naturalHeight);
+        const sx = (img.naturalWidth - side) / 2;
+        const sy = (img.naturalHeight - side) / 2;
         const src = document.createElement('canvas');
-        src.width  = img.naturalWidth;
-        src.height = img.naturalHeight;
-        src.getContext('2d').drawImage(img, 0, 0);
+        src.width = src.height = side;
+        const ctx = src.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, side, side);
+        ctx.drawImage(img, sx, sy, side, side, 0, 0, side, side);
 
         const dst = document.createElement('canvas');
         dst.width  = TARGET_W;
         dst.height = TARGET_H;
 
-        await picaInst.resize(src, dst, { quality: 3 });
+        await picaInst.resize(src, dst, {
+          filter: 'mks2013',
+          unsharpAmount: 80,
+          unsharpRadius: 0.6,
+          unsharpThreshold: 2,
+        });
 
         dst.toBlob(blob => {
           if (blob) resolve(blob);
           else reject(new Error(`Falha ao converter ${file.name}`));
-        }, 'image/jpeg', 0.92);
+        }, 'image/jpeg', 0.98);
 
       } catch (e) { reject(e); }
     };
