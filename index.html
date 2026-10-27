@@ -3,10 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Portal do Ponto Eletrônico — Prefeitura de Contagem</title>
+  <title>Ponto.PMC</title>
   <!-- Necessário para imagens do Google Drive não serem bloqueadas por política de referrer -->
   <meta name="referrer" content="no-referrer-when-downgrade" />
   <link rel="icon" type="image/png" href="https://i.ibb.co/fVRw238j/Ponto-removebg-preview.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="faq.css" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
@@ -46,47 +51,6 @@
     </div>
   </nav>
 
-  <!-- Menu + tema: ligados NA HORA (inline), sem esperar CDNs/scripts da página -->
-  <script>
-  (function () {
-    var w = window, d = document;
-    w.THEME_KEY = 'pp-theme'; w._ppThemeInit = true;
-    w.applyTheme = function (dark) {
-      d.documentElement.dataset.theme = dark ? 'dark' : 'light';
-      var i = d.getElementById('themeIcon'); if (i) i.className = dark ? 'fas fa-sun' : 'fas fa-moon';
-    };
-    try { w.applyTheme(localStorage.getItem('pp-theme') === 'dark'); } catch (e) {}
-
-    var tg = d.getElementById('themeToggle');
-    if (tg && !w._ppThemeListenerSet) {
-      w._ppThemeListenerSet = true;
-      tg.addEventListener('click', function () {
-        var dark = d.documentElement.dataset.theme !== 'dark';
-        w.applyTheme(dark);
-        try { localStorage.setItem('pp-theme', dark ? 'dark' : 'light'); } catch (e) {}
-      });
-    }
-
-    var hb = d.getElementById('hamburger'), nl = d.getElementById('navLinks');
-    if (!hb || !nl || w._ppNavListenerSet) return;
-    w._ppNavListenerSet = true;
-    function setOpen(o) {
-      nl.classList.toggle('open', o);
-      hb.setAttribute('aria-expanded', String(o));
-      hb.innerHTML = o ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
-    }
-    hb.addEventListener('click', function (e) { e.stopPropagation(); setOpen(!nl.classList.contains('open')); });
-    d.addEventListener('click', function (e) {
-      if (nl.classList.contains('open') && !hb.contains(e.target) && !nl.contains(e.target)) setOpen(false);
-    });
-    nl.addEventListener('click', function (e) { if (e.target.closest('a')) setOpen(false); });
-    d.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
-    var nav = d.querySelector('.site-nav');
-    if (nav) w.addEventListener('scroll', function () { nav.classList.toggle('scrolled', w.scrollY > 10); }, { passive: true });
-  })();
-  </script>
-
-
   <!-- HERO -->
   <section class="hero-band main-hero" aria-label="Bem-vindo">
     <div class="container">
@@ -105,7 +69,11 @@
         <a href="faq.html" class="btn btn-outline btn-lg">
           Central de Ajuda
         </a>
+        <button type="button" id="installPortal" class="btn btn-outline btn-lg" hidden>
+          <i class="fas fa-download" aria-hidden="true"></i> Instalar Portal
+        </button>
       </div>
+      <p id="installHelp" class="install-help" role="status" aria-live="polite" hidden></p>
 
       <div class="hero-stats">
         <div class="hero-stat">
@@ -435,11 +403,12 @@
   </footer>
 
   <!-- PapaParse & Fuse (needed by chat/FAQ) -->
-  <script defer src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
-  <script defer src="faq.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+  <script src="faq.js"></script>
 
-  <script defer src="script.js"></script>
+  <script src="script.js"></script>
+  <script src="pwa.js"></script>
 
   <!-- CHAT (from faq.html) -->
   <button id="chatFab" class="chat-fab" aria-label="Abrir assistente de ajuda" aria-expanded="false">
@@ -520,44 +489,7 @@
     </div>
   </div>
 
-  <style>
-  .app-modal-overlay {
-    position: fixed; inset: 0; z-index: 9000;
-    background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
-    display: flex; align-items: center; justify-content: center;
-    padding: 1rem;
-    opacity: 0; transition: opacity .26s ease;
-  }
-  .app-modal--open { opacity: 1 !important; }
-  .app-modal--open .app-modal-box { transform: translateY(0) !important; }
-  .app-modal-box {
-    background: var(--surface, #fff);
-    border: 1.5px solid var(--border, #e5e5e5);
-    border-radius: var(--radius-xl, 20px);
-    padding: 2.5rem 2rem 2rem;
-    max-width: 380px; width: 100%;
-    text-align: center; position: relative;
-    transform: translateY(18px); transition: transform .26s ease;
-  }
-  [data-theme="dark"] .app-modal-box { background: var(--surface-2, #1a1a1a); }
-  .app-modal-close {
-    position: absolute; top: 1rem; right: 1rem;
-    width: 32px; height: 32px; border-radius: 50%;
-    border: 1.5px solid var(--border, #e5e5e5); background: transparent;
-    color: var(--text-muted, #999); cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-size: .8rem; transition: all .15s;
-  }
-  .app-modal-close:hover { background: var(--surface-3, #f0f0f0); color: var(--text-primary, #111); }
-  .app-modal-icon { font-size: 2.4rem; color: var(--text-muted, #aaa); margin-bottom: .8rem; }
-  .app-modal-title {
-    font-family: var(--font-display, sans-serif); font-weight: 900;
-    font-size: 1.5rem; text-transform: uppercase;
-    color: var(--text-primary, #111); margin-bottom: .4rem;
-  }
-  .app-modal-desc { color: var(--text-secondary, #666); font-size: .875rem; margin-bottom: 1.5rem; }
-  .app-modal-btns { display: flex; flex-direction: column; gap: .75rem; }
-  </style>
+
 
 </body>
 </html>
