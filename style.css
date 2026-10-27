@@ -35,6 +35,15 @@
   margin-top: var(--sp-8);
 }
 
+#installPortal[hidden], .install-help[hidden] { display: none !important; }
+.install-help {
+  max-width: 600px;
+  margin-top: var(--sp-4);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
 /* Hero stat strip */
 .hero-stats {
   display: flex; gap: var(--sp-12); flex-wrap: wrap;
@@ -473,3 +482,41 @@
   .store-buttons { flex-direction: column; }
   .store-btn { justify-content: center; }
 }
+
+/* App download modal */
+  .app-modal-overlay {
+    position: fixed; inset: 0; z-index: 9000;
+    background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+    opacity: 0; transition: opacity .26s ease;
+  }
+  .app-modal--open { opacity: 1 !important; }
+  .app-modal--open .app-modal-box { transform: translateY(0) !important; }
+  .app-modal-box {
+    background: var(--surface, #fff);
+    border: 1.5px solid var(--border, #e5e5e5);
+    border-radius: var(--radius-xl, 20px);
+    padding: 2.5rem 2rem 2rem;
+    max-width: 380px; width: 100%;
+    text-align: center; position: relative;
+    transform: translateY(18px); transition: transform .26s ease;
+  }
+  [data-theme="dark"] .app-modal-box { background: var(--surface-2, #1a1a1a); }
+  .app-modal-close {
+    position: absolute; top: 1rem; right: 1rem;
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1.5px solid var(--border, #e5e5e5); background: transparent;
+    color: var(--text-muted, #999); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .8rem; transition: all .15s;
+  }
+  .app-modal-close:hover { background: var(--surface-3, #f0f0f0); color: var(--text-primary, #111); }
+  .app-modal-icon { font-size: 2.4rem; color: var(--text-muted, #aaa); margin-bottom: .8rem; }
+  .app-modal-title {
+    font-family: var(--font-display, sans-serif); font-weight: 900;
+    font-size: 1.5rem; text-transform: uppercase;
+    color: var(--text-primary, #111); margin-bottom: .4rem;
+  }
+  .app-modal-desc { color: var(--text-secondary, #666); font-size: .875rem; margin-bottom: 1.5rem; }
+  .app-modal-btns { display: flex; flex-direction: column; gap: .75rem; }
