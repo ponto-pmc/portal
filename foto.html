@@ -1292,8 +1292,11 @@ main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
   </div>
 </div>
 
+<script src="vendor/pica.min.js"></script>
 <script type="module">
 'use strict';
+
+const photoResampler = window.pica();
 
 /* =====================================================================
    CONFIGURAÇÃO  — o que normalmente se mexe fica aqui
@@ -1304,7 +1307,7 @@ const CONFIG = {
   TOKEN:    'sKHwQaBbn-3G-DzAjq-RGINix73A_sr1',
 
   OUT_SIZE: 200,          // tamanho final (px) aceito pelo ponto
-  JPEG_QUALITY: 0.98,
+  JPEG_QUALITY: 0.93,
   MAX_FILE_MB: 15,
   ANALYSIS_MAX_SIDE: 1280, // lado maior usado na análise
   FOREHEAD_MARGIN: 0.06,   // folga acima do ponto da testa (× altura do rosto)
@@ -1325,7 +1328,7 @@ const CONFIG = {
 
   // Limites de aceitação — ajustar com o modo calibragem (?debug=1)
   T: {
-    minSide: 180,           // menor lado da imagem (px); fotos 200x200 já são aceitas
+    minSide: 200,           // largura e altura mínimas para gerar 200x200 sem ampliar
     faceHeightMin: 0.22,    // altura do rosto / altura da imagem
     faceHeightMax: 0.92,
     centerOffsetMax: 0.22,  // desvio do centro do rosto / largura da imagem
@@ -1886,7 +1889,7 @@ function headExtent(img, P, bg) {
   // barba que continua até a última linha da foto = barba cortada pela borda
   return { topN: top / img.h, botN: bottom / img.h, topCut: top <= 2, beardCut: hasBeard && bottom >= img.h - 3 };
 }
-function cropTo200(bitmap, P_norm, bgColor, ext) {
+function findCropWindow(bitmap, P_norm, ext) {
   const W = bitmap.width, H = bitmap.height;
   const top = { x: P_norm[10].x * W, y: P_norm[10].y * H }, chin = { x: P_norm[152].x * W, y: P_norm[152].y * H };
   const fh = dist(top, chin);
@@ -1903,57 +1906,58 @@ function cropTo200(bitmap, P_norm, bgColor, ext) {
   if (ext && ext.botN > ext.topN) faceBot = Math.max(faceBot, ext.botN * H);    // barba, quando houver
   const cutBottom = faceBot > H || (ext && ext.beardCut);
   faceBot = Math.min(faceBot, H);
-  // 2) O quadrado precisa conter o topo do cabelo e a base do rosto/barba.
-  //    A largura do cabelo não determina o lado do quadrado.
+  // O recorte contém cabelo, rosto e barba; seu tamanho varia com a escala
+  // do rosto, sem ultrapassar os limites da fotografia original.
   let hTop = faceTop;
   if (ext && ext.botN > ext.topN) hTop = Math.min(hTop, ext.topN * H);
   const headPad = CONFIG.HEAD_MARGIN * (faceBot - hTop);
   const requiredTop = Math.max(0, hTop - headPad);
   const requiredBottom = Math.min(H, faceBot + headPad);
-  const S = Math.max(requiredBottom - requiredTop, fw * 1.1);
-  if (S > Math.min(W, H)) return { tooTight: true, parte: 'perto' };
+  const minSide = Math.max(requiredBottom - requiredTop, fw * 1.1);
+  const maxSide = Math.min(W, H);
+  if (minSide > maxSide) return { tooTight: true, parte: 'perto' };
   if (cutBottom) return { tooTight: true, parte: 'queixo' };
+  // Aproxima um pouco mais o rosto, preservando o cabelo e a margem do queixo.
+  const S = Math.ceil(clamp(fh / 0.56, minSide, maxSide));
+  if (S < CONFIG.OUT_SIZE) return { tooTight: true, parte: 'resolucao', side: S };
 
-  // 3) Posiciona o quadrado sem cortar o topo ou o rosto; nas laterais, prioriza o rosto.
+  // Centraliza lateralmente e reduz o espaço vazio abaixo do queixo.
   const lowX = Math.max(0, faceR - S), highX = Math.min(W - S, faceL);
   const lowY = Math.max(0, requiredBottom - S), highY = Math.min(H - S, requiredTop);
   if (lowX > highX + 0.5 || lowY > highY + 0.5) return { tooTight: true, parte: 'perto' };
-  const x0 = clamp((faceL + faceR) / 2 - S / 2, lowX, highX);
-  const y0 = clamp((requiredTop + requiredBottom - S) / 2, lowY, highY);
+  const x0 = clamp(Math.round(clamp((faceL + faceR) / 2 - S / 2, lowX, highX)), 0, W - S);
+  const y0 = clamp(Math.round(clamp((requiredTop + requiredBottom) / 2 - 0.52 * S, lowY, highY)), 0, H - S);
+  return { win: { x0, y0, S } };
+}
 
-  const side = Math.max(2, Math.round(S));
-  let cur = document.createElement('canvas'); cur.width = cur.height = side;
-  let g = cur.getContext('2d'); g.fillStyle = bgColor ? `rgb(${bgColor.join(',')})` : '#fff'; g.fillRect(0, 0, side, side);
-  g.imageSmoothingQuality = 'high';
-  g.drawImage(bitmap, x0, y0, S, S, 0, 0, side, side);
-  // redução em passos (evita serrilhado)
-  while (cur.width / 2 >= CONFIG.OUT_SIZE) {
-    const n = document.createElement('canvas'); n.width = n.height = Math.round(cur.width / 2);
-    const c = n.getContext('2d'); c.imageSmoothingQuality = 'high'; c.drawImage(cur, 0, 0, n.width, n.height); cur = n;
-  }
+async function cropTo200(bitmap, P_norm, bgColor, ext, plannedWin) {
+  const plan = plannedWin ? { win: plannedWin } : findCropWindow(bitmap, P_norm, ext);
+  if (plan.tooTight) return plan;
+  const { x0, y0, S } = plan.win;
+  const src = document.createElement('canvas'); src.width = src.height = S;
+  const sc = src.getContext('2d', { colorSpace: 'srgb' });
+  sc.fillStyle = bgColor ? `rgb(${bgColor.join(',')})` : '#fff';
+  sc.fillRect(0, 0, S, S);
+  // Origem e lado inteiros: copia o quadrado direto da imagem decodificada,
+  // em sua resolução original, antes de qualquer redução de saída.
+  sc.drawImage(bitmap, x0, y0, S, S, 0, 0, S, S);
+
   const out = document.createElement('canvas'); out.width = out.height = CONFIG.OUT_SIZE;
-  const oc = out.getContext('2d'); oc.imageSmoothingQuality = 'high'; oc.drawImage(cur, 0, 0, CONFIG.OUT_SIZE, CONFIG.OUT_SIZE);
-  // Recupera os detalhes suavizados pelas reduções, sem acentuar ruído ou criar halos fortes.
-  const pixels = oc.getImageData(0, 0, CONFIG.OUT_SIZE, CONFIG.OUT_SIZE);
-  const original = new Uint8ClampedArray(pixels.data);
-  const stride = CONFIG.OUT_SIZE * 4;
-  const luma = i => original[i] * 0.2126 + original[i + 1] * 0.7152 + original[i + 2] * 0.0722;
-  for (let y = 1; y < CONFIG.OUT_SIZE - 1; y++) {
-    for (let x = 1; x < CONFIG.OUT_SIZE - 1; x++) {
-      const i = y * stride + x * 4;
-      const blurred = (
-        luma(i - stride - 4) + 2 * luma(i - stride) + luma(i - stride + 4) +
-        2 * luma(i - 4) + 4 * luma(i) + 2 * luma(i + 4) +
-        luma(i + stride - 4) + 2 * luma(i + stride) + luma(i + stride + 4)
-      ) / 16;
-      const detail = luma(i) - blurred;
-      if (Math.abs(detail) < 2) continue;
-      const boost = clamp(detail * 0.55, -18, 18);
-      for (let channel = 0; channel < 3; channel++) pixels.data[i + channel] = original[i + channel] + boost;
-    }
+  const oc = out.getContext('2d', { colorSpace: 'srgb' });
+  if (S > CONFIG.OUT_SIZE) {
+    // Pica aplica amostragem antialiasing em uma única redução. Uma nitidez
+    // leve compensa a suavização quando o recorte é ao menos 1,5× maior.
+    await photoResampler.resize(src, out, {
+      filter: 'mks2013',
+      unsharpAmount: S / CONFIG.OUT_SIZE >= 1.5 ? 40 : 0,
+      unsharpRadius: 0.6,
+      unsharpThreshold: 3,
+    });
+  } else {
+    // Recortes de 200 px são copiados sem nova amostragem.
+    oc.drawImage(src, 0, 0);
   }
-  oc.putImageData(pixels, 0, 0);
-  return { canvas: out, win: { x0, y0, S } };
+  return { canvas: out, win: plan.win };
 }
 const canvasToJpeg = c => new Promise((resolve, reject) => c.toBlob(blob => {
   if (blob?.type === 'image/jpeg') resolve(blob);
@@ -2056,7 +2060,7 @@ async function analyzeFile(file, detector) {
     return { ok: false, reasons: [{ code: 'ilegivel', titulo: 'Não foi possível abrir a imagem', texto: 'O arquivo não contém uma foto válida ou usa um formato que este navegador não consegue ler. Tente outro arquivo de imagem.' }], metrics: {} }; }
 
   if (Math.min(bmp.width, bmp.height) < CONFIG.T.minSide)
-    return { ok: false, reasons: [{ code: 'pequena', titulo: 'Imagem com resolução baixa', texto: `A foto é muito pequena (${bmp.width}×${bmp.height}). Use uma foto com pelo menos ${CONFIG.T.minSide} px no lado menor.` }], metrics: { w: bmp.width, h: bmp.height } };
+    return { ok: false, reasons: [{ code: 'pequena', titulo: 'Imagem com resolução baixa', texto: `A foto tem ${bmp.width}×${bmp.height} px. Envie uma foto com pelo menos ${CONFIG.T.minSide} px de largura e altura para gerar 200×200 px sem ampliar.` }], metrics: { w: bmp.width, h: bmp.height } };
 
   // imagem de análise (reduzida)
   const k = Math.min(1, CONFIG.ANALYSIS_MAX_SIDE / Math.max(bmp.width, bmp.height));
@@ -2088,10 +2092,11 @@ async function analyzeFile(file, detector) {
 
   const ext = headExtent(aimg, toPx(faces[0], aimg), ev.metrics.bgColor);
   if (ext) { ev.metrics.headTop = ext.topN; ev.metrics.headBottom = ext.botN; }
-  const crop = cropTo200(bmp, faces[0], ev.metrics.bgColor, ext);
+  const crop = findCropWindow(bmp, faces[0], ext);
   if (crop.tooTight) {
     ev.ok = false;
     const M = {
+      resolucao: { code: 'pequena', titulo: 'Recorte com resolução baixa', texto: `O recorte do rosto ficou com ${crop.side}×${crop.side} px. Envie uma foto com o rosto maior ou com mais resolução para gerar 200×200 px sem ampliar.` },
       queixo: { code: 'corte', titulo: 'Pouco espaço abaixo do queixo ou da barba', texto: 'O queixo (ou a barba) ficou rente à borda de baixo da foto, então não dá para recortar com segurança sem cortar o rosto. Afaste a câmera e mostre os ombros, com espaço abaixo do queixo.' },
       topo:   { code: 'corte', titulo: 'Topo da cabeça cortado', texto: 'O alto da cabeça ou do cabelo ficou rente à borda da foto, então não dá para recortar sem cortar. Afaste a câmera para aparecer a cabeça inteira, com espaço acima.' },
       lado:   { code: 'corte', titulo: 'Rosto cortado na lateral', texto: 'O rosto ficou rente à lateral da foto, então não dá para recortar sem cortar. Afaste a câmera e centralize o rosto, com espaço dos dois lados.' },
@@ -2116,7 +2121,7 @@ async function analyzeFile(file, detector) {
       : 'Aparece algo atrás de você na área da foto (porta, moldura, quadro, objeto, sombra ou parede de outra cor). Use uma parede lisa, clara e sem nada ao redor, e fique um pouco afastado dela.' });
     return ev;
   }
-  ev.canvas = crop.canvas;
+  ev.canvas = (await cropTo200(bmp, faces[0], ev.metrics.bgColor, ext, crop.win)).canvas;
   return ev;
 }
 
@@ -2449,7 +2454,7 @@ $('csvBtn').addEventListener('click', () => {
 });
 
 /* Para testes automatizados */
-window.__foto = { emailValido, headExtent, cpfValido, maskCpf, CONFIG, evaluate, analyzeFile, makeImg, cropTo200, normMatricula, checkBackground, checkGlare, checkEyeShadow, checkGlasses };
+window.__foto = { emailValido, headExtent, cpfValido, maskCpf, CONFIG, evaluate, analyzeFile, makeImg, findCropWindow, cropTo200, normMatricula, checkBackground, checkGlare, checkEyeShadow, checkGlasses };
 </script>
   <script src="pwa.js"></script>
   <script src="accessibility.js" defer></script>
