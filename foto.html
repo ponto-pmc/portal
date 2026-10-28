@@ -1917,8 +1917,8 @@ function findCropWindow(bitmap, P_norm, ext) {
   const maxSide = Math.min(W, H);
   if (minSide > maxSide) return { tooTight: true, parte: 'perto' };
   if (cutBottom) return { tooTight: true, parte: 'queixo' };
-  // Aproxima um pouco mais o rosto, preservando o cabelo e a margem do queixo.
-  const S = Math.ceil(clamp(fh / 0.56, minSide, maxSide));
+  // Deixa o rosto maior no quadrado, preservando o cabelo e a margem do queixo.
+  const S = Math.ceil(clamp(fh / 0.65, minSide, maxSide));
   if (S < CONFIG.OUT_SIZE) return { tooTight: true, parte: 'resolucao', side: S };
 
   // Centraliza lateralmente e reduz o espaço vazio abaixo do queixo.
