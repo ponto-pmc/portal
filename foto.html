@@ -1062,6 +1062,7 @@ main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
     .debug-badge { display: none; background: var(--warning); color: #fff; font-size: var(--text-xs); font-weight: 700; padding: 2px 10px; border-radius: 99px; margin-left: 10px; vertical-align: middle; }
     body.debug .debug-badge { display: inline-block; }
 </style>
+<link rel="stylesheet" href="feedback.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" />
   <!-- CSS do portal (tokens.css + imagem.css) embutido para a página funcionar sozinha -->
@@ -1259,6 +1260,30 @@ main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
         <p>Recebemos a sua foto. Ela será incluída no relógio de ponto facial pela equipe do Ponto Eletrônico.</p>
         <canvas class="done-thumb" id="doneThumb" width="200" height="200" role="img" aria-label="Foto enviada"></canvas>
         <div class="done-meta" id="doneMeta"></div>
+        <section class="photo-feedback" id="photoFeedback" aria-labelledby="feedbackTitle" hidden>
+          <h4 id="feedbackTitle">Como foi enviar sua foto?</h4>
+          <div class="feedback-stars" id="feedbackStars" role="group" aria-label="Avalie o envio de 1 a 5 estrelas">
+            <button type="button" class="feedback-star" data-rating="1" aria-label="1 estrela" aria-pressed="false">★</button>
+            <button type="button" class="feedback-star" data-rating="2" aria-label="2 estrelas" aria-pressed="false">★</button>
+            <button type="button" class="feedback-star" data-rating="3" aria-label="3 estrelas" aria-pressed="false">★</button>
+            <button type="button" class="feedback-star" data-rating="4" aria-label="4 estrelas" aria-pressed="false">★</button>
+            <button type="button" class="feedback-star" data-rating="5" aria-label="5 estrelas" aria-pressed="false">★</button>
+          </div>
+          <div class="feedback-detail" id="feedbackImprove" hidden>
+            <label for="feedbackComment">O que podemos melhorar? <span>(opcional)</span></label>
+            <textarea id="feedbackComment" maxlength="500" rows="3" placeholder="Conte o que dificultou o envio"></textarea>
+          </div>
+          <fieldset class="feedback-detail feedback-reasons" id="feedbackPraise" hidden>
+            <legend>O que funcionou bem?</legend>
+            <label><input type="checkbox" value="Fácil de usar" /> Fácil de usar</label>
+            <label><input type="checkbox" value="Instruções claras" /> Instruções claras</label>
+            <label><input type="checkbox" value="Envio rápido" /> Envio rápido</label>
+            <label><input type="checkbox" value="Verificação da foto ajudou" /> Verificação da foto ajudou</label>
+            <label><input type="checkbox" value="Funcionou bem no celular" /> Funcionou bem no celular</label>
+          </fieldset>
+          <button class="btn btn-primary" id="feedbackSend" type="button" hidden>Enviar avaliação</button>
+          <p class="feedback-status" id="feedbackStatus" role="status" aria-live="polite"></p>
+        </section>
         <div class="actions"><button class="btn btn-outline" id="again" type="button"><i class="fas fa-redo-alt"></i> Enviar outra foto</button></div>
       </div>
 
@@ -2391,7 +2416,7 @@ $('send').addEventListener('click', async () => {
   state.busy = true; refreshSend();
   sm.className = 'result show work'; sm.innerHTML = '<h3><i class="fas fa-circle-notch fa-spin"></i> Enviando…</h3>';
   try {
-    const payload = { token: CONFIG.TOKEN, nome: v.nome, matricula: v.semMat ? '' : v.mat, sem_matricula: v.semMat, cpf: v.cpf, email: v.email, secretaria: $('secretaria').value,
+    const payload = { token: CONFIG.TOKEN, registro_id: crypto.randomUUID(), nome: v.nome, matricula: v.semMat ? '' : v.mat, sem_matricula: v.semMat, cpf: v.cpf, email: v.email, secretaria: $('secretaria').value,
       foto_base64: await blobToBase64(state.jpeg) };
     const resp = await fetch(CONFIG.ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
     const j = await resp.json();
@@ -2399,7 +2424,9 @@ $('send').addEventListener('click', async () => {
     sm.className = 'result'; $('formArea').style.display = 'none';
     $('doneThumb').getContext('2d').drawImage($('previewCanvas'), 0, 0);
     $('doneMeta').textContent = (v.semMat ? 'CPF ' + maskCpf(v.cpf) : 'Matrícula ' + v.mat) + ' · ' + $('secretaria').value;
-    $('doneArea').classList.add('show'); scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    $('doneArea').classList.add('show');
+    document.dispatchEvent(new CustomEvent('foto:enviada', { detail: { endpoint: CONFIG.ENDPOINT, token: CONFIG.TOKEN, registroId: j.registro_id || payload.registro_id, cpf: v.cpf } }));
+    scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   } catch (e) {
     console.error(e);
     sm.className = 'result show bad';
@@ -2456,6 +2483,7 @@ $('csvBtn').addEventListener('click', () => {
 /* Para testes automatizados */
 window.__foto = { emailValido, headExtent, cpfValido, maskCpf, CONFIG, evaluate, analyzeFile, makeImg, findCropWindow, cropTo200, normMatricula, checkBackground, checkGlare, checkEyeShadow, checkGlasses };
 </script>
+  <script type="module" src="feedback.js"></script>
   <script src="pwa.js"></script>
   <script src="accessibility.js" defer></script>
   <script src="https://vlibras.gov.br/app/vlibras-plugin.js" defer></script>
