@@ -1319,6 +1319,7 @@ main { flex: 1; padding: var(--sp-16) 0 var(--sp-24); }
 
 <script src="vendor/pica.min.js"></script>
 <script type="module">
+import { measureFaceSharpness } from './face-sharpness.js';
 'use strict';
 
 const photoResampler = window.pica();
@@ -1369,7 +1370,8 @@ const CONFIG = {
     grayChromaMax: 10,      // só considera P&B quando quase todos os canais RGB são iguais
     grayColorFracMax: 0.02, // tolera pequenos artefatos de compressão JPEG
     faceLumaMin: 70, faceLumaMax: 232,   // rosto escuro / estourado
-    sharpMin: 15,           // nitidez nos olhos/sobrancelhas (p98 do laplaciano)
+    lapVarianceMin: 55,     // rosto normalizado a ~100 px; variância do Laplaciano
+    tenengradMin: 60,       // energia média do gradiente Sobel nas mesmas regiões
     // fundo
     bgPatch: 0.09,          // lado dos recortes de fundo (fração do menor lado da imagem)
     bgLumaMin: 150,         // fundo claro
@@ -1608,19 +1610,11 @@ function checkEyeShadow(img, P) {
            eyeAsym: Math.abs(sR - sL) / Math.max(sR, sL, 1) };
 }
 
-/* ---- Rosto: brilho médio e nitidez (olhos + sobrancelhas) ---- */
-function checkFaceQuality(img, P) {
+/* ---- Rosto: brilho médio e nitidez localizada ---- */
+function checkFaceQuality(img, P, sharpImg = img, sharpP = P) {
   const f = fixBox(img, { x0: P[234].x, x1: P[454].x, y0: P[10].y, y1: P[152].y });
   const vals = []; for (let y = f.y0; y < f.y1; y += 2) for (let x = f.x0; x < f.x1; x += 2) vals.push(img.gray[y * img.w + x]);
-  const rb = ptsBox(P, IDX.rEye), lb = ptsBox(P, IDX.lEye);
-  const eyeW = (rb.x1 - rb.x0 + lb.x1 - lb.x0) / 2;
-  const band = fixBox(img, { x0: rb.x0 - 0.2 * eyeW, x1: lb.x1 + 0.2 * eyeW, y0: Math.min(rb.y0, lb.y0) - 0.6 * eyeW, y1: Math.max(rb.y1, lb.y1) + 0.2 * eyeW });
-  const lap = [], g = img.gray;
-  for (let y = Math.max(1, band.y0); y < Math.min(img.h - 1, band.y1); y++)
-    for (let x = Math.max(1, band.x0); x < Math.min(img.w - 1, band.x1); x++) {
-      const i = y * img.w + x; lap.push(Math.abs(4 * g[i] - g[i - 1] - g[i + 1] - g[i - img.w] - g[i + img.w]));
-    }
-  return { faceLuma: mean(vals), sharp: percentile(lap, 0.98) };
+  return { faceLuma: mean(vals), ...measureFaceSharpness(sharpImg, sharpP, CONFIG.T) };
 }
 
 /* ---- Cor: detecta somente imagens realmente acromáticas ---- */
@@ -1675,7 +1669,7 @@ function blend(blendshapes, name) {
 /* =====================================================================
    REGRAS → MENSAGENS (o que a pessoa lê quando a foto é recusada)
    ===================================================================== */
-function evaluate(img, faces, blendshapes) {
+function evaluate(img, faces, blendshapes, sharpImg = img) {
   const T = CONFIG.T, reasons = [], M = {};
   const lm = faces[0]; let nFaces = faces.length;
   if (nFaces > 1) {   // 2º rosto só conta se for relevante (evita falso positivo em fundo/estampa)
@@ -1743,13 +1737,13 @@ function evaluate(img, faces, blendshapes) {
     R('preto_branco', 'Foto em preto e branco', 'Envie uma foto colorida, sem filtro. Desative filtros ou o modo preto e branco da câmera e tire outra foto.');
 
   // Qualidade do rosto
-  Object.assign(M, checkFaceQuality(img, P));
+  Object.assign(M, checkFaceQuality(img, P, sharpImg, toPx(lm, sharpImg)));
   if (M.faceLuma < T.faceLumaMin)
     R('escura', 'Foto muito escura', 'Vá para um local bem iluminado, com a luz vindo de frente (de uma janela, por exemplo).');
   else if (M.faceLuma > T.faceLumaMax)
     R('estourada', 'Foto muito clara (estourada)', 'Há luz demais no rosto. Evite flash e luz direta muito forte.');
-  if (M.sharp < T.sharpMin)
-    R('desfocada', 'Foto desfocada', 'A imagem está sem nitidez. Segure o aparelho firme, limpe a lente e tire outra foto.');
+  if (M.blurred)
+    R('desfocada', 'Rosto sem nitidez', 'Os detalhes dos olhos, sobrancelhas ou nariz estão suavizados. Limpe a lente, segure o aparelho firme, toque no rosto para focar e tire outra foto.');
 
   // Fundo
   const bg = checkBackground(img, P, T); Object.assign(M, bg);
@@ -2110,7 +2104,23 @@ async function analyzeFile(file, detector) {
     nctx.drawImage(bmp, 0, 0, nw, nh);
     aimg = makeImg(nctx.getImageData(0, 0, nw, nh)); acan = nc;
   }
-  const ev = evaluate(aimg, faces, res.faceBlendshapes);
+  // A nitidez deve corresponder ao detalhe visível no retrato final. Reduzir
+  // para uma largura facial fixa impede que a resolução altere os limites.
+  let sharpImg = aimg;
+  if (faces[0]) {
+    const faceWidth = Math.abs(faces[0][454].x - faces[0][234].x) * aimg.w;
+    const factor = Math.min(1, 100 / Math.max(1, faceWidth));
+    if (factor < 0.98) {
+      const sc = document.createElement('canvas');
+      sc.width = Math.max(1, Math.round(aimg.w * factor));
+      sc.height = Math.max(1, Math.round(aimg.h * factor));
+      const sx = sc.getContext('2d', { willReadFrequently: true });
+      sx.imageSmoothingQuality = 'high';
+      sx.drawImage(acan, 0, 0, sc.width, sc.height);
+      sharpImg = makeImg(sx.getImageData(0, 0, sc.width, sc.height));
+    }
+  }
+  const ev = evaluate(aimg, faces, res.faceBlendshapes, sharpImg);
   ev.metrics.w = bmp.width; ev.metrics.h = bmp.height;
   ev.analysisCanvas = acan; ev.faceLm = faces[0];
   if (!ev.ok) return ev;
@@ -2442,7 +2452,7 @@ loadLandmarker().then(d => { state.detector = d; $('modelStatus').style.display 
    ===================================================================== */
 const batchRows = [];
 function fmt(v) { return typeof v === 'number' ? (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(3)) : (Array.isArray(v) ? v.join(',') : String(v)); }
-const KEYS = ['faceHeightFrac', 'centerOffset', 'yaw', 'pitch', 'rollDeg', 'ear', 'eyeOpen', 'blink', 'squint', 'smile', 'faceSat', 'colorFrac', 'faceChroma', 'strongFrac', 'imageColorFrac', 'imageChromaP95', 'grayscale', 'faceLuma', 'sharp', 'bgLuma', 'bgSat', 'bgStd', 'bgRange', 'bgBad', 'bgPatches', 'headTop', 'headBottom', 'hairForehead', 'eyeContrast', 'eyeContrastRatio', 'eyeContrastR', 'eyeContrastL', 'eyeStrand', 'hairEyeAbove', 'hairEyeUnder', 'hairTemple', 'hairCheek', 'glassesRatio', 'glassesBridgeRatio', 'glassesRimRatio', 'glare', 'eyeShadow', 'eyeAsym'];
+const KEYS = ['faceHeightFrac', 'centerOffset', 'yaw', 'pitch', 'rollDeg', 'ear', 'eyeOpen', 'blink', 'squint', 'smile', 'faceSat', 'colorFrac', 'faceChroma', 'strongFrac', 'imageColorFrac', 'imageChromaP95', 'grayscale', 'faceLuma', 'lapVarianceEyes', 'tenengradEyes', 'lapVarianceNose', 'tenengradNose', 'sharpWeakRegions', 'bgLuma', 'bgSat', 'bgStd', 'bgRange', 'bgBad', 'bgPatches', 'headTop', 'headBottom', 'hairForehead', 'eyeContrast', 'eyeContrastRatio', 'eyeContrastR', 'eyeContrastL', 'eyeStrand', 'hairEyeAbove', 'hairEyeUnder', 'hairTemple', 'hairCheek', 'glassesRatio', 'glassesBridgeRatio', 'glassesRimRatio', 'glare', 'eyeShadow', 'eyeAsym'];
 function debugShow(ev, name) {
   $('lastMetrics').textContent = name + '\n' + JSON.stringify(ev.metrics, (k, v) => typeof v === 'number' ? +v.toFixed(3) : v, 2) +
     '\n\nMotivos: ' + (ev.reasons.map(r => r.code).join(', ') || '(aprovada)');
