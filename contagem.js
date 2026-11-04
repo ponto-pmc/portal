@@ -1,3 +1,5 @@
+import { fallbackData } from './contagem-data.js';
+
 const $ = id => document.getElementById(id);
 const carousel = $('contagem-carousel');
 const stage = $('contagem-stage');
@@ -85,8 +87,7 @@ async function refresh() {
     if (lastData) render(lastData, true);
     else {
       try {
-        const response = await fetch('contagem-fallback.json');
-        const data = await response.json();
+        const data = fallbackData;
         if (!validData(data)) throw new Error('Sem cópia');
         render(data, true);
       } catch {
