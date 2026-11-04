@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ponto.PMC</title>
   <!-- Necessário para imagens do Google Drive não serem bloqueadas por política de referrer -->
   <meta name="referrer" content="no-referrer-when-downgrade" />
@@ -13,7 +13,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="contagem.css" />
   <link rel="stylesheet" href="faq.css" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="accessibility.css" />
@@ -54,22 +53,6 @@
       </div>
     </div>
   </nav>
-
-  <section class="contagem-feed container" aria-label="Destaques da Prefeitura">
-    <div id="contagem-carousel" role="region" aria-roledescription="carrossel" aria-label="Destaques da Prefeitura">
-      <div class="contagem-stage" id="contagem-stage" aria-busy="true">
-        <a class="contagem-empty" href="https://portal.contagem.mg.gov.br/" target="_blank" rel="noopener noreferrer">Ver destaques no portal da Prefeitura ↗</a>
-      </div>
-      <div class="contagem-controls" id="contagem-controls" hidden>
-        <p class="contagem-caption" id="contagem-caption"></p>
-        <button type="button" id="contagem-prev" aria-label="Destaque anterior"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
-        <span class="contagem-count" id="contagem-count"></span>
-        <button type="button" id="contagem-next" aria-label="Próximo destaque"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
-        <button type="button" id="contagem-pause" aria-label="Pausar rotação"><i class="fas fa-pause" aria-hidden="true"></i></button>
-      </div>
-    </div>
-    <p class="contagem-status" id="contagem-status" role="status" hidden></p>
-  </section>
 
   <!-- HERO -->
   <section class="hero-band main-hero" aria-label="Bem-vindo">
@@ -418,7 +401,6 @@
 
   <script src="script.js"></script>
   <script src="pwa.js"></script>
-  <script type="module" src="contagem.js"></script>
 
   <!-- CHAT (from faq.html) -->
   <button id="chatFab" class="chat-fab" aria-controls="chatModal" aria-label="Abrir assistente de ajuda" aria-expanded="false">
