@@ -93,10 +93,10 @@
               <div id="duasMatriculas" hidden>
                 <label id="duasMatLabel">Você possui duas matrículas?</label>
                 <div class="yn" role="radiogroup" aria-labelledby="duasMatLabel">
-                  <input type="radio" name="duasMat" id="duasSim" value="sim" />
-                  <label class="opt" for="duasSim">Sim, tenho duas</label>
                   <input type="radio" name="duasMat" id="duasNao" value="nao" />
                   <label class="opt" for="duasNao">Não, tenho uma</label>
+                  <input type="radio" name="duasMat" id="duasSim" value="sim" />
+                  <label class="opt" for="duasSim">Sim, tenho duas</label>
                 </div>
               </div>
               <div class="err" id="temErr">Responda se você já tem matrícula.</div>
@@ -257,10 +257,14 @@
   </footer>
 
 <dialog id="avisoMat" class="mat-alert" aria-labelledby="matAlertTitle" aria-describedby="matAlertMessage">
-  <div class="mat-alert-icon" aria-hidden="true"><i class="fas fa-exclamation-triangle"></i></div>
   <h2 id="matAlertTitle" tabindex="-1" autofocus>Confira sua matrícula</h2>
   <p id="matAlertMessage" class="mat-alert-accessible">Informe a mesma matrícula que consta no seu contracheque. Ela é essencial e não pode ficar de fora, porque é com ela que sua foto é identificada no ponto.</p>
   <p id="matAlertTyping" class="mat-alert-typing" aria-hidden="true"><span id="matAlertText"></span></p>
+  <a class="btn btn-outline" href="https://maxnet.contagem.mg.gov.br/ADI_Intranet_Root/ADI_Programacao/ADI_MaxNetADI/startupMaxNet/login.jsp?sec=65a26ddb45556c0e7014d2e4013cb68d" target="_blank" rel="noopener noreferrer">Acessar contracheque</a>
+  <p class="mat-alert-contact">
+    <span>Admissão e Contatação</span>
+    <a href="tel:+553133988472"><i class="fas fa-phone" aria-hidden="true"></i> (31) 3398-8472</a>
+  </p>
   <button type="button" class="btn btn-primary" id="matAlertClose" disabled>Li e entendi, fechar</button>
 </dialog>
 
