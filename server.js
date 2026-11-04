@@ -1,5 +1,5 @@
 const PORTAL = 'https://portal.contagem.mg.gov.br/';
-const TTL = 15 * 60 * 1000;
+const TTL = 60 * 1000;
 // Cache temporário em JavaScript; recriado após reinícios, sem banco de dados.
 let cached;
 let pending;
@@ -41,7 +41,7 @@ export function parsePortal(html) {
   return {banners: banners.slice(0, 20), source: PORTAL, fetchedAt: new Date().toISOString()};
 }
 async function refresh() {
-  const response = await fetch(PORTAL, {headers: {Accept: 'text/html'}, signal: AbortSignal.timeout(12000)});
+  const response = await fetch(PORTAL, {headers: {Accept: 'text/html', 'Cache-Control': 'no-cache'}, signal: AbortSignal.timeout(12000)});
   if (!response.ok) throw new Error(`Portal: ${response.status}`);
   const data = parsePortal(await response.text());
   cached = {data, fetchedAt: Date.now()};

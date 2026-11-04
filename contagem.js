@@ -6,7 +6,9 @@ const stage = $('contagem-stage');
 const status = $('contagem-status');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const CACHE_KEY = 'ponto-contagem-feed-v1';
-const REFRESH_MS = 15 * 60 * 1000;
+const REFRESH_MS = 5 * 60 * 1000;
+const RETRY_MS = 60 * 1000;
+let refreshTimer;
 let banners = [], current = 0, timer, hovering = false, paused = reducedMotion.matches;
 let lastData, signature = '', loading = false, lastAttempt = 0;
 
@@ -42,9 +44,11 @@ function updatePause() {
 }
 function render(data, stale) {
   lastData = data;
-  const nextSignature = JSON.stringify(data.banners);
+  // A nova consulta também renova imagens substituídas no mesmo endereço.
+  const nextSignature = JSON.stringify([data.banners, data.fetchedAt]);
   if (signature !== nextSignature) {
     signature = nextSignature;
+    const previousImage = banners[current]?.image;
     banners = data.banners;
     stage.replaceChildren();
     banners.forEach((banner, i) => {
@@ -52,7 +56,10 @@ function render(data, stale) {
       a.setAttribute('aria-label', `${banner.title} — abrir no portal oficial`);
       a.hidden = i !== 0;
       const img = document.createElement('img');
-      img.alt = banner.title; img.src = banner.image;
+      img.alt = banner.title;
+      const imageUrl = new URL(banner.image);
+      imageUrl.searchParams.set('_consulta', String(Date.parse(data.fetchedAt)));
+      img.src = imageUrl.href;
       img.loading = i === 0 ? 'eager' : 'lazy'; img.decoding = 'async';
       img.addEventListener('error', () => {
         a.replaceChildren();
@@ -63,7 +70,7 @@ function render(data, stale) {
     });
     $('contagem-controls').hidden = false;
     for (const id of ['contagem-prev', 'contagem-next', 'contagem-pause']) $(id).hidden = banners.length < 2;
-    show(0);
+    show(Math.max(0, banners.findIndex(banner => banner.image === previousImage)));
 
   }
   const date = new Intl.DateTimeFormat('pt-BR', {dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo'}).format(new Date(data.fetchedAt));
@@ -75,6 +82,8 @@ function render(data, stale) {
 }
 async function refresh() {
   if (loading) return;
+  clearTimeout(refreshTimer);
+  let nextRefresh = RETRY_MS;
   loading = true; lastAttempt = Date.now();
   try {
     const response = await fetch('/api/contagem', {cache: 'no-store', signal: AbortSignal.timeout(18000)});
@@ -82,6 +91,7 @@ async function refresh() {
     const data = await response.json();
     if (!validData(data)) throw new Error('Resposta inválida');
     render(data, data.stale);
+    nextRefresh = data.stale ? RETRY_MS : REFRESH_MS;
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch {}
   } catch {
     if (lastData) render(lastData, true);
@@ -97,6 +107,7 @@ async function refresh() {
     }
   } finally {
     loading = false; stage.setAttribute('aria-busy', 'false');
+    refreshTimer = setTimeout(() => { if (!document.hidden) refresh(); }, nextRefresh);
   }
 }
 $('contagem-prev').addEventListener('click', () => show(current - 1));
@@ -114,7 +125,11 @@ carousel.addEventListener('keydown', event => {
 reducedMotion.addEventListener('change', () => { paused = reducedMotion.matches; updatePause(); });
 document.addEventListener('visibilitychange', () => {
   schedule();
-  if (!document.hidden && Date.now() - lastAttempt >= REFRESH_MS) refresh();
+  if (!document.hidden && Date.now() - lastAttempt >= RETRY_MS) refresh();
+  else if (!document.hidden) {
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(refresh, RETRY_MS - (Date.now() - lastAttempt));
+  }
 });
 window.addEventListener('online', refresh);
 try {
@@ -123,4 +138,3 @@ try {
 } catch {}
 updatePause();
 refresh();
-setInterval(() => { if (!document.hidden) refresh(); }, REFRESH_MS);
