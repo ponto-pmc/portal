@@ -1,4 +1,5 @@
 import { measureFaceSharpness } from './face-sharpness.js';
+import { enviarFoto } from './foto-envio.js';
 'use strict';
 
 const photoResampler = window.pica();
@@ -1071,11 +1072,13 @@ let activeLookupPromise = null;
 let autoMatricula = '';
 let autoMatricula2 = '';
 let autoSelectedMat = false;
-function setCpfLookupStatus(message) {
-  $('cpfLookupStatus').textContent = message;
-  $('cpfLookupStatus').hidden = !message;
-  $('matLookupStatus').textContent = message;
-  $('matLookupStatus').hidden = !message;
+function setCpfLookupStatus(message, success = false) {
+  for (const id of ['cpfLookupStatus', 'matLookupStatus']) {
+    const status = $(id);
+    status.textContent = message;
+    status.hidden = !message;
+    status.classList.toggle('lookup-success', success && !!message);
+  }
 }
 function cancelPendingCpfLookup() {
   cpfLookupVersion++;
@@ -1105,7 +1108,13 @@ async function ensureCpfLookup() {
       });
       if (!response.ok) throw new Error('consulta indisponível');
       const data = await response.json();
-      if (!data.ok) throw new Error(data.erro || 'consulta indisponível');
+      if (!data.ok) {
+        const error = new Error(data.erro || 'consulta indisponível');
+        error.code = data.codigo || (data.erro === 'não autorizado' ? 'CONSULTA_NAO_AUTORIZADA'
+          : /Illegal spreadsheet id or key:/i.test(data.erro || '') ? 'PLANILHA_NAO_CONFIGURADA'
+          : 'CONSULTA_INDISPONIVEL');
+        throw error;
+      }
       if (version !== cpfLookupVersion || $('cpf').value.replace(/\D/g, '') !== cpf) return;
       lookedUpCpf = cpf;
       const matriculas = [...new Set((Array.isArray(data.matriculas) ? data.matriculas : [data.matricula])
@@ -1123,13 +1132,18 @@ async function ensureCpfLookup() {
         wizardRender();
         setCpfLookupStatus(segundaMatricula
           ? 'Matrículas ' + matricula + ' e ' + segundaMatricula + ' encontradas e preenchidas automaticamente. A foto será salva com a matrícula ' + matricula + '.'
-          : 'Matrícula ' + matricula + ' encontrada e preenchida automaticamente.');
+          : 'Matrícula ' + matricula + ' encontrada e preenchida automaticamente.', true);
       } else {
         setCpfLookupStatus('CPF não encontrado. Informe sua matrícula, se já tiver uma.');
       }
     } catch (error) {
-      if (version === cpfLookupVersion && $('cpf').value.replace(/\D/g, '') === cpf)
-        setCpfLookupStatus('Não foi possível consultar a matrícula. Informe-a se já tiver uma.');
+      if (version === cpfLookupVersion && $('cpf').value.replace(/\D/g, '') === cpf) {
+        const mensagens = {
+          CONSULTA_NAO_AUTORIZADA: 'A consulta automática de matrícula não foi autorizada pelo serviço. Informe sua matrícula manualmente e avise a equipe do Ponto Eletrônico.',
+          PLANILHA_NAO_CONFIGURADA: 'A planilha da consulta de matrícula não está configurada corretamente. Informe sua matrícula manualmente e avise a equipe do Ponto Eletrônico.'
+        };
+        setCpfLookupStatus(mensagens[error.code] || 'Não foi possível consultar a matrícula. Informe-a se já tiver uma.');
+      }
       console.error('Falha na consulta da matrícula:', error);
     }
   })();
@@ -1310,9 +1324,7 @@ $('send').addEventListener('click', async () => {
   try {
     const payload = { token: CONFIG.TOKEN, registro_id: crypto.randomUUID(), nome: v.nome, matricula: v.semMat ? '' : v.mat, segunda_matricula: v.mat2, sem_matricula: v.semMat, cpf: v.cpf, email: v.email, secretaria: $('secretaria').value,
       foto_base64: await blobToBase64(state.jpeg) };
-    const resp = await fetch(CONFIG.ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-    const j = await resp.json();
-    if (!j.ok) throw new Error(j.erro || 'Falha no envio');
+    const j = await enviarFoto(CONFIG.ENDPOINT, payload);
     sm.className = 'result'; $('formArea').style.display = 'none';
     $('doneThumb').getContext('2d').drawImage($('previewCanvas'), 0, 0);
     $('doneMeta').textContent = (v.semMat ? 'CPF ' + maskCpf(v.cpf) : 'Matrícula ' + v.mat) + ' · ' + $('secretaria').value;
@@ -1322,7 +1334,8 @@ $('send').addEventListener('click', async () => {
   } catch (e) {
     console.error(e);
     sm.className = 'result show bad';
-    sm.innerHTML = '<h3><i class="fas fa-times-circle"></i> Não foi possível enviar</h3><p>Verifique sua conexão e tente novamente. Se o erro continuar, avise a equipe do Ponto Eletrônico informando sua matrícula (ou o CPF, se ainda não tiver matrícula).</p>';
+    const motivo = e instanceof Error ? e.message : 'Ocorreu uma falha inesperada. Avise a equipe do Ponto Eletrônico.';
+    sm.innerHTML = '<h3><i class="fas fa-times-circle"></i> Não foi possível concluir o envio</h3><p>' + esc(motivo) + '</p>';
   } finally { state.busy = false; refreshSend(); }
 });
 
