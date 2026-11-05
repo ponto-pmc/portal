@@ -928,16 +928,16 @@ function syncMat() {
   $('fTem').classList.remove('invalid');
 }
 document.querySelectorAll('input[name=temMat]').forEach(r => r.addEventListener('change', () => {
-  cpfLookupVersion++;
-  lookedUpCpf = $('cpf').value.replace(/\D/g, '');
-  setCpfLookupStatus('');
+  cancelPendingCpfLookup();
   if (autoSelectedMat && temMatricula() === 'nao') $('matricula').value = '';
   autoSelectedMat = false;
   autoMatricula = '';
+  autoMatricula2 = '';
   syncMat();
   wizardRender();
 }));
 document.querySelectorAll('input[name=duasMat]').forEach(r => r.addEventListener('change', () => {
+  cancelPendingCpfLookup();
   if (duasMatriculas() !== 'sim') $('matricula2').value = '';
   syncMat();
   wizardRender();
@@ -1069,10 +1069,19 @@ let activeLookupCpf = '';
 let activeLookupVersion = -1;
 let activeLookupPromise = null;
 let autoMatricula = '';
+let autoMatricula2 = '';
 let autoSelectedMat = false;
 function setCpfLookupStatus(message) {
   $('cpfLookupStatus').textContent = message;
   $('cpfLookupStatus').hidden = !message;
+  $('matLookupStatus').textContent = message;
+  $('matLookupStatus').hidden = !message;
+}
+function cancelPendingCpfLookup() {
+  cpfLookupVersion++;
+  clearTimeout(cpfLookupTimer);
+  lookedUpCpf = $('cpf').value.replace(/\D/g, '');
+  setCpfLookupStatus('');
 }
 async function ensureCpfLookup() {
   clearTimeout(cpfLookupTimer);
@@ -1084,13 +1093,14 @@ async function ensureCpfLookup() {
     setCpfLookupStatus('Consulta indisponível. Informe a matrícula se já tiver uma.');
     return;
   }
-  setCpfLookupStatus('Consultando matrícula…');
+  setCpfLookupStatus('Consultando matrículas…');
   activeLookupCpf = cpf;
   activeLookupVersion = version;
   const task = (async () => {
     try {
       const response = await fetch(CONFIG.ENDPOINT, {
         method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        signal: AbortSignal.timeout(15000),
         body: JSON.stringify({ token: CONFIG.TOKEN, acao: 'buscar_matricula', cpf })
       });
       if (!response.ok) throw new Error('consulta indisponível');
@@ -1098,15 +1108,22 @@ async function ensureCpfLookup() {
       if (!data.ok) throw new Error(data.erro || 'consulta indisponível');
       if (version !== cpfLookupVersion || $('cpf').value.replace(/\D/g, '') !== cpf) return;
       lookedUpCpf = cpf;
-      const matricula = normMatricula(data.matricula);
-      if (data.encontrada && /^\d{3,10}$/.test(matricula)) {
+      const matriculas = [...new Set((Array.isArray(data.matriculas) ? data.matriculas : [data.matricula])
+        .map(normMatricula).filter(m => /^\d{3,10}$/.test(m)))].slice(0, 2);
+      if (data.encontrada && matriculas.length) {
+        const [matricula, segundaMatricula = ''] = matriculas;
         $('temSim').checked = true;
+        $(segundaMatricula ? 'duasSim' : 'duasNao').checked = true;
         $('matricula').value = matricula;
+        $('matricula2').value = segundaMatricula;
         autoMatricula = matricula;
+        autoMatricula2 = segundaMatricula;
         autoSelectedMat = true;
         syncMat();
         wizardRender();
-        setCpfLookupStatus('Matrícula ' + matricula + ' encontrada e preenchida automaticamente.');
+        setCpfLookupStatus(segundaMatricula
+          ? 'Matrículas ' + matricula + ' e ' + segundaMatricula + ' encontradas e preenchidas automaticamente. A foto será salva com a matrícula ' + matricula + '.'
+          : 'Matrícula ' + matricula + ' encontrada e preenchida automaticamente.');
       } else {
         setCpfLookupStatus('CPF não encontrado. Informe sua matrícula, se já tiver uma.');
       }
@@ -1129,9 +1146,11 @@ $('cpf').addEventListener('input', () => {
   setCpfLookupStatus('');
   if (autoSelectedMat) {
     if ($('matricula').value === autoMatricula) $('matricula').value = '';
+    if ($('matricula2').value === autoMatricula2) $('matricula2').value = '';
     $('temSim').checked = false;
     autoSelectedMat = false;
     autoMatricula = '';
+    autoMatricula2 = '';
     syncMat();
     wizardRender();
   }
@@ -1145,15 +1164,14 @@ $('cpf').addEventListener('input', () => { if (cpfValido($('cpf').value)) $('fCp
 ['nome', 'matricula', 'cpf', 'email', 'secretaria', 'consent'].forEach(id => $(id).addEventListener('input', () => { $('fNome').classList.remove('invalid'); }));
 $('consent').addEventListener('change', refreshSend);
 $('matricula').addEventListener('input', () => {
-  cpfLookupVersion++;
-  lookedUpCpf = $('cpf').value.replace(/\D/g, '');
-  setCpfLookupStatus('');
-  autoSelectedMat = false;
-  autoMatricula = '';
+  cancelPendingCpfLookup();
   const v = $('matricula').value, n = v.replace(/\D/g, ''); if (v !== n) $('matricula').value = n;
 });
 $('matricula').addEventListener('blur', () => { const m = normMatricula($('matricula').value); if (m) $('matricula').value = m; });
-$('matricula2').addEventListener('input', () => { $('matricula2').value = $('matricula2').value.replace(/\D/g, ''); });
+$('matricula2').addEventListener('input', () => {
+  cancelPendingCpfLookup();
+  $('matricula2').value = $('matricula2').value.replace(/\D/g, '');
+});
 $('matricula2').addEventListener('blur', () => { $('matricula2').value = normMatricula($('matricula2').value); });
 
 function showResult(kind, html) {
