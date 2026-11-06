@@ -878,3 +878,15 @@ a.resp-chip .resp-icon {
   .chat-modal { bottom: 80px; right: 12px; left: 12px; width: auto; }
   .chat-fab   { bottom: 16px; right: 16px; }
 }
+
+/* A fonte acompanha cada resposta do assistente. */
+.chat-source-label {
+  display: block;
+  color: var(--text-muted);
+  font-size: .69rem;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-bottom: .65rem;
+}
+.chat-chip:disabled { opacity: .55; cursor: wait; }
+.chat-bubble { overflow-wrap: anywhere; }

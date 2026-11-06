@@ -1,6 +1,6 @@
 /* =====================================================
    faq.js — Central de Ajuda
-   Busca local com Fuse.js (offline, zero custo)
+   Busca por relevância e interpretação contextual com fontes verificáveis
    ===================================================== */
 'use strict';
 
@@ -28,66 +28,12 @@ let isAnimating    = false;
 
 // ── FAQ DATA (carregado da planilha) ───────────────────
 let faqDB   = [];   // [{perfil, pergunta, resposta, observacao}, …]
-let fuseGestor  = null;
-let fuseUsuario = null;
+let searchGestor = null;
+let searchUsuario = null;
+let faqState = 'loading';
 const SHEETS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTABt-l4NxK1F9pv-zzOgugJpQhIZnCjSC-WuTNo-uTmw4zE0j2wlN5buMAm54SIdGIIiV5hlM7T0vd/pub?output=csv';
 const CACHE_KEY  = 'pp-faq-cache';
 // Sem TTL fixo — usa stale-while-revalidate: serve cache imediato + rebusca sempre em background
-
-// ── FUSE OPTIONS ───────────────────────────────────────
-const FUSE_OPTS = {
-  keys: [
-    { name: 'pergunta',   weight: 0.6 },
-    { name: 'resposta',   weight: 0.3 },
-    { name: 'observacao', weight: 0.1 },
-  ],
-  threshold:          0.45,   // mais restrito na busca principal (mais preciso)
-  minMatchCharLength: 2,
-  distance:           1200,
-  useExtendedSearch:  false,
-  includeScore:       true,
-  includeMatches:     true,
-  ignoreLocation:     true,
-};
-// Opts mais permissivo p/ fallback com erros ortográficos
-const FUSE_OPTS_FUZZY = { ...FUSE_OPTS, threshold: 0.70 };
-
-// ── LEVENSHTEIN (distância de edição simples) ──────────
-function levenshtein(a, b) {
-  const m = a.length, n = b.length;
-  const dp = Array.from({ length: m + 1 }, (_, i) => [i]);
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
-  for (let i = 1; i <= m; i++)
-    for (let j = 1; j <= n; j++)
-      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1]
-        : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
-  return dp[m][n];
-}
-
-// Corrige palavras isoladas por proximidade no vocabulário do FAQ
-function corrigeTokens(text, vocab) {
-  return text.split(/\s+/).map(token => {
-    if (token.length < 4) return token;
-    const norm = t => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const nt = norm(token);
-    let best = token, bestDist = 2; // tolera até 2 edições
-    for (const w of vocab) {
-      const nw = norm(w);
-      if (Math.abs(nw.length - nt.length) > 3) continue;
-      const d = levenshtein(nt, nw);
-      if (d < bestDist) { bestDist = d; best = w; }
-    }
-    return best;
-  }).join(' ');
-}
-
-// Extrai vocabulário único das perguntas do FAQ (palavras ≥4 letras)
-function buildVocab(items) {
-  const set = new Set();
-  items.forEach(it => it.pergunta.split(/\s+/).filter(w => w.length >= 4).forEach(w => set.add(w)));
-  return [...set];
-}
-
 
 // ── NORMALIZA CHAVE DO HEADER ──────────────────────────
 function normKey(str) {
@@ -193,7 +139,7 @@ function fetchFromSheets(onDone) {
           Object.keys(row).forEach(k => { r[k] = String(row[k] || '').trim(); });
           return r;
         })
-        .filter(r => r.pergunta);
+        .filter(r => r.pergunta && r.resposta && r.perfil);
       onDone(fresh.length ? fresh : null);
     },
     error(err) { console.warn('[FAQ] PapaParse error:', err); onDone(null); }
@@ -201,6 +147,7 @@ function fetchFromSheets(onDone) {
 }
 
 function loadFaqData() {
+  faqState = 'loading';
   // 1. Serve cache imediato se existir (válido = tem dados reais)
   let hasCachedData = false;
   try {
@@ -212,23 +159,30 @@ function loadFaqData() {
         buildIndexes();
         renderFaqSections();
         hasCachedData = true;
+        faqState = 'ready';
       } else {
         localStorage.removeItem(CACHE_KEY);
       }
     }
-  } catch (_) { localStorage.removeItem(CACHE_KEY); }
+  } catch (_) { /* Armazenamento indisponível: segue com a planilha. */ }
 
   // 2. Rebusca planilha SEMPRE em background (stale-while-revalidate)
   if (!hasCachedData) showLoadingState(true);
+  else if (chatProfile && !chatIndex) _finishSetProfile(chatProfile);
 
   fetchFromSheets(fresh => {
     if (!hasCachedData) showLoadingState(false);
 
     if (!fresh) {
-      if (!hasCachedData) showLoadingError();
+      if (!hasCachedData) {
+        faqState = 'error';
+        showLoadingError();
+        if (chatProfile) chatAddMsg('bot', 'Não consegui carregar a base de ajuda. Selecione seu perfil novamente para tentar outra vez.');
+      }
       return; // mantém cache anterior se fetch falhar
     }
 
+    faqState = 'ready';
     // Atualiza sempre que o CONTEÚDO mudar — antes só comparava quantidade
     // de linhas + última pergunta, o que não detectava edição no texto de
     // uma resposta já existente (ex.: acrescentar o link de vídeo entre
@@ -240,19 +194,21 @@ function loadFaqData() {
       try { localStorage.setItem(CACHE_KEY, JSON.stringify({ data: faqDB })); } catch (_) {}
       buildIndexes();
       renderFaqSections();
-      // reconstrói fuseChat se o chat já estiver com perfil selecionado
-      if (chatProfile) _finishSetProfile(chatProfile);
+      const query = document.getElementById('faqSearchInput')?.value.trim();
+      if (query) runSearch(query);
+      // Atualiza o índice sem reiniciar conversa ou duplicar boas-vindas.
+      if (chatProfile) {
+        if (chatIndex) chatIndex = chatProfile === 'gestor' ? searchGestor : searchUsuario;
+        else _finishSetProfile(chatProfile);
+      }
     }
   });
 }
 
-// ── INDEXAÇÃO COM FUSE.JS ──────────────────────────────
+// ── INDEXAÇÃO POR PERFIL ──────────────────────────────
 function buildIndexes() {
-  const gestorItems  = faqDB.filter(r => matchesProfile(r.perfil, 'gestor'));
-  const usuarioItems = faqDB.filter(r => matchesProfile(r.perfil, 'usuario'));
-
-  fuseGestor  = new Fuse(gestorItems,  FUSE_OPTS);
-  fuseUsuario = new Fuse(usuarioItems, FUSE_OPTS);
+  searchGestor = new PontoSearch.Index(faqDB, 'gestor');
+  searchUsuario = new PontoSearch.Index(faqDB, 'usuario');
 }
 
 // ── RENDERIZAÇÃO DOS ACORDEONS ─────────────────────────
@@ -587,12 +543,13 @@ function showLoadingError() {
   });
 }
 
-// ── BUSCA FUZZY ────────────────────────────────────────
+// ── BUSCA POR RELEVÂNCIA ────────────────────────────────────────
 let searchTimer = null;
 
 function setupSearch() {
   const input = document.getElementById('faqSearchInput');
-  if (!input) return;
+  if (!input || input.dataset.searchBound) return;
+  input.dataset.searchBound = 'true';
 
   input.addEventListener('input', () => {
     clearTimeout(searchTimer);
@@ -620,16 +577,17 @@ function runSearch(query) {
   if (clearBtn) clearBtn.style.display = query ? 'flex' : 'none';
 
   if (!query) {
+    clearTimeout(searchTimer);
     // restaura listagem completa
     renderFaqSections();
     if (resultInfo) resultInfo.textContent = '';
     return;
   }
 
-  const fuse    = currentProfile === 'gestor' ? fuseGestor : fuseUsuario;
-  if (!fuse) return;
+  const index = currentProfile === 'gestor' ? searchGestor : searchUsuario;
+  if (!index) return;
 
-  const results = fuse.search(query);
+  const results = index.search(query);
 
   const targetId = currentProfile === 'gestor' ? 'gestorAccordion' : 'usuarioAccordion';
   const container = document.getElementById(targetId);
@@ -649,7 +607,6 @@ function runSearch(query) {
 
   container.innerHTML = results.map(({ item, matches }, idx) => {
     const perguntaHL  = highlight(item.pergunta,   getMatchIndices(matches, 'pergunta'));
-    const respostaHL  = highlight(item.resposta,   getMatchIndices(matches, 'resposta'));
     const obs = item.observacao
       ? `<div class="accordion-obs"><i class="fas fa-info-circle"></i> ${escHtml(item.observacao)}</div>`
       : '';
@@ -667,7 +624,7 @@ function runSearch(query) {
         </button>
         <div class="accordion-body ${idx === 0 ? 'active' : ''}">
           <div class="accordion-body-inner">
-            <p>${respostaHL.replace(/\n/g, '<br>')}</p>
+            ${formatResposta(item.resposta)}
             ${obs}
           </div>
         </div>
@@ -872,7 +829,13 @@ function setupContentBlocker() {
 
 // ── CHAT ───────────────────────────────────────────────
 let chatProfile  = null;   // 'gestor' | 'usuario'
-let fuseChat     = null;   // índice Fuse ativo para o chat
+let chatIndex = null;
+let chatHistory = [];
+let chatLastItem = null;
+let chatChoices = [];
+let chatBusy = false;
+let chatEpoch = 0;
+let chatAbort = null;
 let chatOpen     = false;
 let chatGreeted  = false;
 
@@ -886,7 +849,7 @@ const CHAT_SMALLTALK = [
   { re: /^(tchau|at[eé]\s+(mais|logo)|falou|adeus|bye)[\s!.,?]*$/i,
     reply: 'Até mais! 👋 Estou por aqui se precisar de algo.' },
   { re: /\b(atendente|humano|pessoa\s+real|falar\s+com\s+algu[eé]m)\b/i,
-    reply: 'Para atendimento humano, contate a equipe SEAD ou acesse o <a class="chat-link" href="https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx" target="_blank" rel="noopener">ForPonto Web</a>. Enquanto isso, me diga sua dúvida que eu tento ajudar por aqui. 🙂' },
+    reply: 'Fale com a equipe do Ponto Eletrônico: <a class="chat-link" href="mailto:pontoeletronico@contagem.mg.gov.br">pontoeletronico@contagem.mg.gov.br</a> ou <a class="chat-link" href="https://wa.me/553175130029" target="_blank" rel="noopener">WhatsApp</a>.' },
 ];
 
 /* ---- abertura/fechamento ---- */
@@ -924,65 +887,48 @@ function toggleChat() {
 function chatWelcome() {
   const picker = document.getElementById('chatProfilePicker');
   if (picker) picker.style.display = 'flex';
-  chatAddMsg('bot',
-    'Olá! 👋 Sou o <strong>Antonio</strong>, assistente virtual do <strong>Ponto.PMC</strong>.<br><br>' +
-    'Posso te ajudar com:<br>' +
-    '<ul class="resp-list">' +
-      '<li>Dúvidas sobre o <strong>ForPonto Web</strong></li>' +
-      '<li>Registro e abono de ponto</li>' +
-      '<li>Configuração do app e senha</li>' +
-      '<li>Relatórios e gestão de equipe</li>' +
-    '</ul>' +
-    'Selecione seu <strong>perfil abaixo</strong> para começar. 👆'
-  );
+  chatAddMsg('bot', 'Olá! Sou o <strong>Antonio</strong>, assistente do Ponto.PMC. Selecione seu perfil acima para começar. 👆');
 }
 
 /* ---- seleção de perfil no chat ---- */
 function setChatProfile(profile) {
+  if (!['gestor', 'usuario'].includes(profile)) return;
+  cancelChatRequest();
   chatProfile = profile;
-
-  // se faqDB ainda não carregou, aguarda até 5s e tenta de novo
+  chatIndex = null;
+  setChatBusy(false);
+  chatHistory = [];
+  chatLastItem = null;
+  chatChoices = [];
   if (!faqDB.length) {
-    chatAddMsg('bot', '⏳ Ainda carregando o manual, aguarde um instante…');
-    const waitStart = Date.now();
-    const waitInterval = setInterval(() => {
-      if (faqDB.length || Date.now() - waitStart > 5000) {
-        clearInterval(waitInterval);
-        if (!faqDB.length) {
-          chatAddMsg('bot', '⚠️ Não foi possível carregar o manual. Verifique sua conexão e recarregue a página.');
-          return;
-        }
-        _finishSetProfile(profile);
-      }
-    }, 300);
+    chatAddMsg('bot', 'Estou carregando a base de ajuda para o seu perfil…');
+    if (faqState === 'error') loadFaqData();
     return;
   }
-
   _finishSetProfile(profile);
 }
 
 function _finishSetProfile(profile) {
-  const items = faqDB.filter(r => matchesProfile(r.perfil, profile));
-
-  // Fallback: se o campo perfil não existir / vier diferente, usa todos os itens
-  const finalItems = items.length ? items : faqDB;
-  fuseChat = new Fuse(finalItems, FUSE_OPTS);
-
+  if (chatProfile !== profile) return;
+  chatIndex = profile === 'gestor' ? searchGestor : searchUsuario;
   const picker = document.getElementById('chatProfilePicker');
-  if (picker) picker.style.display = 'none';
-
-  const label = profile === 'gestor' ? 'Gestor' : 'Servidor';
-  chatAddMsg('bot', `Perfeito! Estou configurado para o perfil <strong>${label}</strong>. Pode perguntar — vou buscar no manual oficial. 🔍`);
-
-  const input   = document.getElementById('chatInput');
-  const sendBtn = document.getElementById('chatSendBtn');
-  if (input)   { input.disabled = false; input.focus(); }
-  if (sendBtn) sendBtn.disabled = false;
-
-  // sugestões rápidas
-  if (finalItems.length) {
-    setTimeout(() => chatAddSuggestions(finalItems.slice(0, 3).map(i => i.pergunta)), 400);
+  if (!chatIndex?.items.length) {
+    chatIndex = null;
+    chatAddMsg('bot', 'Ainda não há respostas cadastradas para esse perfil. A equipe do Ponto Eletrônico pode orientar pelo <a class="chat-link" href="mailto:pontoeletronico@contagem.mg.gov.br">e-mail de suporte</a>.');
+    return;
   }
+  if (picker) picker.style.display = 'none';
+  const label = profile === 'gestor' ? 'Gestor' : 'Servidor';
+  chatAddMsg('bot', `Perfil <strong>${label}</strong>. Qual é sua dúvida?`);
+  setChatBusy(false);
+  document.getElementById('chatInput')?.focus();
+  // Temas distintos tornam os atalhos iniciais mais úteis.
+  const themes = new Set();
+  const suggestions = chatIndex.items.filter(item => {
+    if (themes.has(item.tema)) return false;
+    themes.add(item.tema); return true;
+  }).slice(0, 3);
+  chatAddSuggestions(suggestions.map(item => item.pergunta));
 }
 
 /* ---- adiciona bolha de mensagem ---- */
@@ -1020,100 +966,105 @@ function chatAddSuggestions(questions) {
 }
 
 /* ── ENVIO DE MENSAGEM ── */
-function chatSend(text) {
-  text = (text || '').trim();
-  if (!text) return;
+function setChatBusy(busy) {
+  chatBusy = busy;
+  const input = document.getElementById('chatInput');
+  const button = document.getElementById('chatSendBtn');
+  if (input) input.disabled = busy || !chatIndex;
+  if (button) button.disabled = busy || !chatIndex;
+  document.querySelectorAll('.chat-chip').forEach(chip => { chip.disabled = busy; });
+  const status = document.querySelector('.chat-header-status');
+  if (status) status.innerHTML = `<span class="chat-status-dot"></span> ${busy ? 'Buscando na base…' : 'Central de ajuda'}`;
+  document.getElementById('chatMessages')?.setAttribute('aria-busy', String(busy));
+}
 
-  // se fuseChat ainda null, perfil não selecionado
-  if (!fuseChat) {
-    chatAddMsg('bot', 'Por favor, selecione seu perfil (Gestor ou Servidor) antes de perguntar.');
+function cancelChatRequest() {
+  chatEpoch++;
+  chatAbort?.abort();
+  chatAbort = null;
+  removeTyping();
+  setChatBusy(false);
+}
+
+function showChatSource(item) {
+  const obs = item.observacao ? `<div class="chat-obs"><i class="fas fa-info-circle"></i> ${escHtml(item.observacao)}</div>` : '';
+  chatAddMsg('bot', `<span class="chat-source-label">Base de ajuda${item.tema ? ' · ' + escHtml(item.tema) : ''}</span>` +
+    `<strong>${escHtml(item.pergunta)}</strong><br><br>${formatResposta(item.resposta)}${obs}`);
+  chatLastItem = item;
+  chatHistory.push({role: 'assistant', content: item.pergunta + '\n' + item.resposta});
+  chatHistory = chatHistory.slice(-6);
+}
+
+async function chatSend(text) {
+  text = String(text || '').trim().slice(0, 1500);
+  if (!text || chatBusy) return;
+  if (!chatIndex) {
+    chatAddMsg('bot', 'Selecione seu perfil (Gestor ou Servidor) para começar.');
     return;
   }
-
   chatAddMsg('user', escHtml(text));
-
-  // comandos e conversas rápidas — respondem direto, sem acionar busca no FAQ
+  document.querySelectorAll('.chat-suggestions').forEach(el => el.remove());
   if (RE_SWITCH_PROFILE.test(text)) { promptSwitchProfile(); return; }
   const smalltalk = CHAT_SMALLTALK.find(r => r.re.test(text));
-  if (smalltalk) {
-    chatTyping();
-    setTimeout(() => { removeTyping(); chatAddMsg('bot', smalltalk.reply); }, 450 + Math.random() * 200);
-    return;
+  if (smalltalk) { chatAddMsg('bot', smalltalk.reply); return; }
+
+  // Permite responder "a segunda" às opções apresentadas pelo próprio chat.
+  const ordinal = PontoSearch.normalize(text).match(/^(?:a |o |opcao )?(1|2|3|primeir[ao]|segund[ao]|terceir[ao])$/);
+  let chosen = null;
+  if (ordinal) {
+    const n = /^1|primeir/.test(ordinal[1]) ? 0 : /^2|segund/.test(ordinal[1]) ? 1 : 2;
+    chosen = chatChoices[n];
   }
+  const history = chatHistory.slice();
+  chatHistory.push({role: 'user', content: text});
+  chatHistory = chatHistory.slice(-6);
+  chatChoices = [];
+  if (chosen) { showChatSource(chosen); return; }
 
-  chatTyping();
-
-  setTimeout(() => {
-    removeTyping();
-
-    const docs = fuseChat._docs || [];
-
-    // busca principal
-    let results = fuseChat.search(text);
-
-    // fallback 1: busca sem acentos
-    if (!results.length) {
-      const semAcento = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      results = fuseChat.search(semAcento);
+  const index = chatIndex;
+  const epoch = ++chatEpoch;
+  let results = index.search(text);
+  const followup = !!chatLastItem && /^(e |mas |nesse caso|neste caso|isso|essa |esse |qual (?:e )?o prazo|quanto tempo)/.test(PontoSearch.normalize(text));
+  let decision = null;
+  let localFallback = false;
+  // Só pula a interpretação para pergunta exata ou correspondência forte.
+  if (results[0]?.exact || (!followup && index.confident(results))) {
+    decision = {status: 'answer', items: [results[0].item]};
+  } else {
+    setChatBusy(true);
+    chatTyping();
+    const controller = new AbortController();
+    chatAbort = controller;
+    let timeout;
+    try {
+      decision = await Promise.race([
+        PontoSearch.interpret(index, text, history, controller.signal),
+        new Promise((_, reject) => { timeout = setTimeout(() => { controller.abort(); reject(new Error('Tempo de busca excedido')); }, 14000); })
+      ]);
+    } catch (_) {
+      localFallback = true;
+      if (followup) results = index.search(`${text} ${chatLastItem.pergunta}`);
+      decision = {status: results.length ? 'clarify' : 'none', items: results.slice(0, 3).map(r => r.item)};
+    } finally {
+      clearTimeout(timeout);
+      if (epoch === chatEpoch) { removeTyping(); chatAbort = null; setChatBusy(false); }
     }
-
-    // fallback 2: correção ortográfica via levenshtein no vocabulário do FAQ
-    if (!results.length && docs.length) {
-      const vocab     = buildVocab(docs);
-      const corrigido = corrigeTokens(text, vocab);
-      if (corrigido.toLowerCase() !== text.toLowerCase()) {
-        const fuseP = new Fuse(docs, FUSE_OPTS_FUZZY);
-        results = fuseP.search(corrigido);
-      }
-    }
-
-    // fallback 3: palavras individuais (≥4 letras) com threshold permissivo
-    if (!results.length && docs.length) {
-      const palavras = text.split(/\s+/).filter(w => w.length >= 4);
-      const fuseP    = new Fuse(docs, FUSE_OPTS_FUZZY);
-      for (const p of palavras) {
-        const r = fuseP.search(p);
-        if (r.length) { results = r; break; }
-      }
-    }
-
-    if (!results.length) {
-      // sem resultado: tenta uma busca bem permissiva antes de cair nas perguntas genéricas
-      let sugestoes = [];
-      if (docs.length) {
-        const fuseLoose = new Fuse(docs, { ...FUSE_OPTS_FUZZY, threshold: 0.9 });
-        sugestoes = fuseLoose.search(text).slice(0, 4).map(r => r.item.pergunta);
-      }
-      if (!sugestoes.length) sugestoes = docs.slice(0, 4).map(i => i.pergunta);
-      chatAddMsg('bot',
-        `Não encontrei nada exato sobre <strong>"${escHtml(text)}"</strong> no manual. 🔍<br><br>` +
-        `Tente reformular a pergunta ou clique em uma das sugestões abaixo:`
-      );
-      if (sugestoes.length) chatAddSuggestions(sugestoes);
-      return;
-    }
-
-    const top   = results[0].item;
-    const score = typeof results[0].score === 'number' ? results[0].score : 0;
-    const lead  = score > 0.4 ? 'Não achei uma correspondência exata, mas isso talvez ajude:<br><br>' : '';
-    const obs = top.observacao
-      ? `<div class="chat-obs"><i class="fas fa-info-circle"></i> ${escHtml(top.observacao)}</div>`
-      : '';
-
-    chatAddMsg('bot',
-      lead + `<strong>${escHtml(top.pergunta)}</strong><br><br>` +
-      formatResposta(top.resposta) + obs
-    );
-
-    // até 4 perguntas relacionadas
-    const relacionadas = results.slice(1, 5).map(r => r.item.pergunta);
-    if (relacionadas.length) {
-      setTimeout(() => {
-        chatAddMsg('bot', 'Perguntas relacionadas:');
-        chatAddSuggestions(relacionadas);
-      }, 200);
-    }
-  }, 600 + Math.random() * 300);
+  }
+  // Limpar a conversa ou trocar perfil invalida respostas em andamento.
+  if (epoch !== chatEpoch || chatProfile === null) return;
+  if (decision.status === 'answer') {
+    decision.items.forEach(showChatSource);
+  } else if (decision.status === 'clarify') {
+    chatAddMsg('bot', (localFallback ? 'A interpretação por IA está indisponível agora. Pela busca local, encontrei estas possibilidades. ' : '') +
+      'Qual destas perguntas corresponde à sua dúvida?');
+    chatChoices = decision.items;
+    chatHistory.push({role: 'assistant', content: 'Opções: ' + decision.items.map((item, i) => `${i + 1}. ${item.pergunta}`).join(' | ')});
+    chatAddSuggestions(decision.items.map(item => item.pergunta));
+  } else {
+    chatAddMsg('bot', (localFallback ? 'A interpretação por IA está indisponível e a busca local não encontrou uma resposta segura. ' : 'Não encontrei uma resposta na base para essa dúvida. ') +
+      'Conte o que você tentou fazer e a mensagem de erro, se houver. Você também pode falar com a <a class="chat-link" href="mailto:pontoeletronico@contagem.mg.gov.br">equipe do Ponto Eletrônico</a>.');
+  }
+  document.getElementById('chatInput')?.focus();
 }
 
 /* ---- typing indicator ---- */
@@ -1133,7 +1084,11 @@ function removeTyping() {
 /* ---- troca de perfil sem perder o histórico da conversa ---- */
 function promptSwitchProfile() {
   chatProfile = null;
-  fuseChat    = null;
+  chatIndex = null;
+  cancelChatRequest();
+  chatHistory = [];
+  chatLastItem = null;
+  chatChoices = [];
 
   const input   = document.getElementById('chatInput');
   const sendBtn = document.getElementById('chatSendBtn');
@@ -1150,8 +1105,12 @@ function clearChat() {
   const log = document.getElementById('chatMessages');
   if (log) log.innerHTML = '';
   chatProfile  = null;
-  fuseChat     = null;
-  chatGreeted  = false;
+  chatIndex = null;
+  cancelChatRequest();
+  chatHistory = [];
+  chatLastItem = null;
+  chatChoices = [];
+  chatGreeted  = true;
 
   const picker  = document.getElementById('chatProfilePicker');
   if (picker) picker.style.display = 'flex';
@@ -1187,7 +1146,7 @@ function setupChat() {
 
   input?.addEventListener('input', () => autoResize(input));
   input?.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && !chatBusy) {
       e.preventDefault();
       const val = input.value.trim();
       if (val) { chatSend(val); input.value = ''; input.style.height = 'auto'; }
@@ -1283,6 +1242,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setupContentBlocker();
   setupChat();
 
-  // Carrega dados da planilha e constrói índice Fuse
+  // Carrega dados da planilha e constrói índices por perfil
   loadFaqData();
 });

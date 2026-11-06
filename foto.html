@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" href="https://i.ibb.co/fVRw238j/Ponto-removebg-preview.png" />
   <link rel="stylesheet" href="foto.css" />
   <link rel="stylesheet" href="foto-form.css" />
-<link rel="stylesheet" href="feedback.css" />
+  <link rel="stylesheet" href="feedback.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
@@ -219,28 +219,64 @@
         <canvas class="done-thumb" id="doneThumb" width="200" height="200" role="img" aria-label="Foto enviada"></canvas>
         <div class="done-meta" id="doneMeta"></div>
         <section class="photo-feedback" id="photoFeedback" aria-labelledby="feedbackTitle" hidden>
-          <h4 id="feedbackTitle">Como foi enviar sua foto?</h4>
-          <div class="feedback-stars" id="feedbackStars" role="group" aria-label="Avalie o envio de 1 a 5 estrelas">
-            <button type="button" class="feedback-star" data-rating="1" aria-label="1 estrela" aria-pressed="false">★</button>
-            <button type="button" class="feedback-star" data-rating="2" aria-label="2 estrelas" aria-pressed="false">★</button>
-            <button type="button" class="feedback-star" data-rating="3" aria-label="3 estrelas" aria-pressed="false">★</button>
-            <button type="button" class="feedback-star" data-rating="4" aria-label="4 estrelas" aria-pressed="false">★</button>
-            <button type="button" class="feedback-star" data-rating="5" aria-label="5 estrelas" aria-pressed="false">★</button>
+          <div id="feedbackForm">
+            <span class="feedback-kicker">Sua experiência conta</span>
+            <h4 id="feedbackTitle" tabindex="-1">Como foi enviar sua foto?</h4>
+            <p class="feedback-intro">Sua nota ajuda a melhorar o portal para todos os servidores.</p>
+            <div class="feedback-stars" id="feedbackStars" role="group" aria-label="Avalie o envio de 1 a 5 estrelas" aria-describedby="feedbackRatingLabel">
+              <button type="button" class="feedback-star" data-rating="1" aria-label="1 estrela — Muito difícil" aria-pressed="false">★</button>
+              <button type="button" class="feedback-star" data-rating="2" aria-label="2 estrelas — Difícil" aria-pressed="false">★</button>
+              <button type="button" class="feedback-star" data-rating="3" aria-label="3 estrelas — Regular" aria-pressed="false">★</button>
+              <button type="button" class="feedback-star" data-rating="4" aria-label="4 estrelas — Fácil" aria-pressed="false">★</button>
+              <button type="button" class="feedback-star" data-rating="5" aria-label="5 estrelas — Muito fácil" aria-pressed="false">★</button>
+            </div>
+            <p id="feedbackRatingLabel" class="feedback-rating-label" aria-live="polite">Toque em uma estrela para avaliar</p>
+            <div class="feedback-detail" id="feedbackImprove" hidden>
+              <fieldset class="feedback-reasons" id="feedbackIssues">
+                <legend>O que pode melhorar? <span>(opcional)</span></legend>
+                <div class="feedback-chips">
+                  <label><input type="checkbox" value="Preenchimento dos dados" /><span>Preenchimento dos dados</span></label>
+                  <label><input type="checkbox" value="Instruções da foto" /><span>Instruções da foto</span></label>
+                  <label><input type="checkbox" value="Verificação da foto" /><span>Verificação da foto</span></label>
+                  <label><input type="checkbox" value="Tempo de envio" /><span>Tempo de envio</span></label>
+                </div>
+              </fieldset>
+              <label class="feedback-comment-label" for="feedbackComment">Quer contar mais? <span>(opcional)</span></label>
+              <textarea id="feedbackComment" maxlength="350" rows="2" placeholder="O que teria facilitado para você?"></textarea>
+            </div>
+            <fieldset class="feedback-detail feedback-reasons" id="feedbackPraise" hidden>
+              <legend>O que fez a diferença? <span>Escolha pelo menos uma opção.</span></legend>
+              <div class="feedback-chips">
+                <label><input type="checkbox" value="Fácil de usar" /><span>Fácil de usar</span></label>
+                <label><input type="checkbox" value="Instruções claras" /><span>Instruções claras</span></label>
+                <label><input type="checkbox" value="Envio rápido" /><span>Envio rápido</span></label>
+                <label><input type="checkbox" value="Verificação da foto ajudou" /><span>Verificação da foto ajudou</span></label>
+                <label><input type="checkbox" value="Funcionou bem no celular" /><span>Funcionou bem no celular</span></label>
+              </div>
+            </fieldset>
+            <button class="btn btn-primary" id="feedbackSend" type="button" hidden>Enviar avaliação</button>
           </div>
-          <div class="feedback-detail" id="feedbackImprove" hidden>
-            <label for="feedbackComment">O que podemos melhorar? <span>(opcional)</span></label>
-            <textarea id="feedbackComment" maxlength="500" rows="3" placeholder="Conte o que dificultou o envio"></textarea>
-          </div>
-          <fieldset class="feedback-detail feedback-reasons" id="feedbackPraise" hidden>
-            <legend>O que funcionou bem?</legend>
-            <label><input type="checkbox" value="Fácil de usar" /> Fácil de usar</label>
-            <label><input type="checkbox" value="Instruções claras" /> Instruções claras</label>
-            <label><input type="checkbox" value="Envio rápido" /> Envio rápido</label>
-            <label><input type="checkbox" value="Verificação da foto ajudou" /> Verificação da foto ajudou</label>
-            <label><input type="checkbox" value="Funcionou bem no celular" /> Funcionou bem no celular</label>
-          </fieldset>
-          <button class="btn btn-primary" id="feedbackSend" type="button" hidden>Enviar avaliação</button>
           <p class="feedback-status" id="feedbackStatus" role="status" aria-live="polite"></p>
+          <button class="feedback-skip" id="feedbackSkip" type="button">Agora não, quero explorar o portal</button>
+          <div id="feedbackThanks" class="feedback-thanks" hidden>
+            <span class="feedback-thanks-icon" aria-hidden="true">✓</span>
+            <h4 tabindex="-1" id="feedbackThanksTitle">Obrigado por avaliar!</h4>
+            <p>Sua opinião ajuda a melhorar essa experiência.</p>
+          </div>
+        </section>
+        <section class="portal-discovery" id="portalDiscovery" aria-labelledby="discoveryTitle" hidden>
+          <span class="feedback-kicker">Seu próximo passo</span>
+          <h4 id="discoveryTitle" tabindex="-1">Seu ponto tem mais para contar.</h4>
+          <p>A foto foi só o começo. Explore o que o portal pode fazer pelo seu dia a dia.</p>
+          <a class="discovery-feature" href="faq.html#usuario">
+            <span class="discovery-icon" aria-hidden="true"><i class="fas fa-lightbulb"></i></span>
+            <span><small>Comece pela Central de Ajuda</small><strong>Você sabe tudo o que pode consultar no Ponto Eletrônico?</strong><span>Descubra como acessar o app, consultar seu ponto e tirar dúvidas.</span><b>Quero descobrir <span aria-hidden="true">→</span></b></span>
+          </a>
+          <div class="discovery-links">
+            <a href="controle.html"><span class="discovery-icon" aria-hidden="true"><i class="fas fa-clock"></i></span><span><strong>Como está sua jornada?</strong><small>Conheça o controle mensal.</small></span><span aria-hidden="true">↗</span></a>
+            <a href="calculadora.html"><span class="discovery-icon" aria-hidden="true"><i class="fas fa-calculator"></i></span><span><strong>Como simular um desconto?</strong><small>Explore a calculadora do portal.</small></span><span aria-hidden="true">↗</span></a>
+          </div>
+          <a class="discovery-all" href="index.html#recursos">Ver os outros recursos do portal <span aria-hidden="true">→</span></a>
         </section>
         <div class="actions"><button class="btn btn-outline" id="again" type="button"><i class="fas fa-redo-alt"></i> Enviar outra foto</button></div>
       </div>

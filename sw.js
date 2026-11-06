@@ -1,9 +1,9 @@
 const APP_BASE = self.registration.scope;
 const CACHE_PREFIX = `ponto-pmc-${encodeURIComponent(new URL(APP_BASE).pathname)}-`;
-const CACHE_NAME = `${CACHE_PREFIX}v7`;
+const CACHE_NAME = `${CACHE_PREFIX}v8`;
 const APP_SHELL = [
   '', 'index.html', 'style.css', 'tokens.css', 'faq.css',
-  'script.js', 'faq.js', 'pwa.js', 'manifest.json', 'mobile-nav.js', 'mobile-nav.css',
+  'script.js', 'faq.js', 'faq-search.js', 'pwa.js', 'manifest.json', 'mobile-nav.js', 'mobile-nav.css',
   'icons/icon-192.png', 'icons/icon-512.png', 'assets/brasao-ascii.svg'
 ].map((path) => new URL(path, APP_BASE).href);
 
