@@ -1,5 +1,7 @@
 import { measureFaceSharpness } from './face-sharpness.js';
 import { enviarFoto } from './foto-envio.js';
+import { enhanceSecretariaSelect } from './secretaria-select.js';
+import { initPhotoFormUX } from './foto-form-ux.js';
 'use strict';
 
 const photoResampler = window.pica();
@@ -848,6 +850,7 @@ const state = { detector: null, jpeg: null, ok: false, busy: false };
 for (const [sigla, nome] of SECRETARIAS) {
   const o = document.createElement('option'); o.value = sigla; o.textContent = `${sigla} — ${nome}`; $('secretaria').appendChild(o);
 }
+const secretariaPicker = enhanceSecretariaSelect($('secretaria'), SECRETARIAS);
 
 function normMatricula(v) { return String(v || '').replace(/\D/g, '').replace(/^0+/, ''); }
 function cpfValido(c) {
@@ -869,46 +872,21 @@ function emailValido(e) {
 }
 function temMatricula() { const r = document.querySelector('input[name=temMat]:checked'); return r ? r.value : ''; }
 function duasMatriculas() { return document.querySelector('input[name=duasMat]:checked')?.value || ''; }
-let matAlertFrame = 0;
 function openMatAlert() {
   const dialog = $('avisoMat');
-  const message = $('matAlertMessage').textContent;
-  const text = $('matAlertText');
-  const close = $('matAlertClose');
-  cancelAnimationFrame(matAlertFrame);
-  text.textContent = '';
-  $('matAlertTyping').dataset.text = message;
-  $('matAlertTyping').classList.add('is-typing');
-  close.disabled = true;
+  const identified = $('matAlertIdentified');
+  identified.hidden = !autoSelectedMat;
+  identified.textContent = autoSelectedMat
+    ? (autoMatricula2 ? 'Matrículas identificadas: ' + autoMatricula + ' e ' + autoMatricula2 + '. A foto será vinculada à matrícula ' + autoMatricula + '.' : 'Matrícula identificada: ' + autoMatricula + '.')
+    : '';
   document.body.classList.add('mat-alert-open');
   if (!dialog.open) dialog.showModal();
   $('matAlertTitle').focus({ preventScroll: true });
-  const finish = () => {
-    text.textContent = message;
-    $('matAlertTyping').classList.remove('is-typing');
-    close.disabled = false;
-  };
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    finish();
-    return;
-  }
-  const started = performance.now();
-  const type = now => {
-    const count = Math.floor((now - started) / 28);
-    text.textContent = message.slice(0, count);
-    if (count < message.length) matAlertFrame = requestAnimationFrame(type);
-    else finish();
-  };
-  matAlertFrame = requestAnimationFrame(type);
 }
 $('matAlertClose').addEventListener('click', () => {
-  if (!$('matAlertClose').disabled) $('avisoMat').close();
-});
-$('avisoMat').addEventListener('cancel', event => {
-  if ($('matAlertClose').disabled) event.preventDefault();
+  $('avisoMat').close();
 });
 $('avisoMat').addEventListener('close', () => {
-  cancelAnimationFrame(matAlertFrame);
   document.body.classList.remove('mat-alert-open');
 });
 function syncMat() {
@@ -918,6 +896,11 @@ function syncMat() {
   $('fMat').hidden = t !== 'sim' || !duasMatriculas();
   $('segundaMatricula').hidden = !duas;
   $('matricula2').disabled = !duas;
+  document.querySelectorAll('input[name=temMat], input[name=duasMat]').forEach(r => { r.disabled = autoSelectedMat; });
+  $('matricula').readOnly = autoSelectedMat;
+  $('matricula2').readOnly = autoSelectedMat;
+  $('fTem').classList.toggle('lookup-locked', autoSelectedMat);
+  $('fMat').classList.toggle('lookup-locked', autoSelectedMat);
   $('matLabel').textContent = duas ? 'Primeira matrícula' : 'Matrícula';
   $('matHint').textContent = duas ? 'A foto será salva com esta primeira matrícula. Informe o número conforme o contracheque, sem zeros à esquerda.' : 'Somente a matrícula, sem zeros à esquerda.';
   $('infoNao').hidden = t !== 'nao';
@@ -972,6 +955,10 @@ function validate(showErrors) {
 // O botão fica sempre clicável (só trava durante o envio); ao clicar, a página mostra o que falta.
 function refreshSend() { $('send').disabled = state.busy; }
 
+let autoMatricula = '';
+let autoMatricula2 = '';
+let autoSelectedMat = false;
+
 // No celular, apresenta um campo por vez, como no fluxo de inscrição de referência.
 const wizardFields = ['fNome', 'fCpf', 'fTem', 'fMat', 'fEmail', 'fSec', 'photo', 'fConsent'];
 const wizardLabels = {
@@ -986,7 +973,16 @@ const wizardLabels = {
 };
 const wizardPhotoIds = ['drop', 'camRow', 'modelStatus', 'result', 'previewBox'];
 let wizardStep = 'fNome';
-function wizardSteps() { return wizardFields.filter(id => id !== 'fMat' || temMatricula() === 'sim'); }
+function wizardSteps() {
+  const matriculasPreenchidas = autoSelectedMat
+    && normMatricula($('matricula').value) === autoMatricula
+    && (duasMatriculas() !== 'sim' || (autoMatricula2 && normMatricula($('matricula2').value) === autoMatricula2));
+  return wizardFields.filter(id => {
+    if (id === 'fTem') return !matriculasPreenchidas;
+    if (id === 'fMat') return temMatricula() === 'sim' && !matriculasPreenchidas;
+    return true;
+  });
+}
 function wizardRender() {
   const steps = wizardSteps();
   if (!steps.includes(wizardStep)) wizardStep = 'fCpf';
@@ -1003,8 +999,10 @@ function wizardRender() {
   $('wizardControls').classList.toggle('wizard-step-hidden', wizardStep === 'fConsent');
 }
 function wizardShowStep(id) {
+  secretariaPicker.close();
   wizardStep = id;
   wizardRender();
+  if (matchMedia('(max-width: 640px)').matches) $('wizardTitle').focus({ preventScroll: true });
   $('photoFormCard').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
 }
 function wizardCurrentValid() {
@@ -1020,6 +1018,7 @@ function wizardCurrentValid() {
   if (!valid) {
     if (wizardStep === 'fTem' && temMatricula() === 'sim') $('duasSim').focus();
     else if (wizardStep === 'fMat' && /^\d{3,10}$/.test(v.mat) && v.duas) $('matricula2').focus();
+    else if (wizardStep === 'fSec') secretariaPicker.focus();
     else $(wizardStep).querySelector('input:not([type=radio]), select, input[type=radio]')?.focus();
   }
   return valid;
@@ -1041,7 +1040,15 @@ $('startPhotoForm').addEventListener('click', () => {
 $('wizardNext').addEventListener('click', async () => {
   if (!wizardCurrentValid()) return;
   const step = wizardStep;
-  if (step === 'fCpf') await ensureCpfLookup();
+  const cpfAtStart = $('cpf').value.replace(/\D/g, '');
+  if (step === 'fCpf') {
+    const next = $('wizardNext');
+    next.disabled = true;
+    next.setAttribute('aria-busy', 'true');
+    try { await ensureCpfLookup(); }
+    finally { next.disabled = false; next.removeAttribute('aria-busy'); }
+  }
+  if (step === 'fCpf' && $('cpf').value.replace(/\D/g, '') !== cpfAtStart) return;
   if (wizardStep !== step) return;
   if (!wizardCurrentValid()) return;
   const steps = wizardSteps(), index = steps.indexOf(wizardStep);
@@ -1049,6 +1056,7 @@ $('wizardNext').addEventListener('click', async () => {
 });
 wizardRender();
 refreshSend();
+initPhotoFormUX(() => $('wizardNext').click());
 function uppercaseName() {
   const input = $('nome');
   const start = input.selectionStart, end = input.selectionEnd;
@@ -1069,15 +1077,30 @@ let lookedUpCpf = '';
 let activeLookupCpf = '';
 let activeLookupVersion = -1;
 let activeLookupPromise = null;
-let autoMatricula = '';
-let autoMatricula2 = '';
-let autoSelectedMat = false;
-function setCpfLookupStatus(message, success = false) {
-  for (const id of ['cpfLookupStatus', 'matLookupStatus']) {
+function setCpfLookupStatus(message, success = false, pending = false) {
+  for (const id of ['cpfLookupStatus', 'matLookupStatus', 'emailLookupStatus']) {
     const status = $(id);
     status.textContent = message;
-    status.hidden = !message;
+    if (success && message) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'shadow__btn';
+      button.setAttribute('aria-haspopup', 'dialog');
+      button.setAttribute('aria-controls', 'avisoMat');
+      button.setAttribute('aria-label', message + ' Conferir matrícula.');
+      button.textContent = message;
+      button.addEventListener('click', openMatAlert);
+      status.replaceChildren(button);
+    }
+    if (pending && message) {
+      const spinner = document.createElement('i');
+      spinner.className = 'fas fa-circle-notch fa-spin';
+      spinner.setAttribute('aria-hidden', 'true');
+      status.prepend(spinner);
+    }
+    status.hidden = !message || (id === 'emailLookupStatus' && !success);
     status.classList.toggle('lookup-success', success && !!message);
+    status.classList.toggle('lookup-pending', pending && !!message);
   }
 }
 function cancelPendingCpfLookup() {
@@ -1093,10 +1116,11 @@ async function ensureCpfLookup() {
   if (activeLookupCpf === cpf && activeLookupVersion === cpfLookupVersion && activeLookupPromise) return activeLookupPromise;
   const version = cpfLookupVersion;
   if (CONFIG.ENDPOINT.startsWith('COLE_AQUI')) {
-    setCpfLookupStatus('Consulta indisponível. Informe a matrícula se já tiver uma.');
+    lookedUpCpf = cpf;
+    setCpfLookupStatus('Consulta indisponível. Você pode continuar o cadastro e informar sua matrícula, se já tiver uma.');
     return;
   }
-  setCpfLookupStatus('Consultando matrículas…');
+  setCpfLookupStatus('Procurando matrícula pelo CPF…', false, true);
   activeLookupCpf = cpf;
   activeLookupVersion = version;
   const task = (async () => {
@@ -1128,21 +1152,20 @@ async function ensureCpfLookup() {
         autoMatricula = matricula;
         autoMatricula2 = segundaMatricula;
         autoSelectedMat = true;
+        const advanceToEmail = matchMedia('(max-width: 640px)').matches && wizardStep === 'fCpf';
         syncMat();
         wizardRender();
         setCpfLookupStatus(segundaMatricula
-          ? 'Matrículas ' + matricula + ' e ' + segundaMatricula + ' encontradas e preenchidas automaticamente. A foto será salva com a matrícula ' + matricula + '.'
-          : 'Matrícula ' + matricula + ' encontrada e preenchida automaticamente.', true);
+          ? 'Matrículas identificadas: ' + matricula + ' e ' + segundaMatricula
+          : 'Matrícula identificada: ' + matricula, true);
+        if (advanceToEmail) wizardShowStep('fEmail');
       } else {
-        setCpfLookupStatus('CPF não encontrado. Informe sua matrícula, se já tiver uma.');
+        setCpfLookupStatus('Não encontramos uma matrícula para este CPF. Você pode continuar o cadastro normalmente e informar sua matrícula, se já tiver uma.');
       }
     } catch (error) {
       if (version === cpfLookupVersion && $('cpf').value.replace(/\D/g, '') === cpf) {
-        const mensagens = {
-          CONSULTA_NAO_AUTORIZADA: 'A consulta automática de matrícula não foi autorizada pelo serviço. Informe sua matrícula manualmente e avise a equipe do Ponto Eletrônico.',
-          PLANILHA_NAO_CONFIGURADA: 'A planilha da consulta de matrícula não está configurada corretamente. Informe sua matrícula manualmente e avise a equipe do Ponto Eletrônico.'
-        };
-        setCpfLookupStatus(mensagens[error.code] || 'Não foi possível consultar a matrícula. Informe-a se já tiver uma.');
+        lookedUpCpf = cpf;
+        setCpfLookupStatus('Não foi possível consultar a matrícula. Você pode continuar o cadastro normalmente e informar sua matrícula, se já tiver uma.');
       }
       console.error('Falha na consulta da matrícula:', error);
     }
@@ -1168,7 +1191,10 @@ $('cpf').addEventListener('input', () => {
     syncMat();
     wizardRender();
   }
-  if (cpfValido($('cpf').value)) cpfLookupTimer = setTimeout(ensureCpfLookup, 400);
+  if (cpfValido($('cpf').value)) {
+    setCpfLookupStatus('Procurando matrícula pelo CPF…', false, true);
+    cpfLookupTimer = setTimeout(ensureCpfLookup, 400);
+  }
 });
 $('cpf').addEventListener('blur', () => { if (cpfValido($('cpf').value)) ensureCpfLookup(); });
 $('email').addEventListener('blur', () => { const v = $('email').value.trim(); $('email').value = v; $('fEmail').classList.toggle('invalid', !!v && !emailValido(v)); });
