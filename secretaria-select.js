@@ -12,7 +12,7 @@ export function enhanceSecretariaSelect(select, entries) {
     <dialog id="secretariaPanel" class="secretaria-panel" aria-labelledby="secretariaTitle">
       <div class="secretaria-heading">
         <h3 id="secretariaTitle" tabindex="-1" autofocus>Secretaria ou órgão</h3>
-        <button type="button" class="secretaria-close" aria-label="Fechar lista">✕</button>
+        <button type="button" class="secretaria-close" aria-label="Fechar lista"><svg xmlns="http://www.w3.org/2000/svg" class="inline-icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="vertical-align:-0.125em"><path d="m6 6 12 12M6 18 18 6"/></svg></button>
       </div>
       <div class="secretaria-search">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg>

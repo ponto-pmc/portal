@@ -843,11 +843,11 @@ let chatGreeted  = false;
 const RE_SWITCH_PROFILE = /\b(trocar|mudar|alterar|selecionar)\s+(de\s+)?perfil\b|\boutro\s+perfil\b/i;
 const CHAT_SMALLTALK = [
   { re: /^(oi+|ol[aá]|bom\s+dia|boa\s+tarde|boa\s+noite|e[ai]+|hey|hello)[\s!.,?]*$/i,
-    reply: 'Olá! 😊 Pode digitar sua dúvida ou tocar em uma das sugestões abaixo.' },
+    reply: 'Olá! <svg xmlns="http://www.w3.org/2000/svg" class="inline-icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="vertical-align:-0.125em"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 3 4 3 4-3 4-3M8 9h.01M16 9h.01"/></svg> Pode digitar sua dúvida ou tocar em uma das sugestões abaixo.' },
   { re: /^(muito\s+)?(obrigad[oa]o?s?|grato|valeu|vlw)[\s!.,?]*$/i,
-    reply: 'De nada! 🙌 Posso ajudar com mais alguma coisa?' },
+    reply: 'De nada! <svg xmlns="http://www.w3.org/2000/svg" class="inline-icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="vertical-align:-0.125em"><path d="m4 20 3-10 7 7-10 3ZM10 5l1-3M16 8l4-4M19 13l3 1M14 3l1 2M20 8l2-1"/></svg> Posso ajudar com mais alguma coisa?' },
   { re: /^(tchau|at[eé]\s+(mais|logo)|falou|adeus|bye)[\s!.,?]*$/i,
-    reply: 'Até mais! 👋 Estou por aqui se precisar de algo.' },
+    reply: 'Até mais! <svg xmlns="http://www.w3.org/2000/svg" class="inline-icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="vertical-align:-0.125em"><path d="M8 13V6a1.5 1.5 0 0 1 3 0v6-8a1.5 1.5 0 0 1 3 0v8-6a1.5 1.5 0 0 1 3 0v7-3a1.5 1.5 0 0 1 3 0v6a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-3l-4-6a1.5 1.5 0 0 1 2-2l2 2Z"/></svg> Estou por aqui se precisar de algo.' },
   { re: /\b(atendente|humano|pessoa\s+real|falar\s+com\s+algu[eé]m)\b/i,
     reply: 'Fale com a equipe do Ponto Eletrônico: <a class="chat-link" href="mailto:pontoeletronico@contagem.mg.gov.br">pontoeletronico@contagem.mg.gov.br</a> ou <a class="chat-link" href="https://wa.me/553175130029" target="_blank" rel="noopener">WhatsApp</a>.' },
 ];
@@ -887,7 +887,7 @@ function toggleChat() {
 function chatWelcome() {
   const picker = document.getElementById('chatProfilePicker');
   if (picker) picker.style.display = 'flex';
-  chatAddMsg('bot', 'Olá! Sou o <strong>Antonio</strong>, assistente do Ponto.PMC. Selecione seu perfil acima para começar. 👆');
+  chatAddMsg('bot', 'Olá! Sou o <strong>Antonio</strong>, assistente do Ponto.PMC. Selecione seu perfil acima para começar. <svg xmlns="http://www.w3.org/2000/svg" class="inline-icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="vertical-align:-0.125em"><path d="M12 20V4m-6 6 6-6 6 6"/></svg>');
 }
 
 /* ---- seleção de perfil no chat ---- */
@@ -1095,7 +1095,7 @@ function promptSwitchProfile() {
   if (input)   input.disabled   = true;
   if (sendBtn) sendBtn.disabled = true;
 
-  chatAddMsg('bot', 'Sem problemas! Selecione o novo perfil abaixo. 👇');
+  chatAddMsg('bot', 'Sem problemas! Selecione o novo perfil abaixo. <svg xmlns="http://www.w3.org/2000/svg" class="inline-icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="vertical-align:-0.125em"><path d="M12 4v16m-6-6 6 6 6-6"/></svg>');
   const picker = document.getElementById('chatProfilePicker');
   if (picker) picker.style.display = 'flex';
 }

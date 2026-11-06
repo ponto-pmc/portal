@@ -120,7 +120,7 @@ body.secretaria-open { overflow: hidden; }
 .secretaria-option span { font-size: var(--text-sm); color: var(--text-secondary); overflow-wrap: anywhere; }
 .secretaria-option.is-active, .secretaria-option:hover { background: var(--surface-2); }
 .secretaria-option[aria-selected=true] { background: var(--accent-light); }
-.secretaria-option[aria-selected=true]::after { content: '✓'; position: absolute; right: 12px; top: 12px; color: var(--text-primary); }
+.secretaria-option[aria-selected=true]::after { content: ""; display: inline-block; width: 1em; height: 1em; vertical-align: -0.125em; background-color: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m5%2012%204%204L19%206%22%2F%3E%3C%2Fsvg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m5%2012%204%204L19%206%22%2F%3E%3C%2Fsvg%3E") center / contain no-repeat; position: absolute; right: 12px; top: 12px; color: var(--text-primary); }
 .secretaria-empty { padding: 8px 20px 20px; color: var(--text-secondary); font-size: var(--text-sm); }
 .field.invalid .secretaria-trigger { border-color: var(--error); }
 
