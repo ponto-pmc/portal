@@ -1041,13 +1041,7 @@ $('wizardNext').addEventListener('click', async () => {
   if (!wizardCurrentValid()) return;
   const step = wizardStep;
   const cpfAtStart = $('cpf').value.replace(/\D/g, '');
-  if (step === 'fCpf') {
-    const next = $('wizardNext');
-    next.disabled = true;
-    next.setAttribute('aria-busy', 'true');
-    try { await ensureCpfLookup(); }
-    finally { next.disabled = false; next.removeAttribute('aria-busy'); }
-  }
+  if (step === 'fCpf') await ensureCpfLookup();
   if (step === 'fCpf' && $('cpf').value.replace(/\D/g, '') !== cpfAtStart) return;
   if (wizardStep !== step) return;
   if (!wizardCurrentValid()) return;
@@ -1072,7 +1066,6 @@ $('nome').addEventListener('input', e => { if (!e.isComposing) uppercaseName(); 
 $('nome').addEventListener('compositionend', uppercaseName);
 
 let cpfLookupVersion = 0;
-let cpfLookupTimer = 0;
 let lookedUpCpf = '';
 let activeLookupCpf = '';
 let activeLookupVersion = -1;
@@ -1105,12 +1098,10 @@ function setCpfLookupStatus(message, success = false, pending = false) {
 }
 function cancelPendingCpfLookup() {
   cpfLookupVersion++;
-  clearTimeout(cpfLookupTimer);
   lookedUpCpf = $('cpf').value.replace(/\D/g, '');
   setCpfLookupStatus('');
 }
 async function ensureCpfLookup() {
-  clearTimeout(cpfLookupTimer);
   const cpf = $('cpf').value.replace(/\D/g, '');
   if (!cpfValido(cpf) || lookedUpCpf === cpf) return;
   if (activeLookupCpf === cpf && activeLookupVersion === cpfLookupVersion && activeLookupPromise) return activeLookupPromise;
@@ -1152,13 +1143,12 @@ async function ensureCpfLookup() {
         autoMatricula = matricula;
         autoMatricula2 = segundaMatricula;
         autoSelectedMat = true;
-        const advanceToEmail = matchMedia('(max-width: 640px)').matches && wizardStep === 'fCpf';
         syncMat();
         wizardRender();
         setCpfLookupStatus(segundaMatricula
           ? 'Matrículas identificadas: ' + matricula + ' e ' + segundaMatricula
           : 'Matrícula identificada: ' + matricula, true);
-        if (advanceToEmail) wizardShowStep('fEmail');
+
       } else {
         setCpfLookupStatus('Não encontramos uma matrícula para este CPF. Você pode continuar o cadastro normalmente e informar sua matrícula, se já tiver uma.');
       }
@@ -1179,7 +1169,6 @@ $('cpf').addEventListener('input', () => {
   $('cpf').value = maskCpf($('cpf').value);
   cpfLookupVersion++;
   lookedUpCpf = '';
-  clearTimeout(cpfLookupTimer);
   setCpfLookupStatus('');
   if (autoSelectedMat) {
     if ($('matricula').value === autoMatricula) $('matricula').value = '';
@@ -1191,12 +1180,8 @@ $('cpf').addEventListener('input', () => {
     syncMat();
     wizardRender();
   }
-  if (cpfValido($('cpf').value)) {
-    setCpfLookupStatus('Procurando matrícula pelo CPF…', false, true);
-    cpfLookupTimer = setTimeout(ensureCpfLookup, 400);
-  }
+  void ensureCpfLookup();
 });
-$('cpf').addEventListener('blur', () => { if (cpfValido($('cpf').value)) ensureCpfLookup(); });
 $('email').addEventListener('blur', () => { const v = $('email').value.trim(); $('email').value = v; $('fEmail').classList.toggle('invalid', !!v && !emailValido(v)); });
 $('email').addEventListener('input', () => { if (emailValido($('email').value)) $('fEmail').classList.remove('invalid'); });
 $('cpf').addEventListener('blur', () => { const v = $('cpf').value; $('fCpf').classList.toggle('invalid', !!v && !cpfValido(v)); });
@@ -1311,11 +1296,6 @@ $('again').addEventListener('click', () => { $('doneArea').classList.remove('sho
 
 $('send').addEventListener('click', async () => {
   if (state.busy) return;
-  if (cpfValido($('cpf').value)) {
-    state.busy = true; refreshSend();
-    try { await ensureCpfLookup(); }
-    finally { state.busy = false; refreshSend(); }
-  }
   const v = validate(true);
   const sm = $('sendMsg');
   const falta = [];
@@ -1335,7 +1315,9 @@ $('send').addEventListener('click', async () => {
       wizardShowStep(firstMissing);
       return;
     }
-    (document.querySelector('.field.invalid') || $('drop')).scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+    const invalidField = document.querySelector('.field.invalid');
+    (invalidField?.querySelector('input, select, button') || $('drop')).focus();
+    (invalidField || $('drop')).scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
     return;
   }
   sm.className = 'result';

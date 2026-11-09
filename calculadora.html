@@ -66,7 +66,7 @@
           <button class="guide-launch calc-guide-launch" id="guide-launch" type="button" aria-haspopup="dialog" aria-controls="tour-card">Guia</button>
           <span class="eyebrow">Gestão de Frequência</span>
           <h1><i class="fas fa-calculator"></i> Calculadora de Desconto</h1>
-          <p>Calcule o desconto por ausências em dias ou horas com precisão.</p>
+          <p>Simulação de desconto por ausências em dias ou horas.</p>
         </div>
 
         <div class="calc-body">
@@ -93,7 +93,7 @@
                   <div id="campoDias" style="display:none">
                     <div class="form-group">
                       <label class="field-label" for="diasFalta">Quantidade de Dias</label>
-                      <input class="field-input" type="number" id="diasFalta" min="0" placeholder="0" />
+                      <input class="field-input" type="number" id="diasFalta" min="1" max="30" step="1" placeholder="0" />
                     </div>
                   </div>
 
@@ -111,11 +111,11 @@
                     <div class="form-row">
                       <div class="form-group">
                         <label class="field-label" for="horaInput">Horas</label>
-                        <input class="field-input" type="number" id="horaInput" min="0" placeholder="0" />
+                        <input class="field-input" type="number" id="horaInput" min="0" max="220" step="1" placeholder="0" />
                       </div>
                       <div class="form-group">
                         <label class="field-label" for="minutoInput">Minutos</label>
-                        <input class="field-input" type="number" id="minutoInput" min="0" placeholder="0" />
+                        <input class="field-input" type="number" id="minutoInput" min="0" max="59" step="1" placeholder="0" />
                       </div>
                     </div>
                   </div>
@@ -150,7 +150,7 @@
                   <div class="outros-panel">
                     <div class="outros-head">
                       <span class="outros-title">Outros vencimentos</span>
-                      <button type="button" id="btnAdicionarOutros" class="btn-add-outro" aria-label="Adicionar">+</button>
+                      <button type="button" id="btnAdicionarOutros" class="btn-add-outro" aria-label="Adicionar verba">+</button>
                     </div>
                     <div id="outrosFields"></div>
                   </div>
@@ -160,6 +160,8 @@
 
           </div>
 
+          <p class="hint" id="calcRuleNote">Simulação com base mensal de 30 dias. Limites e critérios ainda precisam de homologação pelo RH; o resultado não determina o desconto em folha.</p>
+          <p id="calcError" role="alert" hidden></p>
           <div class="btn-row">
             <button id="btnCalcular" class="btn btn-primary">
               <i class="fas fa-equals"></i> Calcular
@@ -206,7 +208,7 @@
   <script src="guide.js"></script>
 
   <div class="tour-hole" id="tour-hole" hidden aria-hidden="true"></div>
-  <div class="tour-card" id="tour-card" role="dialog" aria-label="Guia da Calculadora" aria-live="polite" hidden></div>
+  <div class="tour-card" id="tour-card" role="dialog" aria-modal="true" aria-label="Guia da Calculadora" aria-live="polite" hidden></div>
 
   <!-- CHAT (from faq.html) -->
   <button id="chatFab" class="chat-fab" aria-controls="chatModal" aria-label="Abrir assistente de ajuda" aria-expanded="false">

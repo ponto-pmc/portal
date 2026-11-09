@@ -120,11 +120,26 @@ function renderPreviews() {
     const url   = URL.createObjectURL(file);
     const thumb = document.createElement('div');
     thumb.className = 'img-thumb';
-    thumb.innerHTML = `
-      <img src="${url}" alt="${file.name}" onload="URL.revokeObjectURL(this.src)" />
-      <button class="img-remove" onclick="removeFile(${idx})" aria-label="Remover ${file.name}">
-        <i class="fas fa-times"></i>
-      </button>`;
+    const preview = document.createElement('img');
+    preview.src = url;
+    preview.alt = file.name;
+    const release = () => URL.revokeObjectURL(url);
+    preview.addEventListener('load', release, { once: true });
+    preview.addEventListener('error', release, { once: true });
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'img-remove';
+    remove.ariaLabel = `Remover ${file.name}`;
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-times';
+    icon.ariaHidden = 'true';
+    remove.append(icon);
+    remove.addEventListener('click', () => {
+      window.removeFile(idx);
+      const buttons = grid.querySelectorAll('button');
+      (buttons[Math.min(idx, buttons.length - 1)] || document.querySelector('#selectButton'))?.focus();
+    });
+    thumb.append(preview, remove);
     grid.appendChild(thumb);
   });
 }

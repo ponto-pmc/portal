@@ -33,6 +33,7 @@ export function initPhotoFormUX(advance) {
     const error = field.querySelector('.err');
     if (!error) return;
     if (!error.id) error.id = field.id + 'Error';
+    error.setAttribute('aria-live', 'polite');
     const inputs = [...field.querySelectorAll('input, select')];
     const sync = () => {
       const invalid = field.classList.contains('invalid');

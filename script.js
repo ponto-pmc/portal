@@ -305,7 +305,7 @@ function closeGlobalSearch() {
 
 // Catálogo de seções do site — fácil de expandir
 const SITE_INDEX = [
-  { label: 'Consultar Ponto',       desc: 'Acesse o sistema oficial de frequência',          url: 'https://pontopmc.contagem.mg.gov.br/forpontoweb/login.aspx', external: true,  icon: 'fa-user-check' },
+  { label: 'Consultar Ponto',       desc: 'Acesse o sistema oficial de frequência',          url: 'https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx', external: true,  icon: 'fa-user-check' },
   { label: 'Calculadora de Desconto', desc: 'Calcule descontos por faltas e ausências',      url: 'calculadora.html',  external: false, icon: 'fa-calculator' },
   { label: 'Controle mensal',        desc: 'Registre horários e acompanhe o saldo da jornada', url: 'controle.html',      external: false, icon: 'fa-clock' },
   { label: 'Processador de Imagens', desc: 'Redimensione imagens para 200×200 px em ZIP',    url: 'imagem.html',       external: false, icon: 'fa-image' },
@@ -451,4 +451,9 @@ function setupContentBlocker() {
   new MutationObserver(mutations => {
     for (const m of mutations) for (const node of m.addedNodes) cleanNode(node);
   }).observe(document.body, { childList: true, subtree: true });
+}
+
+function closeAppModal() {
+  const modal = document.getElementById('appDownloadModal');
+  if (modal) modal.style.display = 'none';
 }

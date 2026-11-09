@@ -11,19 +11,6 @@ document.addEventListener('keydown', (event) => {
     return;
   }
 
-  if (event.key !== 'Tab') return;
-  const dialogs = [...document.querySelectorAll('[role="dialog"][aria-modal="true"]')];
-  const dialog = dialogs.reverse().find(el => el.getClientRects().length && !el.hidden && !el.inert);
-  if (!dialog) return;
-  const focusable = [...dialog.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
-    .filter(el => el.getClientRects().length && !el.closest('[inert]'));
-  if (!focusable.length) return;
-  const first = focusable[0], last = focusable.at(-1);
-  if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
-    event.preventDefault(); last.focus();
-  } else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
-    event.preventDefault(); first.focus();
-  }
 }, true);
 
 const themeButton = document.getElementById('themeToggle');
@@ -42,3 +29,75 @@ if (navButton) {
   syncNavName();
   new MutationObserver(syncNavName).observe(navButton, { attributes: true, attributeFilter: ['aria-expanded'] });
 }
+
+// Os diálogos recebem foco, isolam o conteúdo de fundo e devolvem o foco ao acionador.
+(() => {
+  const selector = 'dialog, [role="dialog"][aria-modal="true"]';
+  const visible = element => !element.hidden && !element.inert && element.getClientRects().length > 0
+    && getComputedStyle(element).visibility !== 'hidden'
+    && (element.tagName !== 'DIALOG' || element.open);
+  const controls = dialog => [...dialog.querySelectorAll('a[href], button:not(:disabled), input:not(:disabled):not([type="hidden"]), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])')]
+    .filter(element => visible(element) && !element.closest('[inert]'));
+  let current = null;
+  let opener = null;
+  let lastTrigger = document.activeElement;
+  const isolated = new Map();
+  document.addEventListener('click', event => {
+    if (!event.target.closest(selector)) lastTrigger = event.target.closest('button, a, [tabindex]') || document.activeElement;
+  }, true);
+  document.addEventListener('focusin', event => {
+    if (!event.target.closest(selector)) lastTrigger = event.target;
+  });
+  function release() {
+    for (const [element, wasInert] of isolated) if (element.inert !== wasInert) element.inert = wasInert;
+    isolated.clear();
+  }
+  function sync() {
+    // Fundo isolado por este gerenciador não impede descobrir um diálogo nativo novo.
+    const dialogs = [...document.querySelectorAll(selector)].filter(visible);
+    const next = dialogs.filter(el => el.tagName === 'DIALOG').at(-1) || dialogs.at(-1) || null;
+    if (next === current) return;
+    const old = current;
+    release();
+    current = next;
+    if (!next) {
+      if (opener?.isConnected && visible(opener)) opener.focus({ preventScroll: true });
+      opener = null;
+      return;
+    }
+    if (!old) opener = lastTrigger;
+    for (let branch = next; branch && branch !== document.body; branch = branch.parentElement) {
+      for (const sibling of branch.parentElement?.children || []) {
+        if (sibling === branch || /^(SCRIPT|STYLE|LINK)$/.test(sibling.tagName)) continue;
+        isolated.set(sibling, sibling.inert);
+        if (!sibling.inert) sibling.inert = true;
+      }
+    }
+    if (!next.contains(document.activeElement)) {
+      if (!next.hasAttribute('tabindex')) next.tabIndex = -1;
+      (next.querySelector('[autofocus]') || controls(next)[0] || next).focus({ preventScroll: true });
+    }
+  }
+  new MutationObserver(sync).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden', 'open', 'style', 'class', 'inert'] });
+  document.addEventListener('keydown', event => {
+    if (!current || !visible(current)) return;
+    if (event.key === 'Escape') {
+      const close = current.querySelector('#chatCloseBtn, #camCancel, .app-modal-close, [data-tour="skip"], [aria-label^="Fechar"]');
+      if (current.tagName === 'DIALOG' || close) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (current.tagName === 'DIALOG') current.close();
+        else close.click();
+      }
+    }
+    if (event.key === 'Tab') {
+      const items = controls(current);
+      const first = items[0] || current, last = items.at(-1) || current;
+      if (!items.length || !current.contains(document.activeElement) || (event.shiftKey ? document.activeElement === first : document.activeElement === last)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      }
+    }
+  }, true);
+  sync();
+})();

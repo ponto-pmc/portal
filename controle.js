@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-const DAYS_IN_MONTH = 31;
+let DAYS_IN_MONTH = 0;
 
 const body = document.querySelector('#days-body');
 const positiveTotal = document.querySelector('#positive-total');
@@ -77,7 +77,10 @@ const templateInputs = [
 ];
 
 const SLOT_NAMES = ['entry', 'break-start', 'break-end', 'exit'];
-const STORAGE_KEY = 'jornada-state-v2';
+const LEGACY_STORAGE_KEY = 'jornada-state-v2';
+const STORAGE_KEY = 'jornada-month-v3:';
+let activeMonth = '';
+let monthRevision = 0;
 const DEFAULT_TARGET = '08:00';
 const LUNCH_THRESHOLD = 360;
 // Mantém a quantidade de cada horário encontrado no PDF. Usar apenas um Set
@@ -91,6 +94,7 @@ let ocrLibraryPromise;
 let exportPdfLibraryPromise;
 
 function createRows() {
+  body.replaceChildren();
   const fragment = document.createDocumentFragment();
 
   for (let day = 1; day <= DAYS_IN_MONTH; day += 1) {
@@ -98,10 +102,10 @@ function createRows() {
     row.innerHTML = `
       <td class="day-cell${day === new Date().getDate() ? ' current' : ''}">${String(day).padStart(2, '0')}</td>
       <td class="target-cell" data-label="Jornada"><input type="text" inputmode="numeric" maxlength="5" class="daily-target" aria-label="Dia ${day}, jornada esperada em horas e minutos" data-day="${day}" data-slot="target" value="${DEFAULT_TARGET}" /></td>
-      <td class="slot-cell slot-entry" data-label="Entrada 1"><input type="time" draggable="false" aria-label="Dia ${day}, entrada 1" data-day="${day}" data-slot="entry" /></td>
-      <td class="slot-cell slot-break-start" data-label="Saída 2"><input type="time" draggable="false" aria-label="Dia ${day}, saída 2" data-day="${day}" data-slot="break-start" /></td>
-      <td class="slot-cell slot-break-end" data-label="Entrada 3"><input type="time" draggable="false" aria-label="Dia ${day}, entrada 3" data-day="${day}" data-slot="break-end" /></td>
-      <td class="slot-cell slot-exit" data-label="Saída 4"><input type="time" draggable="false" aria-label="Dia ${day}, saída 4" data-day="${day}" data-slot="exit" /></td>
+      <td class="slot-cell slot-entry" data-label="Entrada 1"><input type="time" draggable="false" aria-describedby="scheduleKeyboard" aria-label="Dia ${day}, entrada 1" data-day="${day}" data-slot="entry" /></td>
+      <td class="slot-cell slot-break-start" data-label="Saída 2"><input type="time" draggable="false" aria-describedby="scheduleKeyboard" aria-label="Dia ${day}, saída 2" data-day="${day}" data-slot="break-start" /></td>
+      <td class="slot-cell slot-break-end" data-label="Entrada 3"><input type="time" draggable="false" aria-describedby="scheduleKeyboard" aria-label="Dia ${day}, entrada 3" data-day="${day}" data-slot="break-end" /></td>
+      <td class="slot-cell slot-exit" data-label="Saída 4"><input type="time" draggable="false" aria-describedby="scheduleKeyboard" aria-label="Dia ${day}, saída 4" data-day="${day}" data-slot="exit" /></td>
       <td class="occurrence-cell" data-label="Ocorrência"><input type="text" maxlength="120" aria-label="Dia ${day}, ocorrência" placeholder="Ex.: atestado, folga…" data-day="${day}" data-slot="occurrence" /></td>
       <td class="result-cell" data-label="Resultado"><span class="result empty" data-result="${day}">—</span></td>
     `;
@@ -300,6 +304,7 @@ function updateDownloadState() {
 }
 
 function persistState() {
+  if (!validMonth(activeMonth)) return;
   try {
     const importedAssignments = {};
     body.querySelectorAll('input[type="time"]:not(.daily-target)').forEach((input) => {
@@ -308,7 +313,7 @@ function persistState() {
       }
     });
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    localStorage.setItem(STORAGE_KEY + activeMonth, JSON.stringify({
       values: readGridValues(),
       targets: readDailyTargets(),
       bulkTarget: bulkTargetInput.value,
@@ -316,13 +321,17 @@ function persistState() {
       autoTargetDays: [...autoTargetDays],
       occurrences: readOccurrences(),
       serverName: serverNameInput.value.trim(),
-      referenceMonth: referenceMonthInput.value,
+      referenceMonth: activeMonth,
+      templateTimes: templateInputs.map(input => input.value),
       importedTimeCounts,
       importedAssignments,
       importedFileName,
     }));
+    return true;
   } catch (error) {
     console.warn('Não foi possível salvar os horários localmente.', error);
+    setImportStatus('Não foi possível salvar neste dispositivo. Mantenha esta página aberta e baixe o PDF antes de sair.', 'error');
+    return false;
   }
 }
 
@@ -379,8 +388,8 @@ function reconcileInputHighlights() {
 
 function restoreState() {
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-    if (!saved) return;
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY + activeMonth) || 'null');
+    if (!saved || saved.referenceMonth !== activeMonth) return;
 
     if (saved.importedTimeCounts && typeof saved.importedTimeCounts === 'object') {
       importedTimeCounts = Object.fromEntries(
@@ -400,7 +409,7 @@ function restoreState() {
     if (durationToMinutes(saved.bulkTarget) > 0) bulkTargetInput.value = formatDuration(durationToMinutes(saved.bulkTarget));
     updateTemplateLayout();
     if (typeof saved.serverName === 'string') serverNameInput.value = saved.serverName;
-    if (typeof saved.referenceMonth === 'string') referenceMonthInput.value = saved.referenceMonth;
+    templateInputs.forEach((input, index) => { input.value = saved.templateTimes?.[index] || ''; });
     for (const [day, dayValues] of Object.entries(saved.values || {})) {
       for (const [slot, value] of Object.entries(dayValues || {})) {
         const input = document.querySelector(`input[data-day="${day}"][data-slot="${slot}"]`);
@@ -516,6 +525,27 @@ function moveInputValue(source, target) {
   updateSummary();
 }
 
+// Alternativa por teclado para a mesma troca de células disponível ao arrastar.
+body.addEventListener('keydown', event => {
+  if (!event.altKey || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
+  const source = event.target.closest('input[type="time"]');
+  if (!source) return;
+  event.preventDefault();
+  const day = Number(source.dataset.day);
+  let target;
+  if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+    const targetDay = day + (event.key === 'ArrowUp' ? -1 : 1);
+    target = body.querySelector(`input[data-day="${targetDay}"][data-slot="${source.dataset.slot}"]`);
+  } else {
+    const inputs = [...source.closest('tr').querySelectorAll('input[type="time"]:not(:disabled)')];
+    target = inputs[inputs.indexOf(source) + (event.key === 'ArrowLeft' ? -1 : 1)];
+  }
+  if (!target || target.disabled) return;
+  moveInputValue(source, target);
+  target.focus();
+  setImportStatus(`Horários trocados. ${target.getAttribute('aria-label')}: ${target.value || 'vazio'}.`, 'success');
+});
+
 body.addEventListener('dragstart', (event) => {
   const input = getScheduleInput(event.target);
   if (!input?.value) {
@@ -624,8 +654,10 @@ async function exportManualPdf() {
 
   downloadPdf.disabled = true;
   downloadPdf.textContent = 'Gerando…';
+  const revision = monthRevision;
   try {
     const { jsPDF } = await loadExportPdfLibrary();
+    if (revision !== monthRevision) throw new Error('O mês mudou durante a exportação. Gere o PDF novamente.');
     const doc = new jsPDF({ unit: 'pt', format: 'a4' });
     const pageWidth = doc.internal.pageSize.getWidth();
     const left = 40;
@@ -719,6 +751,12 @@ function extractRowsFromText(text) {
   const lines = normalizeText(text).split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
 
   for (const line of lines) {
+    const fullDate = line.match(/^(?:\|\s*)?(0?[1-9]|[12]\d|3[01])\s*[/-]\s*(0?[1-9]|1[0-2])(?:\s*[/-]\s*(\d{4}|\d{2}))?\b/);
+    if (fullDate) {
+      const [year, month] = activeMonth.split('-').map(Number);
+      const fileYear = fullDate[3] ? (fullDate[3].length === 2 ? 2000 + Number(fullDate[3]) : Number(fullDate[3])) : year;
+      if (Number(fullDate[2]) !== month || fileYear !== year) throw new Error('O espelho contém datas de outro mês. Selecione o mês de referência correto antes de importar.');
+    }
     const times = extractTimes(line).slice(0, 4);
     // Dias incompletos também são válidos: um espelho pode ter 1, 2 ou 3 batidas.
     // Só descartamos a linha quando nenhum horário foi encontrado.
@@ -877,7 +915,9 @@ function applyImportedRows(rows, fileName, inferredTarget = null) {
 }
 
 async function importFile(file) {
-  if (!file) return;
+  if (!file || chooseFile.disabled) return;
+  const revision = monthRevision;
+  const checkMonth = () => { if (revision !== monthRevision) throw new Error('O mês mudou durante a leitura. Importe novamente no mês desejado.'); };
   const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
   const isImage = file.type.startsWith('image/');
   if (!isPdf && !isImage) {
@@ -892,10 +932,12 @@ async function importFile(file) {
     if (isPdf) {
       const pdfData = await extractPdfText(file, (message) => setImportStatus(message, 'working'));
       text = pdfData.pages.map((page) => page.text).join('\n');
+      checkMonth();
       let rows = extractRowsFromText(text);
       const hasReadableDay = [...rows.values()].some((values) => values.length >= 2);
       if (!hasReadableDay) {
         text = await recognizePdfPages(pdfData, (message) => setImportStatus(message, 'working'));
+        checkMonth();
         rows = extractRowsFromText(text);
       }
       if (!rows.size) throw new Error('Nenhuma linha com dia e horários foi reconhecida.');
@@ -908,6 +950,7 @@ async function importFile(file) {
       const worker = await createWorker('por', 1, { logger: (message) => message.status === 'recognizing text' && setImportStatus(`Reconhecendo imagem… ${Math.round(message.progress * 100)}%`, 'working') });
       const result = await worker.recognize(file);
       await worker.terminate();
+      checkMonth();
       const rows = extractRowsFromText(result.data.text);
       if (!rows.size) throw new Error('Nenhuma linha com dia e horários foi reconhecida.');
       const inferredTarget = inferTwoPunchTarget(result.data.text);
@@ -917,16 +960,61 @@ async function importFile(file) {
     }
   } catch (error) {
     console.error('Falha ao importar espelho:', error);
-    setImportStatus('Não foi possível reconhecer este arquivo. Confira a qualidade do PDF e tente novamente.', 'error');
+    setImportStatus(error.message || 'Não foi possível reconhecer este arquivo. Confira a qualidade e tente novamente.', 'error');
   } finally {
     chooseFile.disabled = false;
     fileInput.value = '';
   }
 }
 
-createRows();
-restoreState();
-updateTemplateLayout();
+function validMonth(value) {
+  return /^\d{4}-(0[1-9]|1[0-2])$/.test(value || '') && Number(value.slice(0, 4)) >= 1900 && Number(value.slice(0, 4)) <= 9999;
+}
+function daysInMonth(value) {
+  if (!validMonth(value)) return 0;
+  const [year, month] = value.split('-').map(Number);
+  return new Date(year, month, 0).getDate();
+}
+function openMonth(month) {
+  activeMonth = month;
+  monthRevision++;
+  referenceMonthInput.value = month;
+  DAYS_IN_MONTH = daysInMonth(month);
+  importedTimeCounts = {};
+  importedFileName = '';
+  autoTargetDays.clear();
+  workRegimeInput.value = 'regular';
+  bulkTargetInput.value = DEFAULT_TARGET;
+  templateInputs.forEach(input => { input.value = ''; });
+  templateStatus.textContent = '';
+  createRows();
+  restoreState();
+  updateTemplateLayout();
+  for (let day = 1; day <= DAYS_IN_MONTH; day++) updateDayLayout(day);
+  reconcileInputHighlights();
+  updateSummary();
+  updateDownloadState();
+  const label = document.querySelector('.summary-month');
+  if (label) label.textContent = formatReferenceMonth(month);
+}
+function initializeMonths() {
+  const now = new Date();
+  let month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  let undated = false;
+  try {
+    const legacy = JSON.parse(localStorage.getItem(LEGACY_STORAGE_KEY) || 'null');
+    if (legacy && validMonth(legacy.referenceMonth)) {
+      const key = STORAGE_KEY + legacy.referenceMonth;
+      if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(legacy));
+      month = legacy.referenceMonth;
+    } else if (legacy) undated = true;
+    const last = localStorage.getItem(STORAGE_KEY + 'last');
+    if (validMonth(last)) month = last;
+  } catch (error) { console.warn('Falha ao recuperar mês anterior.', error); }
+  openMonth(month);
+  if (undated) setImportStatus('O rascunho antigo foi preservado, mas não tinha mês válido. Reimporte o espelho no mês correto; ele não foi atribuído automaticamente.', 'error');
+}
+initializeMonths();
 body.addEventListener('change', (event) => {
   if (!event.target.matches('.daily-target')) return;
   const target = durationToMinutes(event.target.value);
@@ -1021,9 +1109,20 @@ serverNameInput.addEventListener('input', () => {
   updateDownloadState();
 });
 referenceMonthInput.addEventListener('change', () => {
-  persistState();
-  updateDownloadState();
+  const next = referenceMonthInput.value;
+  if (!validMonth(next)) {
+    referenceMonthInput.value = activeMonth;
+    setImportStatus('Informe um mês válido entre 1900 e 9999.', 'error');
+    return;
+  }
+  if (next === activeMonth) return;
+  if (!persistState()) { referenceMonthInput.value = activeMonth; return; }
+  openMonth(next);
+  setImportStatus(`Mês de referência: ${formatReferenceMonth(next)}. Confira o mês do espelho antes de importar.`, 'success');
+  try { localStorage.setItem(STORAGE_KEY + 'last', next); } catch {}
 });
+templateInputs.forEach(input => input.addEventListener('input', persistState));
+bulkTargetInput.addEventListener('input', persistState);
 chooseFile.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', (event) => importFile(event.target.files[0]));
 clearSchedule.addEventListener('click', clearGrid);

@@ -56,7 +56,7 @@ function updateAccHeight(bodyId) {
 }
 
 // ── STATE ──────────────────────────────────────────────
-let outroCount = 0;
+let nextOutroId = 0;
 let ultimoCalculo = null;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -112,6 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnLimpar')?.addEventListener('click', limpar);
   document.getElementById('btnPDF')?.addEventListener('click', gerarPDF);
 
+  document.querySelector('.calc-body').addEventListener('input', () => { invalidateCalculation(); clearCalcErrors(); });
+  document.querySelector('.calc-body').addEventListener('change', invalidateCalculation);
   setupContentBlocker();
 });
 
@@ -125,9 +127,8 @@ function onTipoChange() {
 
 // ── OUTROS FIELDS ──────────────────────────────────────
 function addOutro() {
-  if (outroCount >= 5) return;
-  outroCount++;
-  const id  = outroCount;
+  if (document.querySelectorAll('#outrosFields .outro-row').length >= 5) return;
+  const id = ++nextOutroId;
   const div = document.createElement('div');
   div.className = 'outro-row';
   div.id = `outroRow${id}`;
@@ -147,31 +148,63 @@ function addOutro() {
   document.getElementById('outrosFields').appendChild(div);
   document.getElementById(`outroValor${id}`)?.addEventListener('blur', function () { fmtMoeda(this); });
   const btn = document.getElementById('btnAdicionarOutros');
-  if (outroCount >= 5) btn.disabled = true;
+  btn.disabled = document.querySelectorAll('#outrosFields .outro-row').length >= 5;
+  document.getElementById(`outroDesc${id}`).focus();
+  invalidateCalculation();
   setTimeout(() => updateAccHeight('acc2Body'), 0);
 }
 
 function removeOutro(id) {
   document.getElementById(`outroRow${id}`)?.remove();
-  outroCount = Math.max(0, outroCount - 1);
+  invalidateCalculation();
+  document.getElementById('btnAdicionarOutros').focus();
   document.getElementById('btnAdicionarOutros').disabled = false;
   setTimeout(() => updateAccHeight('acc2Body'), 0);
 }
 
 // ── CURRENCY ───────────────────────────────────────────
+// Limites de consistência da fórmula existente, pendentes de homologação pelo RH.
+const CALC_RULES = Object.freeze({ days: 30, minuteMax: 59, maxAmount: 999999.99,
+  journeys: [20, 100, 111, 120, 125, 150, 160, 168, 200, 220] });
 function fmtMoeda(input) {
-  let v = input.value.replace(/[^\d,]/g, '');
-  if (!v) return;
-  if (!v.includes(',')) v = v + ',00';
-  let [int, dec] = v.split(',');
-  dec = (dec || '').substring(0, 2).padEnd(2, '0');
-  int = int.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  input.value = `${int},${dec}`;
+  const value = toNum(input.value);
+  if (input.value.trim() && Number.isFinite(value) && value >= 0 && value <= CALC_RULES.maxAmount) input.value = fmtBRL(value);
 }
-
-function toNum(s) {
-  if (!s) return 0;
-  return parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0;
+function toNum(value) {
+  const text = String(value ?? '').trim();
+  if (!text) return 0;
+  if (!/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/.test(text)) return NaN;
+  return Number(text.replace(/\./g, '').replace(',', '.'));
+}
+function invalidateCalculation() {
+  ultimoCalculo = null;
+  for (const id of ['resultado', 'resumo', 'btnPDF']) document.getElementById(id).style.display = 'none';
+}
+function calcError(id, message) {
+  const field = document.getElementById(id);
+  const error = document.getElementById('calcError');
+  error.textContent = message;
+  error.hidden = false;
+  field.setAttribute('aria-invalid', 'true');
+  field.setAttribute('aria-describedby', 'calcError');
+  const accordion = field.closest('.acc-item');
+  if (accordion && !accordion.classList.contains('active')) toggleAcc(accordion.id);
+  field.focus();
+}
+function clearCalcErrors() {
+  const error = document.getElementById('calcError');
+  error.hidden = true;
+  error.textContent = '';
+  document.querySelectorAll('[aria-describedby="calcError"]').forEach(field => {
+    field.removeAttribute('aria-invalid');
+    field.removeAttribute('aria-describedby');
+  });
+}
+function integerValue(id) {
+  const field = document.getElementById(id);
+  if (field.validity.badInput) return NaN;
+  const text = field.value.trim();
+  return /^\d+$/.test(text) ? Number(text) : text === '' ? 0 : NaN;
 }
 
 const fmtBRL = v => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -215,6 +248,16 @@ function valorPorExtenso(v) {
 
 // ── CALCULAR ───────────────────────────────────────────
 function calcular() {
+  invalidateCalculation();
+  clearCalcErrors();
+  const moneyFields = [...document.querySelectorAll('#vencimento, #quinquenio, #funcao, #outrosFields input[id^="outroValor"]')];
+  for (const field of moneyFields) {
+    const value = toNum(field.value);
+    if (!Number.isFinite(value) || value < 0 || value > CALC_RULES.maxAmount) {
+      calcError(field.id, 'Informe um valor de 0,00 a 999.999,99, usando vírgula para centavos. Este é o limite técnico da simulação.');
+      return;
+    }
+  }
   const ven  = toNum(document.getElementById('vencimento').value);
   const quin = toNum(document.getElementById('quinquenio').value);
   const func = toNum(document.getElementById('funcao').value);
@@ -222,9 +265,9 @@ function calcular() {
   let outrosTotal = 0;
   const outrosDet = [];
 
-  for (let i = 1; i <= 5; i++) {
-    const vEl = document.getElementById(`outroValor${i}`);
-    const dEl = document.getElementById(`outroDesc${i}`);
+  for (const row of document.querySelectorAll('#outrosFields .outro-row')) {
+    const vEl = row.querySelector('input[id^=outroValor]');
+    const dEl = row.querySelector('input[id^=outroDesc]');
     if (vEl && dEl) {
       const val = toNum(vEl.value);
       if (val > 0) {
@@ -235,37 +278,40 @@ function calcular() {
   }
 
   const total = ven + quin + func + outrosTotal;
+  if (!Number.isFinite(total) || total <= 0 || total > CALC_RULES.maxAmount) { calcError('vencimento', 'A remuneração total deve ser maior que zero e não ultrapassar o limite técnico de R$ 999.999,99.'); return; }
   const tipo  = document.getElementById('tipoFalta').value;
   let desconto = 0;
   let resumo = '';
   let dadosCalculo = {};
 
   if (tipo === 'dia') {
-    const dias = parseFloat(document.getElementById('diasFalta').value) || 0;
-    if (dias <= 0) { alert('Informe a quantidade de dias de falta.'); return; }
-    desconto = (total / 30) * dias;
+    const dias = integerValue('diasFalta');
+    if (!Number.isInteger(dias) || dias < 1 || dias > CALC_RULES.days) { calcError('diasFalta', 'Informe de 1 a 30 dias inteiros, dentro da base mensal desta simulação.'); return; }
+    desconto = (total / CALC_RULES.days) * dias;
     const ext = valorPorExtenso(desconto);
     resumo = `Com remuneração de R$ ${fmtBRL(total)}, ${dias} ${dias === 1 ? 'dia de falta' : 'dias de faltas'} resultaram em desconto de R$ ${fmtBRL(desconto)} (${ext}).`;
     dadosCalculo = { tipo: 'dia', quantidade: dias, vencimento: ven, quinquenio: quin, funcao: func, outros: outrosDet, total, desconto, resumo };
 
   } else if (tipo === 'hora') {
     const hJornada = parseFloat(document.getElementById('jornada').value);
-    if (!hJornada) { alert('Selecione a jornada mensal.'); return; }
-    const h = parseFloat(document.getElementById('horaInput').value) || 0;
-    const m = parseFloat(document.getElementById('minutoInput').value) || 0;
+    if (!CALC_RULES.journeys.includes(hJornada)) { calcError('jornada', 'Selecione uma jornada mensal da lista.'); return; }
+    const h = integerValue('horaInput');
+    const m = integerValue('minutoInput');
+    if (!Number.isInteger(h) || h < 0 || h > hJornada) { calcError('horaInput', 'Informe horas inteiras entre zero e a jornada mensal selecionada.'); return; }
+    if (!Number.isInteger(m) || m < 0 || m > CALC_RULES.minuteMax) { calcError('minutoInput', 'Informe minutos inteiros entre 0 e 59.'); return; }
     const totalMin = (h * 60) + m;
-    if (totalMin <= 0) { alert('Informe as horas ou minutos de ausência.'); return; }
+    if (totalMin <= 0 || totalMin > hJornada * 60) { calcError('horaInput', 'A ausência deve ser maior que zero e não pode superar a jornada mensal.'); return; }
     desconto = (total / (hJornada * 60)) * totalMin;
     const ext = valorPorExtenso(desconto);
     resumo = `Com remuneração de R$ ${fmtBRL(total)} e jornada de ${hJornada}h mensais, ${totalMin} minutos de ausência resultaram em desconto de R$ ${fmtBRL(desconto)} (${ext}).`;
     dadosCalculo = { tipo: 'hora', horas: h, minutos: m, totalMinutos: totalMin, jornada: hJornada, vencimento: ven, quinquenio: quin, funcao: func, outros: outrosDet, total, desconto, resumo };
 
   } else {
-    alert('Selecione o tipo de falta.');
+    calcError('tipoFalta', 'Selecione o tipo de falta.');
     return;
   }
 
-  if (total <= 0) { alert('Informe ao menos um valor de remuneração.'); return; }
+
 
   ultimoCalculo = dadosCalculo;
 
@@ -295,9 +341,10 @@ function calcular() {
 
 // ── LIMPAR ─────────────────────────────────────────────
 function limpar() {
+  clearCalcErrors();
   document.querySelectorAll('.field-input, .field-select').forEach(el => { el.value = ''; });
   document.getElementById('outrosFields').innerHTML = '';
-  outroCount = 0;
+  // IDs não são reutilizados durante esta sessão.
   document.getElementById('btnAdicionarOutros').disabled = false;
   document.getElementById('campoDias').style.display  = 'none';
   document.getElementById('campoHoras').style.display = 'none';
@@ -327,6 +374,7 @@ async function gerarPDF() {
     return;
   }
 
+  const calculation = ultimoCalculo;
   const btn = document.getElementById('btnPDF');
   const originalHTML = btn.innerHTML;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
@@ -388,12 +436,12 @@ async function gerarPDF() {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
 
-    if (ultimoCalculo.tipo === 'dia') {
-      doc.text(`• Falta por dias: ${ultimoCalculo.quantidade} ${ultimoCalculo.quantidade === 1 ? 'dia' : 'dias'}`, mL + 5, y);
+    if (calculation.tipo === 'dia') {
+      doc.text(`• Falta por dias: ${calculation.quantidade} ${calculation.quantidade === 1 ? 'dia' : 'dias'}`, mL + 5, y);
     } else {
-      doc.text(`• Falta por horas: ${ultimoCalculo.horas}h ${ultimoCalculo.minutos}min (${ultimoCalculo.totalMinutos} min)`, mL + 5, y);
+      doc.text(`• Falta por horas: ${calculation.horas}h ${calculation.minutos}min (${calculation.totalMinutos} min)`, mL + 5, y);
       y += 6;
-      doc.text(`• Jornada mensal: ${ultimoCalculo.jornada} horas`, mL + 5, y);
+      doc.text(`• Jornada mensal: ${calculation.jornada} horas`, mL + 5, y);
     }
     y += 14;
 
@@ -406,10 +454,10 @@ async function gerarPDF() {
     doc.setFontSize(10);
 
     const itens = [
-      { desc: 'Vencimento', val: ultimoCalculo.vencimento },
-      { desc: 'Quinquênio', val: ultimoCalculo.quinquenio },
-      { desc: 'Função/Gratificação', val: ultimoCalculo.funcao },
-      ...(ultimoCalculo.outros || []).map(o => ({ desc: o.descricao, val: o.valor }))
+      { desc: 'Vencimento', val: calculation.vencimento },
+      { desc: 'Quinquênio', val: calculation.quinquenio },
+      { desc: 'Função/Gratificação', val: calculation.funcao },
+      ...(calculation.outros || []).map(o => ({ desc: o.descricao, val: o.valor }))
     ];
 
     itens.forEach(it => {
@@ -428,7 +476,7 @@ async function gerarPDF() {
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(17, 17, 17);
     doc.text('REMUNERAÇÃO TOTAL:', mL + 5, y);
-    doc.text(`R$ ${fmtBRL(ultimoCalculo.total)}`, mR, y, { align: 'right' });
+    doc.text(`R$ ${fmtBRL(calculation.total)}`, mR, y, { align: 'right' });
     y += 14;
 
     doc.setFillColor(17, 17, 17);
@@ -439,13 +487,13 @@ async function gerarPDF() {
     doc.text('VALOR DO DESCONTO', doc.internal.pageSize.width / 2, y + 4, { align: 'center' });
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
-    doc.text(`R$ ${fmtBRL(ultimoCalculo.desconto)}`, doc.internal.pageSize.width / 2, y + 16, { align: 'center' });
+    doc.text(`R$ ${fmtBRL(calculation.desconto)}`, doc.internal.pageSize.width / 2, y + 16, { align: 'center' });
     y += 36;
 
     doc.setTextColor(100, 100, 100);
     doc.setFontSize(9);
     doc.setFont('helvetica', 'italic');
-    const extLines = doc.splitTextToSize(`(${valorPorExtenso(ultimoCalculo.desconto)})`, util);
+    const extLines = doc.splitTextToSize(`(${valorPorExtenso(calculation.desconto)})`, util);
     doc.text(extLines, doc.internal.pageSize.width / 2, y, { align: 'center' });
     y += extLines.length * 5 + 12;
 
@@ -459,7 +507,7 @@ async function gerarPDF() {
       '• Este documento é uma simulação de cálculo e não possui validade oficial.',
       '• Para efeitos oficiais, consulte o setor de Recursos Humanos.',
       '• O cálculo considera 30 dias por mês para faltas diárias.',
-      '• Valores sujeitos a alterações conforme legislação vigente.',
+      '• Critérios e limites pendentes de homologação pelo RH.',
     ].forEach(t => { doc.text(t, mL + 3, y); y += 5; });
 
     const fy = doc.internal.pageSize.height - 22;

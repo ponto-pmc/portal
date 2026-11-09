@@ -68,3 +68,7 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+#calcError { color: #b42318; padding: 12px; border: 1px solid currentColor; border-radius: 6px; }
+[data-theme="dark"] #calcError { color: #ffb4ab; }
+[aria-invalid="true"] { border-color: #b42318; }
