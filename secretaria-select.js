@@ -14,6 +14,10 @@ export function enhanceSecretariaSelect(select, entries) {
         <h3 id="secretariaTitle" tabindex="-1" autofocus>Secretaria ou órgão</h3>
         <button type="button" class="secretaria-close" aria-label="Fechar lista"><svg xmlns="http://www.w3.org/2000/svg" class="inline-icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="vertical-align:-0.125em"><path d="m6 6 12 12M6 18 18 6"/></svg></button>
       </div>
+      <p class="secretaria-aviso" role="note">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4m0 3h.01"/></svg>
+        <span><strong>Seu local de trabalho é diferente da secretaria?</strong> Solicite ao seu <strong>ponto focal</strong> que informe a equipe do Ponto Eletrônico, para que você seja cadastrado no relógio facial correto.</span>
+      </p>
       <div class="secretaria-search">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg>
         <input type="text" id="secretariaSearch" role="combobox" aria-label="Buscar secretaria ou órgão por sigla ou nome" aria-autocomplete="list" aria-expanded="false" aria-controls="secretariaOptions" autocomplete="off" spellcheck="false" enterkeyhint="search" placeholder="Buscar por sigla ou nome" />
