@@ -203,9 +203,3 @@ body.photo-wizard.form-editing .mobile-bank-nav { display: none; }
 @media (prefers-reduced-motion: reduce) {
   #photoFormCard .btn { transition: none; }
 }
-
-/* Aviso sobre local de trabalho diferente da secretaria */
-.secretaria-aviso { display: flex; gap: 10px; align-items: flex-start; flex-shrink: 0; margin: 12px 12px 0; padding: 10px 12px; border: 1px solid #d9a441; border-radius: 10px; background: rgb(217 164 65 / 12%); color: var(--text-primary); font-size: var(--text-sm); line-height: 1.45; }
-.secretaria-aviso > svg { flex-shrink: 0; margin-top: 2px; color: #b7791f; }
-.side-card-aviso { border-color: #d9a441; }
-.side-card-aviso .ico-box { color: #b7791f; }

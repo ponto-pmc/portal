@@ -388,15 +388,14 @@ async function gerarPDF() {
 
     try {
       const logo = new Image();
-      logo.crossOrigin = 'Anonymous';
-      logo.src = 'https://legislacao.contagem.mg.gov.br/imgs/Marca-PMC-cor.png';
       await new Promise((res) => {
         logo.onload = res;
         logo.onerror = res;
         setTimeout(res, 3000);
+        logo.src = 'assets/logo-prefeitura-contagem.png';
       });
       if (logo.complete && logo.naturalWidth > 0) {
-        doc.addImage(logo, 'PNG', mL, y, 40, 20);
+        doc.addImage(logo, 'PNG', mL, y, 40, 40 * logo.naturalHeight / logo.naturalWidth);
       }
     } catch (_) {}
 
