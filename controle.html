@@ -48,13 +48,16 @@
   </nav>
 
   <main id="main-content" tabindex="-1">
-    <section class="hero-band control-hero" aria-labelledby="controle-title">
-      <div class="container">
-        <span class="hero-tagline">Ferramenta do portal · SEAD</span>
-        <h1 id="controle-title" class="display-1">Controle<br>mensal</h1>
-        <p class="lead">Organize seus horários, acompanhe o saldo da jornada e gere uma relação para consulta.</p>
-      </div>
-    </section>
+    <div class="container control-intro">
+      <button class="btn-back-page" type="button" onclick="history.back()">
+        <i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar
+      </button>
+      <section class="page-hero" aria-labelledby="controle-title">
+        <span class="eyebrow">Sistema Automatizado</span>
+        <h1 id="controle-title"><i class="fas fa-calendar-days" aria-hidden="true"></i> Controle mensal</h1>
+        <p>Organize seus horários, acompanhe o saldo da jornada e gere uma relação para consulta.</p>
+      </section>
+    </div>
 
     <div class="container control-container">
       <section class="app-shell" aria-label="Controle mensal de jornada">
