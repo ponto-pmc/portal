@@ -217,10 +217,14 @@ function updateDay(day) {
 
   if (value === null) {
     result.classList.add('empty');
-    const hasFirstTwo = ['entry', 'break-start'].every((slot) => body.querySelector(`input[data-day="${day}"][data-slot="${slot}"]`).value);
-    const hasReturn = body.querySelector(`input[data-day="${day}"][data-slot="break-end"]`).value;
-    const needsLunch = !isPlantao() && targetForDay(day) > LUNCH_THRESHOLD && hasFirstTwo && !hasReturn;
-    result.textContent = needsLunch ? 'Almoço obrigatório' : '—';
+    const missingInterval = ['break-start', 'break-end'].some((slot) =>
+      !body.querySelector(`input[data-day="${day}"][data-slot="${slot}"]`).value
+    );
+    const hasAnyTime = SLOT_NAMES.some((slot) =>
+      body.querySelector(`input[data-day="${day}"][data-slot="${slot}"]`).value
+    );
+    const needsLunch = !isPlantao() && targetForDay(day) > LUNCH_THRESHOLD && hasAnyTime && missingInterval;
+    result.textContent = needsLunch ? 'Falta o intervalo' : '—';
     result.classList.toggle('needs-lunch', needsLunch);
     return null;
   }

@@ -1,9 +1,8 @@
 const APP_BASE = self.registration.scope;
 const CACHE_PREFIX = `ponto-pmc-${encodeURIComponent(new URL(APP_BASE).pathname)}-`;
-const CACHE_NAME = `${CACHE_PREFIX}v10`;
+const CACHE_NAME = `${CACHE_PREFIX}v11`;
 const APP_SHELL = [
-  '', 'index.html', 'style.css', 'tokens.css', 'faq.css',
-  'script.js', 'faq.js', 'faq-search.js', 'pwa.js', 'manifest.json', 'mobile-nav.js', 'mobile-nav.css',
+  'manifest.json',
   'icons/icon-192.png', 'icons/icon-512.png', 'assets/brasao-ascii.svg', 'assets/logo-prefeitura-contagem.png'
 ].map((path) => new URL(path, APP_BASE).href);
 
@@ -30,6 +29,9 @@ self.addEventListener('fetch', (event) => {
   if (!url.href.startsWith(APP_BASE)) return;
   const appPath = url.href.slice(APP_BASE.length);
   if (appPath.startsWith('api/') || appPath.startsWith('uploads/') || appPath.startsWith('vendor/')) return;
+  // Fetch pages and code directly so saved revisions never reuse old UI files.
+  if (request.mode === 'navigate' || ['document', 'script', 'style'].includes(request.destination)
+    || /\.(?:html?|css|[cm]?js|jsx|tsx?)$/i.test(url.pathname)) return;
 
   event.respondWith(
     fetch(request).then((response) => {
@@ -41,10 +43,6 @@ self.addEventListener('fetch', (event) => {
     }).catch(async () => {
       const cached = await caches.match(request);
       if (cached) return cached;
-      if (request.mode === 'navigate') {
-        const home = await caches.match(new URL('index.html', APP_BASE).href);
-        if (home) return home;
-      }
       return Response.error();
     })
   );
