@@ -14,16 +14,18 @@ export function enhanceSecretariaSelect(select, entries) {
         <h3 id="secretariaTitle" tabindex="-1" autofocus>Secretaria ou órgão</h3>
         <button type="button" class="secretaria-close" aria-label="Fechar lista"><svg xmlns="http://www.w3.org/2000/svg" class="inline-icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="vertical-align:-0.125em"><path d="m6 6 12 12M6 18 18 6"/></svg></button>
       </div>
-      <p class="secretaria-aviso" role="note">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4m0 3h.01"/></svg>
-        <span><strong>Seu local de trabalho é diferente da secretaria?</strong> Solicite ao seu <strong>ponto focal</strong> que informe a equipe do Ponto Eletrônico, para que você seja cadastrado no relógio facial correto.</span>
-      </p>
       <div class="secretaria-search">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg>
         <input type="text" id="secretariaSearch" role="combobox" aria-label="Buscar secretaria ou órgão por sigla ou nome" aria-autocomplete="list" aria-expanded="false" aria-controls="secretariaOptions" autocomplete="off" spellcheck="false" enterkeyhint="search" placeholder="Buscar por sigla ou nome" />
       </div>
-      <div id="secretariaOptions" class="secretaria-options" role="listbox" tabindex="0" aria-label="Secretarias e órgãos"></div>
-      <p class="secretaria-empty" role="status" hidden>Nenhuma secretaria encontrada.</p>
+      <div class="secretaria-results">
+        <p class="secretaria-aviso" role="note">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4m0 3h.01"/></svg>
+          <span><strong>Seu local de trabalho é diferente da secretaria?</strong> Solicite ao seu <strong>ponto focal</strong> que informe a equipe do Ponto Eletrônico, para que você seja cadastrado no relógio facial correto.</span>
+        </p>
+        <div id="secretariaOptions" class="secretaria-options" role="listbox" tabindex="0" aria-label="Secretarias e órgãos"></div>
+        <p class="secretaria-empty" role="status" hidden>Nenhuma secretaria encontrada.</p>
+      </div>
     </dialog>`;
   select.after(picker);
   select.hidden = true;
@@ -33,6 +35,7 @@ export function enhanceSecretariaSelect(select, entries) {
   const panel = picker.querySelector('.secretaria-panel');
   const search = picker.querySelector('input');
   const list = picker.querySelector('[role=listbox]');
+  const results = picker.querySelector('.secretaria-results');
   const empty = picker.querySelector('.secretaria-empty');
   const normalize = text => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').trim();
   const sorted = [...entries].sort((a, b) => a[0].localeCompare(b[0], 'pt-BR'));
@@ -63,10 +66,10 @@ export function enhanceSecretariaSelect(select, entries) {
       search.setAttribute('aria-activedescendant', option.id);
       list.setAttribute('aria-activedescendant', option.id);
       if (scroll) {
-        const top = option.offsetTop;
-        if (top < list.scrollTop) list.scrollTop = top;
-        else if (top + option.offsetHeight > list.scrollTop + list.clientHeight)
-          list.scrollTop = top + option.offsetHeight - list.clientHeight;
+        const top = option.getBoundingClientRect().top - results.getBoundingClientRect().top + results.scrollTop;
+        if (top < results.scrollTop) results.scrollTop = top;
+        else if (top + option.offsetHeight > results.scrollTop + results.clientHeight)
+          results.scrollTop = top + option.offsetHeight - results.clientHeight;
       }
     }
   }
@@ -86,7 +89,10 @@ export function enhanceSecretariaSelect(select, entries) {
     });
     empty.hidden = filtered.length > 0;
     setActive(Math.max(0, filtered.findIndex(entry => entry[0] === select.value)), false);
-    list.scrollTop = 0;
+    // Ao buscar, mostra os resultados sem deixar o aviso ocupar a área do teclado.
+    results.scrollTop = terms.length
+      ? list.getBoundingClientRect().top - results.getBoundingClientRect().top + results.scrollTop
+      : 0;
   }
   function updateViewport() {
     const viewport = window.visualViewport;
@@ -122,7 +128,7 @@ export function enhanceSecretariaSelect(select, entries) {
     panel.querySelector('h3').focus({ preventScroll: true });
     trigger.setAttribute('aria-expanded', 'true');
     search.setAttribute('aria-expanded', 'true');
-    setActive(active);
+    setActive(active, false);
     window.visualViewport?.addEventListener('resize', updateViewport);
     window.visualViewport?.addEventListener('scroll', updateViewport);
     window.addEventListener('resize', updateViewport);

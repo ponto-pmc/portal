@@ -56,7 +56,7 @@
   background: var(--surface);
 }
 .secretaria-trigger[aria-expanded=true] > svg { transform: rotate(180deg); }
-.secretaria-value { display: grid; gap: 3px; min-width: 0; line-height: 1.4; }
+.secretaria-value { display: grid; gap: 3px; min-width: 0; line-height: 1.4; overflow-wrap: anywhere; }
 .secretaria-value strong { color: var(--text-primary); font-size: var(--text-sm); }
 .secretaria-value span { font-size: var(--text-sm); overflow-wrap: anywhere; }
 .secretaria-panel:not([open]) { display: none; }
@@ -79,10 +79,29 @@ body.secretaria-open { overflow: hidden; }
   overflow: hidden;
 }
 .secretaria-panel::backdrop { background: rgb(0 0 0 / 45%); }
-.secretaria-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; background: var(--surface-2); flex-shrink: 0; }
-.secretaria-heading h3 { font-size: 18px; line-height: 1.4; }
+.secretaria-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; background: var(--surface-2); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.secretaria-heading h3 { min-width: 0; margin: 0; font: 700 18px/1.35 var(--font-body); letter-spacing: -.02em; overflow-wrap: anywhere; }
 .secretaria-heading h3:focus { outline: none; }
-.secretaria-close { width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--border-mid); border-radius: 50%; background: var(--surface); color: var(--text-primary); font-size: 18px; cursor: pointer; }
+.secretaria-close { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; flex-shrink: 0; border: 1px solid var(--border-mid); border-radius: 50%; background: var(--surface); color: var(--text-primary); font-size: 18px; cursor: pointer; }
+.secretaria-close svg { display: block; width: 20px; height: 20px; }
+.secretaria-close:focus-visible, .secretaria-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.secretaria-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 12px 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+.secretaria-aviso > svg { flex: 0 0 18px; margin-top: 2px; color: var(--warning); }
+.secretaria-aviso > span { min-width: 0; overflow-wrap: anywhere; }
+.secretaria-aviso strong { color: var(--text-primary); }
+.secretaria-aviso strong:first-child { display: block; margin-bottom: 4px; }
 .secretaria-search {
   display: flex;
   flex-shrink: 0;
@@ -104,14 +123,17 @@ body.secretaria-open { overflow: hidden; }
   background: transparent;
   outline: none;
   font-size: 16px;
+  scroll-margin: 0;
 }
-.secretaria-options {
-  position: relative;
-  flex: 1;
+.secretaria-results {
+  flex: 1 1 0;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
+}
+.secretaria-options {
+  position: relative;
   padding: 0 8px 8px;
 }
 .secretaria-options:focus-visible { outline-offset: -3px; }
@@ -191,10 +213,19 @@ body.secretaria-open { overflow: hidden; }
 #photoFormCard :is(input, textarea, select) { scroll-margin-block: 100px; }
 #photoFormCard .yn label.opt, #photoFormCard .btn { min-height: 48px; }
 #photoFormCard label.check { min-height: 48px; padding-block: 8px; }
+#photoFormCard :is(.callout, .hint, .result) { overflow-wrap: anywhere; }
+#photoFormCard .callout > i, #photoFormCard .lookup-pending > i { flex-shrink: 0; }
+#photoFormCard .callout > div { min-width: 0; }
+#photoFormCard .result h3 { align-items: flex-start; }
+#photoFormCard .result h3 > i { flex-shrink: 0; margin-top: .2em; }
 body.photo-wizard.form-editing .mobile-bank-nav { display: none; }
 @media (max-width: 640px) {
   #photoFormCard :is(input[type=text], textarea, select) { font-size: 16px; }
   #photoFormCard { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+  #photoFormCard .btn { white-space: normal; }
+  .secretaria-heading { padding: 10px 12px; }
+  .secretaria-heading h3 { font-size: 17px; }
+  .cam-box { max-height: calc(100dvh - 24px); }
 }
 @media (max-width: 640px) {
   body.photo-wizard .wizard-head {
