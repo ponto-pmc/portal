@@ -1,4 +1,7 @@
 export function initPhotoFormUX(advance) {
+  document.querySelectorAll('[data-current-year]').forEach(element => {
+    element.textContent = new Date().getFullYear();
+  });
   const card = document.getElementById('photoFormCard');
   const fields = ['nome', 'cpf', 'matricula', 'matricula2', 'email'].map(id => document.getElementById(id));
   const mobile = () => matchMedia('(max-width: 640px)').matches;
