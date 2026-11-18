@@ -22,6 +22,16 @@
   padding-top: var(--sp-5);
   border-top: 1px solid var(--border);
 }
+.photo-form-footer {
+  margin-top: var(--sp-6);
+  color: var(--text-secondary);
+  text-align: center;
+  font-size: var(--text-xs);
+  line-height: 1.6;
+}
+.photo-form-footer p { margin: 0; }
+.photo-form-footer .photo-form-security { margin-bottom: var(--sp-2); font-weight: 600; }
+.photo-form-security i { margin-right: 4px; }
 .secretaria-picker { min-width: 0; }
 .secretaria-trigger {
   display: flex;
