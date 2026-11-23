@@ -33,7 +33,7 @@
     for (const panel of panels) { panel.inert = false; panel.removeAttribute('aria-hidden'); }
     cell.querySelector('span').style.visibility = '';
     stage.style.removeProperty('--scene-height');
-    markers.forEach((marker, i) => { marker.classList.toggle('is-active', i === 0); marker.style.removeProperty('border-image'); });
+    markers.forEach((marker, i) => { marker.classList.toggle('is-active', i === 0); marker.style.removeProperty('border-image'); marker.querySelector('a')?.removeAttribute('aria-current'); });
   }
 
   function rawProgress() {
@@ -76,8 +76,6 @@
       cellY: target.top - box.top + target.height / 2,
       openingY: compact.matches ? panels[0].getBoundingClientRect().height + 40 : 0
     };
-    stage.dataset.scrollStart = geometry.start.toFixed(2);
-    stage.dataset.scrollDistance = geometry.distance.toFixed(2);
     current = rawProgress();
     paint(current);
   }
@@ -140,6 +138,7 @@
     frame = 0;
     if (!geometry || failed || reduced.matches) return;
     const target = rawProgress();
+    if (current === target) { lastTick = time; return; }
     const elapsed = Math.min(64, lastTick ? time - lastTick : 16);
     lastTick = time;
     if (current === null || Math.abs(target - current) < .00008) current = target;
@@ -151,8 +150,6 @@
 
   function toHash(behavior = 'instant') {
     if (!geometry || !(location.hash in phases)) return;
-    stage.dataset.anchorTarget = (geometry.start + phases[location.hash] * geometry.distance).toFixed(2);
-    stage.dataset.anchor = location.hash;
     window.scrollTo({ top: geometry.start + phases[location.hash] * geometry.distance, behavior });
     if (behavior === 'instant') { current = rawProgress(); paint(current); }
     schedule();

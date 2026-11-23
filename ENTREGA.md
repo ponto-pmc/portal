@@ -6,8 +6,19 @@ Implementado nos arquivos fornecidos, sem etapa de build nem dependências novas
 
 Na pasta do projeto, execute `node preview.cjs` e abra http://127.0.0.1:4173/portal/. No PowerShell com restrições de resolução de caminhos do Node, use `Get-Content preview.cjs -Raw | node`. Encerre com Ctrl+C. Também é possível usar qualquer servidor estático; para validar a publicação, teste com o prefixo `/portal/`.
 
+## Experiência contínua e materiais integrados
+
+A revisão atual usa uma única composição fixa para a abertura e as três etapas: o mesmo terminal continua em cena enquanto textos HTML se alternam suavemente. O progresso acompanha a rolagem nativa com amortecimento de 95 ms, sem interceptar a roda do mouse ou os gestos de toque. O fundo da composição é branco; cabeçalho e conteúdo ocupam a largura disponível com margens fluidas. Foram removidos os avisos visuais solicitados. As etapas têm navegação direta por âncora.
+
+As cinco imagens do antigo carrossel também seguem a rolagem, com imagem e texto sincronizados, avanço e retorno e controles de acesso direto. O temporizador legado foi desativado nesta home. O novo arquivo home-highlights.js controla essa sequência; script.js recebeu somente as proteções para impedir o autoplay nesse bloco. URLs, documentos e o acesso ao aplicativo foram preservados. Sem JavaScript ou com movimento reduzido, os materiais ficam disponíveis em uma lista estática.
+
+No HTML, os painéis inativos da composição são retirados da navegação por teclado durante a animação, enquanto os controles das etapas permanecem acessíveis. O conteúdo completo volta ao fluxo normal nas versões estáticas.
+
+Os registros anteriores abaixo descrevem a implementação inicial e a revisão móvel; as informações desta seção prevalecem sobre a descrição antiga da fixação isolada do terminal e do carrossel automático.
+
 ## Arquivos alterados e criados
 
+- Alterados também: `script.js` (bloqueio do autoplay apenas neste bloco), `design/export-scenes.cjs` e as três cenas estáticas com fundo branco. Criado: `home-highlights.js`.
 - Alterado: `index.html`, com nova abertura, demonstração e orientações; atalhos reais nas lojas de aplicativos; carregamento diferido dos scripts existentes.
 - Criados: `home.css`, `home-static.css` e `home.js`, exclusivos da página inicial.
 - Criados: `assets/home/terminal.webp`, `terminal-mobile.webp`, `retrato-ficticio.webp`, `cena-cadastro.webp`, `cena-registro.webp` e `cena-frequencia.webp`.
@@ -46,6 +57,6 @@ Os links legados de Drive, capacitação, lojas, contatos e Power BI foram prese
 
 ## Recursos e desempenho
 
-A abordagem das três cenas combina um render original recortado com HTML/CSS. Não há vídeo, sequência pesada ou biblioteca de animação. O render principal tem 41.372 bytes, a alternativa móvel 15.768 bytes e o retrato 5.866 bytes. As seis imagens web somam 95.674 bytes. As cenas estáticas usam lazy loading; a imagem do terminal tem prioridade alta e `srcset`. Originais de produção em `design/source/` não são solicitados pelo site.
+A abordagem das três cenas combina um render original recortado com HTML/CSS. Não há vídeo, sequência pesada ou biblioteca de animação. O render principal tem 41.372 bytes, a alternativa móvel 15.768 bytes e o retrato 5.866 bytes. As seis imagens web somam 93.008 bytes. As cenas estáticas usam lazy loading; a imagem do terminal tem prioridade alta e `srcset`. Originais de produção em `design/source/` não são solicitados pelo site.
 
 Origem, condições de uso e prompts estão em `design/ATIVOS.md`. A matriz de testes e as limitações estão em `design/TESTES.md`.

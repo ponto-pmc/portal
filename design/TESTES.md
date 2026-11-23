@@ -1,5 +1,20 @@
 # Validação — 23/11/2026
 
+## Revisão atual: composição contínua e imagens por rolagem
+
+Esta revisão substitui a fixação separada e o carrossel automático descritos nos registros anteriores. Há um único painel fixo para equipamento e informações, com transições reversíveis e suavização de 95 ms. O antigo carrossel usa o mesmo modelo de rolagem nativa, com seleção direta e sem temporizador.
+
+- Desktop em 1920 × 1080: composição de 1915 px de largura (descontada a barra vertical), margens fluidas de cerca de 77 px, atalhos visíveis na abertura e fundo branco rgb(255, 255, 255).
+- Celular em 390 × 844: conteúdo da etapa de frequência terminou em y≈661 px, acima da navegação em y=769 px. Horário alinhado à célula com erro inferior a 0,001 px nos dois eixos.
+- Materiais em 320 × 740: legislação e seu link legíveis, controles terminando em y≈653 px, acima da navegação em y=665 px; nenhuma rolagem horizontal.
+- Sequência de imagens: seleção Legislação estável por 31,6 segundos sem rolagem. Avanço por rolagem mostrou Aplicativo; retorno mostrou Legislação, mantendo o painel em y=63 px. Os controles também navegam para as informações correspondentes.
+- HTML verificado: nenhum recurso local ausente, ID duplicado, âncora inválida ou comando antigo de navegação do carrossel. As frases solicitadas foram removidas.
+- Fixture sem JavaScript: zero scripts, quatro painéis de texto no fluxo, três cenas estáticas e cinco materiais visíveis em posição relativa.
+- Fixture de movimento reduzido: sem composição fixada, sem materiais fixados e cinco materiais estáticos visíveis.
+- As cenas estáticas foram reexportadas com fundo branco para acompanhar a nova direção visual.
+
+Os testes de tamanho móvel e preferências são simulações no navegador integrado. As limitações de aparelhos físicos, leitor de tela e rede descritas abaixo continuam válidas. Capturas com sufixo v3 correspondem a esta revisão.
+
 ## Revisão: sequência móvel e identidade original
 
 A versão revisada usa animação por rolagem também no celular e em telas baixas. A versão estática fica reservada à ausência de JavaScript, movimento reduzido ou falha de mídia. A paleta e a tipografia vêm diretamente de tokens.css, sem a paleta azul-petróleo introduzida na primeira entrega.

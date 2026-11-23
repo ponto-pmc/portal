@@ -143,6 +143,7 @@ let autoSlideId = null;
 let isTrans     = false;
 
 function initCarousel() {
+  if (document.querySelector('.scroll-highlights')) return;
   updateCarousel();
   startAutoSlide();
   const wrapper = document.querySelector('.carousel-wrapper');
@@ -208,6 +209,7 @@ function currentSlide(n) {
 }
 
 function startAutoSlide()  {
+  if (document.querySelector('.scroll-highlights')) return;
   const carousel = document.querySelector('.modern-carousel');
   if (document.hidden || matchMedia('(prefers-reduced-motion: reduce)').matches || carousel?.contains(document.activeElement)) return;
   if (!autoSlideId) autoSlideId = setInterval(() => moveCarousel(1), 5500);

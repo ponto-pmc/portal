@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="home.css" />
   <noscript><link rel="stylesheet" href="home-static.css" /></noscript>
   <script src="home.js" defer></script>
+  <script src="home-highlights.js" defer></script>
 </head>
 <body class="portal-home">
   <a class="skip-link" href="#main-content">Ir para o conteúdo principal</a>
@@ -81,7 +82,7 @@
             <div class="demo-stage" aria-hidden="true">
               <div class="demo-orbit"></div>
               <div class="terminal">
-                <img class="terminal-image" src="assets/home/terminal.webp" srcset="assets/home/terminal-mobile.webp 430w, assets/home/terminal.webp 814w" sizes="(max-width: 900px) 70vw, 420px" width="814" height="1086" alt="" fetchpriority="high" />
+                <img class="terminal-image" src="assets/home/terminal.webp" srcset="assets/home/terminal-mobile.webp 430w, assets/home/terminal.webp 814w" sizes="(max-width: 900px) 220px, (max-height: 650px) 220px, 46vw" width="814" height="1086" alt="" fetchpriority="high" />
                 <div class="terminal-screen">
                   <div class="standby"><svg viewBox="0 0 64 64" fill="none" stroke-width="1.5"><path d="M6 22V6h16m20 0h16v16M6 42v16h16m20 0h16V42"/><circle cx="32" cy="25" r="9"/><path d="M17 49c1-16 29-16 30 0"/></svg><span>PONTO ELETRÔNICO</span><div class="standby-lines"></div></div>
                   <span class="confirm-symbol">✓</span>
@@ -91,7 +92,6 @@
               <div class="time-travel">08:00</div>
               <div class="report-card"><p class="report-label">Exemplo fictício</p><h3>Espelho de ponto</h3><table><thead><tr><th>Data</th><th>Marcação</th><th>Tipo</th></tr></thead><tbody><tr><td>05/11</td><td class="destination"><span>08:00</span></td><td>Entrada</td></tr></tbody></table><p class="report-foot">Uma marcação na sua frequência.</p></div>
             </div>
-            <nav class="visual-footer" aria-label="Etapas do ponto eletrônico"><ol class="demo-steps"><li class="is-active"><a href="#cadastro">Cadastro facial</a></li><li><a href="#registro">Registro</a></li><li><a href="#frequencia">Frequência</a></li></ol></nav>
           </div>
         </div>
 
@@ -135,7 +135,7 @@
       </section>
 
       <!-- CAROUSEL -->
-      <section class="modern-carousel" aria-label="Carrossel de informações">
+      <section class="modern-carousel scroll-highlights" id="informacoes" aria-labelledby="highlights-title"><div class="highlights-pin"><div class="highlights-heading"><span class="step-label">Serviços e orientações</span><h2 id="highlights-title">Informações para sua rotina.</h2></div>
         <div class="carousel-wrapper">
           <div class="carousel-track" id="carouselTrack">
 
@@ -163,7 +163,7 @@
                   <span class="eyebrow">Legislação</span>
                   <h3>Marco Legal do Controle de Ponto</h3>
                   <p>Decreto Nº 1237, de 06 de Junho de 2024</p>
-                  <p>Portaria SEAD Nº. 13, de 04 de Junho de 2025</p>
+                  <p>Portaria SEAD Nº. 13, de 04 de Junho de 2025</p><a class="home-link" href="https://drive.google.com/uc?id=19SWZsRNQ-8Bsw2WJKbl1MmO6sEXyFOXp">Consultar legislação</a>
                 </div>
               </div>
             </div>
@@ -194,7 +194,7 @@
                 <div class="carousel-text">
                   <span class="eyebrow">Suporte</span>
                   <h3>Atendimento Especializado</h3>
-                  <p>Nossa equipe está pronta para ajudar com dúvidas, problemas técnicos e orientações sobre o sistema.</p>
+                  <p>Nossa equipe está pronta para ajudar com dúvidas, problemas técnicos e orientações sobre o sistema.</p><a class="home-link" href="#suporte-title">Encontrar atendimento</a>
                 </div>
               </div>
             </div>
@@ -207,29 +207,15 @@
                 <div class="carousel-text">
                   <span class="eyebrow">Relatórios</span>
                   <h3>Histórico Detalhado</h3>
-                  <p>Acesso completo ao histórico de frequência com relatórios organizados e fáceis de entender.</p>
+                  <p>Acesso completo ao histórico de frequência com relatórios organizados e fáceis de entender.</p><a class="home-link" href="https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx" target="_blank" rel="noopener noreferrer">Consultar no Forponto</a>
                 </div>
               </div>
             </div>
 
           </div>
-
-          <button class="carousel-nav prev" onclick="moveCarousel(-1)" aria-label="Anterior">
-            <i class="fas fa-chevron-left"></i>
-          </button>
-          <button class="carousel-nav next" onclick="moveCarousel(1)" aria-label="Próximo">
-            <i class="fas fa-chevron-right"></i>
-          </button>
         </div>
 
-        <div class="carousel-dots" role="group" aria-label="Escolher informação">
-          <button class="dot active" type="button" onclick="currentSlide(1)" aria-label="Mostrar informação 1" aria-pressed="true"></button>
-          <button class="dot" type="button" onclick="currentSlide(2)" aria-label="Mostrar informação 2" aria-pressed="false"></button>
-          <button class="dot" type="button" onclick="currentSlide(3)" aria-label="Mostrar informação 3" aria-pressed="false"></button>
-          <button class="dot" type="button" onclick="currentSlide(4)" aria-label="Mostrar informação 4" aria-pressed="false"></button>
-          <button class="dot" type="button" onclick="currentSlide(5)" aria-label="Mostrar informação 5" aria-pressed="false"></button>
-        </div>
-      </section>
+      </div></section>
 
       <!-- ÚLTIMAS NOTÍCIAS -->
       <section class="section-sm latest-news" aria-label="Últimas notícias">
