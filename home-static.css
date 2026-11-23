@@ -1,0 +1,9 @@
+/* No-JavaScript navigation: every existing destination remains available. */
+.portal-home .theme-toggle-btn, .portal-home .nav-hamburger { display: none; }
+.portal-home .visual-sticky { position: static; }
+@media (max-width: 900px) {
+  .portal-home .site-nav { position: static; }
+  .portal-home .site-nav .inner { height: auto; flex-wrap: wrap; padding-block: 16px; }
+  .portal-home .nav-links { display: flex !important; position: static; flex-direction: row; flex-wrap: wrap; width: 100%; gap: 8px; padding: 0; max-height: none; box-shadow: none; border: 0; transform: none; opacity: 1; visibility: visible; }
+  .portal-home .nav-links a { display: block; min-height: 42px; padding: 10px; }
+}

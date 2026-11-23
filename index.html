@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ponto.PMC</title>
+  <title>Portal do Ponto Eletrônico | Prefeitura de Contagem</title>
+  <meta name="description" content="Acesse o ponto eletrônico de Contagem, envie sua foto para cadastro facial e encontre orientações sobre frequência." />
   <!-- Necessário para imagens do Google Drive não serem bloqueadas por política de referrer -->
   <meta name="referrer" content="no-referrer-when-downgrade" />
   <link rel="icon" type="image/png" href="https://i.ibb.co/fVRw238j/Ponto-removebg-preview.png" />
@@ -17,8 +18,11 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="accessibility.css" />
   <link rel="stylesheet" href="mobile-nav.css" />
+  <link rel="stylesheet" href="home.css" />
+  <noscript><link rel="stylesheet" href="home-static.css" /></noscript>
+  <script src="home.js" defer></script>
 </head>
-<body>
+<body class="portal-home">
   <a class="skip-link" href="#main-content">Ir para o conteúdo principal</a>
 
   <!-- NAVBAR -->
@@ -34,6 +38,7 @@
         <li><a href="controle.html">Controle</a></li>
         <li><a href="imagem.html">Imagens</a></li>
         <li><a href="foto.html">Enviar Foto</a></li>
+        <li><a href="#orientacoes">Orientações</a></li>
         <li><a href="faq.html">Ajuda</a></li>
         <li>
           <a href="https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx"
@@ -54,74 +59,80 @@
     </div>
   </nav>
 
-  <!-- HERO -->
-  <section class="hero-band main-hero" aria-label="Bem-vindo">
-    <div class="container">
-      <div class="hero-brand-band" role="button" tabindex="0" aria-label="Ampliar texto da faixa com a lupa" aria-pressed="false">
-        <canvas class="hero-text-field" aria-hidden="true"></canvas>
-        <img class="hero-brasao" src="assets/brasao-ascii.svg" width="504" height="672" alt="Brasão de Contagem formado pela frase Ponto Eletrônico da Prefeitura de Contagem, nas cores originais da logo" fetchpriority="high" />
-      </div>
-      <p class="hero-tagline">Prefeitura Municipal de Contagem · SEAD</p>
-      <h1 class="display-1">
-        Portal do<br><span>Ponto Eletrônico</span>
-      </h1>
-      <p class="lead">
-        Central de acesso ao sistema de controle de frequência da Prefeitura de Contagem.
-      </p>
-      <div class="hero-cta-row">
-        <a href="https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx"
-           target="_blank" rel="noopener" class="btn btn-primary btn-lg">
-          Acessar Sistema
-        </a>
-        <a href="faq.html" class="btn btn-outline btn-lg">
-          Central de Ajuda
-        </a>
-        <button type="button" id="installPortal" class="btn btn-outline btn-lg" hidden>
-          <i class="fas fa-download" aria-hidden="true"></i> Instalar Portal
-        </button>
-      </div>
-      <p id="installHelp" class="install-help" role="status" aria-live="polite" hidden></p>
-
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <div class="hero-stat-value">25<span>+</span></div>
-          <div class="hero-stat-label">Secretarias</div>
-        </div>
-        <div class="hero-stat">
-          <div class="hero-stat-value">24<span>/7</span></div>
-          <div class="hero-stat-label">Acesso Online</div>
-        </div>
-        <div class="hero-stat">
-          <div class="hero-stat-value">100<span>%</span></div>
-          <div class="hero-stat-label">Digital</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- TICKER -->
-  <div class="ticker-band" aria-hidden="true">
-    <div class="ticker-track" id="tickerTrack">
-      <span>Controle de Frequência</span><span class="sep"> · </span>
-      <span>Sistema Digital</span><span class="sep"> · </span>
-      <span>Ponto Eletrônico</span><span class="sep"> · </span>
-      <span>Prefeitura de Contagem</span><span class="sep"> · </span>
-      <span>SEAD</span><span class="sep"> · </span>
-      <span>Acesso 24/7</span><span class="sep"> · </span>
-      <span>100% Online</span><span class="sep"> · </span>
-      <span>Controle de Frequência</span><span class="sep"> · </span>
-      <span>Sistema Digital</span><span class="sep"> · </span>
-      <span>Ponto Eletrônico</span><span class="sep"> · </span>
-      <span>Prefeitura de Contagem</span><span class="sep"> · </span>
-      <span>SEAD</span><span class="sep"> · </span>
-      <span>Acesso 24/7</span><span class="sep"> · </span>
-      <span>100% Online</span><span class="sep"> · </span>
-    </div>
-  </div>
-
-  <!-- MAIN CONTENT -->
   <main id="main-content" tabindex="-1">
+    <section class="journey" aria-label="Conheça os serviços de ponto eletrônico">
+      <div class="journey-layout container">
+        <section class="home-intro" id="inicio" aria-labelledby="portal-title">
+          <p class="home-kicker home-kicker-brand">PREFEITURA DE CONTAGEM <span aria-hidden="true">/</span> SEAD</p>
+          <h1 id="portal-title">Portal do<br><span>Ponto Eletrônico</span></h1>
+          <p class="home-lead">Acesse os serviços de ponto e encontre orientações sobre cadastro facial e frequência.</p>
+          <div class="home-actions">
+            <a class="home-button" href="foto.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="m8 5 1-2h6l1 2"/><circle cx="12" cy="12" r="3"/></svg>Enviar foto</a>
+            <a class="home-button secondary" href="https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Acessar o ponto</a>
+          </div>
+          <p class="frequency-hint">A consulta da frequência também acontece no Forponto.</p>
+          <button type="button" id="installPortal" hidden>Instalar portal</button>
+          <p id="installHelp" class="install-help" role="status" aria-live="polite" hidden></p>
+          <div class="intro-bottom"><p>Primeira vez por aqui?<br>Conheça o caminho.</p><a class="home-link" href="#cadastro">Como funciona</a></div>
+        </section>
+
+        <div class="visual-column">
+          <div class="visual-sticky">
+            <div class="demo-stage" aria-hidden="true">
+              <div class="demo-orbit"></div>
+              <div class="terminal">
+                <img class="terminal-image" src="assets/home/terminal.webp" srcset="assets/home/terminal-mobile.webp 430w, assets/home/terminal.webp 814w" sizes="(max-width: 900px) 70vw, 420px" width="814" height="1086" alt="" fetchpriority="high" />
+                <div class="terminal-screen">
+                  <div class="standby"><svg viewBox="0 0 64 64" fill="none" stroke-width="1.5"><path d="M6 22V6h16m20 0h16v16M6 42v16h16m20 0h16V42"/><circle cx="32" cy="25" r="9"/><path d="M17 49c1-16 29-16 30 0"/></svg><span>PONTO ELETRÔNICO</span><div class="standby-lines"></div></div>
+                  <span class="confirm-symbol">✓</span>
+                </div>
+              </div>
+              <div class="photo-travel"><img src="assets/home/retrato-ficticio.webp" width="240" height="300" alt="" loading="lazy" /><span class="photo-corners"></span></div>
+              <div class="time-travel">08:00</div>
+              <div class="report-card"><p class="report-label">Exemplo fictício</p><h3>Espelho de ponto</h3><table><thead><tr><th>Data</th><th>Marcação</th><th>Tipo</th></tr></thead><tbody><tr><td>05/11</td><td class="destination"><span>08:00</span></td><td>Entrada</td></tr></tbody></table><p class="report-foot">Uma marcação na sua frequência.</p></div>
+            </div>
+            <nav class="visual-footer" aria-label="Etapas do ponto eletrônico"><ol class="demo-steps"><li class="is-active"><a href="#cadastro">Cadastro facial</a></li><li><a href="#registro">Registro</a></li><li><a href="#frequencia">Frequência</a></li></ol></nav>
+          </div>
+        </div>
+
+        <section class="home-step" id="cadastro" aria-labelledby="cadastro-title">
+          <span class="step-label">Cadastro facial</span>
+          <h2 id="cadastro-title">Tudo começa<br>com a sua foto.</h2>
+          <p>Envie sua foto pelo formulário de cadastro facial. Antes do envio, consulte as orientações de enquadramento e os requisitos publicados na página.</p>
+          <a class="home-link" href="foto.html">Enviar foto e ver orientações</a>
+          <p class="step-note">O envio da foto faz parte do cadastro. A demonstração não representa aprovação automática.</p>
+          <figure class="static-scene"><img src="assets/home/cena-cadastro.webp" alt="Foto de uma pessoa fictícia enquadrada no visor do terminal de ponto." width="960" height="700" loading="lazy" /><figcaption>Foto no visor.</figcaption></figure>
+        </section>
+
+        <section class="home-step" id="registro" aria-labelledby="registro-title">
+          <span class="step-label">Registro de ponto</span>
+          <h2 id="registro-title">Um registro.<br>Parte da sua rotina.</h2>
+          <p>A modalidade de marcação depende da orientação aplicável ao servidor. Utilize o equipamento facial ou o Ponto Web conforme as orientações da sua unidade.</p>
+          <a class="home-link" href="https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx" target="_blank" rel="noopener noreferrer">Acessar o Forponto</a>
+          <p class="step-note">Tem dúvidas sobre a marcação? Consulte a Central de Ajuda ou fale com a equipe do Ponto Eletrônico.</p>
+          <figure class="static-scene"><img src="assets/home/cena-registro.webp" alt="Terminal com horário fictício 08:00 e um sinal ilustrativo de confirmação." width="960" height="700" loading="lazy" /><figcaption>Horário registrado.</figcaption></figure>
+        </section>
+
+        <section class="home-step" id="frequencia" aria-labelledby="frequencia-title">
+          <span class="step-label">Consulta da frequência</span>
+          <h2 id="frequencia-title">Sua jornada,<br>em um só lugar.</h2>
+          <p>Acompanhe seus registros no espelho de ponto, dentro do Forponto. No exemplo ao lado, o horário de 08:00 passa a compor uma linha da frequência.</p>
+          <a class="home-link" href="https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx" target="_blank" rel="noopener noreferrer">Consultar no Forponto</a>
+          <p class="step-note">Faltou uma marcação? Consulte as orientações na Central de Ajuda e verifique o procedimento com sua unidade.</p>
+          <figure class="static-scene"><img src="assets/home/cena-frequencia.webp" alt="Exemplo fictício de espelho de ponto com uma entrada às 08:00." width="960" height="700" loading="lazy" /><figcaption>Horário no espelho de ponto.</figcaption></figure>
+        </section>
+      </div>
+    </section>
+
     <div class="container">
+      <section class="home-orientations" id="orientacoes" aria-labelledby="orientacoes-title">
+        <div class="home-section-top"><div><span class="step-label">Para facilitar sua rotina</span><h2 id="orientacoes-title">Orientação no momento certo.</h2></div><p>Encontre os materiais e os canais de ajuda que você precisa.</p></div>
+        <div class="orientation-grid">
+          <article class="orientation-card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5C8 2 3 4 3 4v15s5-2 9 1c4-3 9-1 9-1V4s-5-2-9 1Zm0 0v15"/></svg><h3>Uma boa foto, desde o início</h3><p>Confira como preparar e enviar a foto para o cadastro facial.</p><a class="home-link" href="foto.html">Orientações de envio</a></article>
+          <article class="orientation-card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 4 2c-1 .6-1.5 1-1.5 3m0 3h.01"/></svg><h3>Faltou uma marcação?</h3><p>Encontre ajuda sobre registros e procedimentos de frequência.</p><a class="home-link" href="faq.html#usuario">Ajuda para o servidor</a></article>
+          <article class="orientation-card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 21v-2a6 6 0 0 1 12 0v2m1-16a3 3 0 0 1 0 6m2 4a6 6 0 0 1 3 5"/></svg><h3>Apoio para quem faz a gestão</h3><p>Consulte as orientações para gestão de servidores, abonos e relatórios.</p><a class="home-link" href="faq.html#gestor">Materiais para gestores</a></article>
+        </div>
+      </section>
 
       <!-- CAROUSEL -->
       <section class="modern-carousel" aria-label="Carrossel de informações">
@@ -399,12 +410,12 @@
   </footer>
 
   <!-- PapaParse & Fuse (needed by chat/FAQ) -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="faq-search.js"></script>
-  <script src="faq.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js" defer></script>
+  <script src="faq-search.js" defer></script>
+  <script src="faq.js" defer></script>
 
-  <script src="script.js"></script>
-  <script src="pwa.js"></script>
+  <script src="script.js" defer></script>
+  <script src="pwa.js" defer></script>
 
   <!-- CHAT (from faq.html) -->
   <button id="chatFab" class="chat-fab" aria-controls="chatModal" aria-label="Abrir assistente de ajuda" aria-expanded="false">
@@ -473,11 +484,11 @@
       <h3 class="app-modal-title">Baixar Forponto</h3>
       <p class="app-modal-desc">Escolha a plataforma do seu celular:</p>
       <div class="app-modal-btns">
-        <a id="appModalIosBtn" href="#" target="_blank" rel="noopener noreferrer" class="store-btn" onclick="closeAppModal()">
+        <a id="appModalIosBtn" href="https://apps.apple.com/br/app/forponto-mobile/id6754690842" target="_blank" rel="noopener noreferrer" class="store-btn" onclick="closeAppModal()">
           <i class="fa-brands fa-apple"></i>
           <span><small>Disponível na</small> App Store</span>
         </a>
-        <a id="appModalAndBtn" href="#" target="_blank" rel="noopener noreferrer" class="store-btn" onclick="closeAppModal()">
+        <a id="appModalAndBtn" href="https://play.google.com/store/apps/details?id=br.com.tasksistemas.forpontomobile" target="_blank" rel="noopener noreferrer" class="store-btn" onclick="closeAppModal()">
           <i class="fa-brands fa-google-play"></i>
           <span><small>Disponível no</small> Google Play</span>
         </a>
@@ -490,6 +501,6 @@
   <script src="accessibility.js" defer></script>
   <script src="https://vlibras.gov.br/app/vlibras-plugin.js" defer></script>
   <script type="module" src="mobile-nav.js"></script>
-  <script type="module" src="hero-wave.js"></script>
+
 </body>
 </html>
