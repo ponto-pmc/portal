@@ -236,52 +236,54 @@ html { scroll-behavior: auto; }
   .motion-ready.has-mobile-bank-nav .chat-fab .chat-fab-icon { font-size: 1rem; }
 }
 
-/* Existing information images now use the same native, reversible scroll model. */
-.scroll-highlights { --text-primary: #16160f; --text-secondary: #5c5b55; --surface: #fff; --border: #e8e7e2; --home-muted: #5c5b55; --home-blue: var(--blue-500); background: #fff; padding: 0 !important; }
-#informacoes { scroll-margin-top: var(--home-nav-height); }
-.highlights-heading h2 { font: 400 clamp(1.8rem, 3vw, 3.25rem)/1.1 var(--font-display); letter-spacing: -.025em; margin-top: 10px; color: #16160f; }
-.scroll-highlights .carousel-wrapper { width: 100%; border: 0; border-radius: 14px; background: #fff; }
-.scroll-highlights .carousel-content { grid-template-columns: 1.1fr 1fr; }
-.scroll-highlights .carousel-item { transition: none; }
-.scroll-highlights .carousel-image { background: #f8f8f6; border: 0; padding: 0; }
-.scroll-highlights .carousel-image img { transition: none; }
-.scroll-highlights .carousel-text { border: 0; background: #fff; gap: 16px; padding: clamp(24px, 4vw, 70px); }
-.scroll-highlights .carousel-text h3 { font: 400 clamp(1.7rem, 2.6vw, 3rem)/1.1 var(--font-display); text-transform: none; letter-spacing: -.025em; }
-.scroll-highlights .carousel-text p { font-size: 1rem; line-height: 1.6; }
-.scroll-highlights .carousel-text .home-link { font-size: 1rem; align-self: flex-start; }
-.highlights-controls { display: none; }
-.scroll-highlights:not(.highlights-ready) .carousel-track { display: grid; gap: 24px; height: auto; min-height: 0; }
-.scroll-highlights:not(.highlights-ready) .carousel-item { position: relative; opacity: 1; visibility: visible; height: auto; pointer-events: auto; }
-.scroll-highlights:not(.highlights-ready) .carousel-content { min-height: 350px; height: auto; }
-.highlights-ready { height: 360svh; }
-.highlights-ready .highlights-pin { position: sticky; top: var(--home-nav-height); height: calc(100svh - var(--home-nav-height) - var(--home-bottom-nav, 0px)); display: flex; flex-direction: column; justify-content: center; gap: 24px; padding-block: 16px; }
-.highlights-ready .carousel-wrapper { flex: 0 0 auto; }
-.highlights-ready .carousel-track { height: min(56svh, 620px); min-height: 0; }
-.highlights-ready .carousel-item { visibility: hidden; }
-.highlights-ready .carousel-item.active { visibility: visible; }
-.highlights-ready .highlights-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; }
-.highlights-controls button { color: #5c5b55; background: transparent; border: 0; border-bottom: 2px solid #eee; padding: 8px 12px; font: 400 .875rem var(--font-body); cursor: pointer; }
-.highlights-controls button[aria-current] { color: var(--blue-500); border-color: var(--blue-500); }
+/* Photo stories stay in document order while the crop and focal point follow scroll. */
+.scroll-highlights { padding: clamp(48px, 7vw, 108px) 0; }
+.highlights-heading { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 18px; padding-bottom: 30px; border-bottom: 1px solid var(--border); }
+.highlights-heading h2 { font-size: clamp(2.15rem, 5vw, 5.5rem); font-weight: 500; line-height: .98; letter-spacing: -.075em; }
+.highlights-heading p { max-width: 34ch; color: var(--text-secondary); }
+.highlights-stories { display: grid; gap: clamp(28px, 7vw, 96px); padding-top: clamp(30px, 6vw, 80px); }
+.highlight-story { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); align-items: center; gap: clamp(24px, 6vw, 100px); }
+.highlight-image { position: relative; display: block; width: 100%; aspect-ratio: 1.5; min-width: 0; overflow: hidden; padding: 0; border: 0; border-radius: 16px; background: var(--surface-2); clip-path: inset(var(--photo-inset-y, 0%) var(--photo-inset-x, 0%) round 16px); }
+.highlight-image a { display: block; height: 100%; }
+.highlight-image:focus-within { clip-path: none; }
+.highlight-image a:focus-visible { outline-offset: -6px; }
+.highlight-image img { display: block; width: 100%; height: 100%; object-fit: cover; transform: translateY(var(--photo-y, 0%)) scale(var(--photo-scale, 1)); }
+.highlight-copy { padding-block: 24px; }
+.highlight-copy .eyebrow { display: block; color: var(--accent); margin-bottom: 14px; }
+.highlight-copy h3 { font-size: clamp(1.85rem, 3vw, 3.65rem); font-weight: 500; letter-spacing: -.06em; line-height: 1.03; margin-bottom: 18px; }
+.highlight-copy p { max-width: 52ch; color: var(--text-secondary); line-height: 1.6; }
+.highlight-copy .home-link { display: inline-block; margin-top: 18px; }
+.highlight-downloads { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.highlight-downloads .btn { min-height: 42px; }
+@media (min-width: 801px) {
+  .highlight-story:nth-child(even) { grid-template-columns: minmax(0, 1fr) minmax(0, 1.55fr); }
+  .highlight-story:nth-child(even) .highlight-image { grid-column: 2; grid-row: 1; }
+  .highlight-story:nth-child(even) .highlight-copy { grid-column: 1; grid-row: 1; }
+}
+@media (max-width: 800px) {
+  .highlight-story { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .highlight-image { aspect-ratio: 1.36; }
+  .highlight-copy { padding-block: 0 16px; }
+}
+@media (prefers-reduced-motion: reduce), print {
+  .highlight-image { clip-path: none; }
+  .highlight-image img { transform: none; }
+}
+
+.journey { --home-ink: #101216; --home-muted: #505661; --text-primary: #101216; --text-secondary: #505661; --home-line: #e3e6eb; }
+.motion-ready .home-intro h1, .motion-ready .home-step h2 { letter-spacing: -.068em; font-weight: 500; }
+.demo-orbit { border-color: #dae7f7; background: radial-gradient(circle, #e6f1ff 0%, #f4f8ff 47%, #fff 72%); transform: scale(var(--field-scale, 1)); }
+.demo-orbit::before { border-color: #dfe9f7; }
+.demo-orbit::after { border-color: #edf3fa; }
+.motion-ready .demo-stage { perspective: 850px; }
+.terminal-image { filter: drop-shadow(14px 24px 20px rgb(13 35 66 / .2)); }
+.terminal-screen { background: repeating-linear-gradient(0deg, transparent 0 13px, rgb(151 204 255 / .07) 14px), linear-gradient(150deg,#122f4a,#0b141f); }
+.portrait-scan { position: absolute; inset: 9px; overflow: hidden; border-radius: 4px; opacity: var(--scan-opacity, 0); }
+.portrait-scan::before { content: ''; position: absolute; inset: 0 0 auto; top: var(--scan-offset, 0%); height: 2px; background: #b9ecff; box-shadow: 0 0 15px 4px #209cff; }
+.terminal-path { position: absolute; height: 1px; transform-origin: left; z-index: 7; opacity: var(--wire-opacity, 0); background: repeating-linear-gradient(90deg, #559bfa 0 5px, transparent 5px 9px); }
+.report-card { border-color: #d9e6f5; box-shadow: 0 22px 66px rgb(18 47 84 / .15); }
 @media (max-width: 900px), (max-height: 650px) {
-  .highlights-ready { height: 360svh; }
-  .highlights-ready .highlights-pin { gap: 12px; padding-block: 10px; }
-  .highlights-heading h2 { font-size: 1.45rem; line-height: 1.15; margin-top: 6px; }
-  .highlights-heading .step-label { font-size: .75rem; }
-  .highlights-ready .carousel-track { height: min(490px, calc(100svh - var(--home-nav-height) - var(--home-bottom-nav, 0px) - 200px)); }
-  .scroll-highlights .carousel-content { grid-template-columns: 1fr; grid-template-rows: clamp(130px, 20svh, 175px) 1fr; }
-  .scroll-highlights .carousel-image { height: auto; }
-  .scroll-highlights .carousel-text { padding: 16px; gap: 8px; }
-  .scroll-highlights .carousel-text h3 { font-size: 1.4rem; }
-  .scroll-highlights .carousel-text p { line-height: 1.45; }
-  .scroll-highlights .os-detection { margin: 0; }
-  .scroll-highlights .carousel-text .eyebrow { font-size: .75rem; }
-  .highlights-controls button { padding: 6px 8px; }
-  .highlights-ready .highlights-controls { gap: 4px 8px; }
+  .motion-ready .demo-orbit { transform: translateX(-50%) scale(var(--field-scale, 1)); }
+  .motion-ready .terminal { top: -2%; }
 }
-@media print {
-  .highlights-ready { height: auto; }
-  .highlights-ready .highlights-pin { height: auto; position: static; display: block; }
-  .highlights-ready .carousel-track { height: auto; display: block; }
-  .highlights-ready .carousel-item { height: auto; position: static; visibility: visible !important; opacity: 1 !important; break-inside: avoid; }
-  .highlights-controls { display: none !important; }
-}
+

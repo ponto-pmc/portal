@@ -1,0 +1,81 @@
+/* Shared visual language for the public portal and its tools. */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap');
+
+:root {
+  --font-display: 'Geist', 'DM Sans', Arial, sans-serif;
+  --font-body: var(--font-display);
+  --blue-50: #eef5ff;
+  --blue-100: #d6e6ff;
+  --blue-300: #8fbbff;
+  --blue-500: #005ecf;
+  --blue-600: #0052b6;
+  --blue-700: #00459d;
+  --stone-900: #101216;
+  --stone-800: #24272d;
+  --stone-600: #505661;
+  --stone-100: #e3e6eb;
+  --stone-200: #c8ced8;
+  --stone-50: #eff1f4;
+  --off-white: #f5f6f8;
+  --portal-gutter: clamp(20px, 4vw, 76px);
+  --portal-tray: #eff1f4;
+  --portal-tray-active: #fff;
+  --text-muted: #59616d;
+  --header-bg: rgb(255 255 255 / .94);
+  --shadow-md: 0 12px 36px rgb(17 27 46 / .07);
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+}
+[data-theme='dark'] {
+  --bg: #111318;
+  --bg-alt: #161920;
+  --surface: #191d24;
+  --surface-2: #222730;
+  --surface-3: #2b313b;
+  --text-muted: #adb7c8;
+  --header-bg: rgb(17 19 24 / .94);
+  --portal-tray: #232831;
+  --portal-tray-active: #343c49;
+}
+
+body { font-family: var(--font-body); }
+.site-nav .inner, .portal-home .site-nav .inner { min-height: 64px; height: auto; max-width: none; padding-inline: var(--portal-gutter); }
+.site-nav .nav-logo { gap: 10px; }
+.site-nav .nav-logo-text { font-weight: 600; letter-spacing: -.045em; }
+.site-nav .theme-toggle-btn { border: 0; border-radius: 50%; background: var(--portal-tray); }
+@media (min-width: 901px) {
+  .site-nav .inner, .portal-home .site-nav .inner { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; }
+  .site-nav .nav-logo { justify-self: start; }
+  .site-nav .nav-actions { justify-self: end; }
+  .site-nav .nav-links { padding: 4px; border-radius: 11px; gap: 2px; background: var(--portal-tray); }
+  .site-nav .nav-links a { display: block; border-radius: 8px; white-space: nowrap; padding: 9px clamp(8px, 1vw, 16px); letter-spacing: -.02em; font-weight: 500; }
+  .site-nav .nav-links a:is(:hover, [aria-current='page'], .active):not(.btn-primary) { color: var(--text-primary); background: var(--portal-tray-active); }
+  .site-nav .nav-links .btn-primary { min-width: 76px; text-align: center; }
+}
+@media (901px <= width <= 1100px) {
+  .site-nav .nav-logo-text { display: none; }
+}
+@media (max-width: 900px) {
+  .has-mobile-bank-nav .mobile-bank-nav { padding-inline: max(12px, env(safe-area-inset-left)); border-radius: 18px 18px 0 0; background: var(--header-bg); backdrop-filter: blur(16px); }
+  .mobile-bank-item { font-family: var(--font-body); font-size: .6875rem; }
+  .mobile-bank-card { font-family: var(--font-body); font-size: .875rem; color: var(--text-primary); }
+}
+
+body:not(.portal-home) #main-content > .container { max-width: 1450px; padding-inline: var(--portal-gutter); }
+.control-page .control-container { width: min(1500px, calc(100% - 2 * var(--portal-gutter))); padding-top: clamp(32px, 5vw, 72px); }
+.page-wrapper :is(.page-hero, .calc-header), body .hero-band.faq-hero {
+  color: var(--text-primary); background: var(--bg-alt); border: 1px solid var(--border);
+  border-radius: var(--radius-xl); box-shadow: none;
+}
+body .hero-band.faq-hero { border-radius: 0; border-inline: 0; }
+.page-wrapper :is(.page-hero, .calc-header) :is(h1, .eyebrow, p, i), body .hero-band.faq-hero :is(.display-1, .eyebrow, .lead) { color: var(--text-primary); }
+body .hero-band.faq-hero .lead { color: var(--text-secondary); }
+.page-wrapper :is(.page-hero, .calc-header) h1, .control-page .control-heading h1, body .hero-band.faq-hero .display-1 { font-weight: 500; letter-spacing: -.06em; text-transform: none; }
+.page-wrapper :is(.page-hero, .calc-header) h1 > i, .control-page .control-heading h1 > i { color: var(--accent); }
+.page-wrapper :is(.page-hero, .calc-header) p { font-size: 1rem; color: var(--text-secondary); }
+.hero-band.faq-hero .profile-card { color: var(--text-primary); background: var(--surface); border-color: var(--border-mid); }
+.hero-band.faq-hero .profile-card :is(h3, p, .card-cta) { color: var(--text-primary); }
+.hero-band.faq-hero .profile-icon { color: var(--accent); background: var(--accent-light); }
+.mobile-bank-sheet .mobile-bank-card:hover { border-color: var(--accent); }
+:where(.portal-home, .page-wrapper) :is(a,button,input,select,textarea):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media print { .site-nav, .mobile-bank-nav { display: none !important; } }
