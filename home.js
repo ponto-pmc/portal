@@ -10,14 +10,15 @@
   const screen = stage.querySelector('.terminal-screen');
   const standby = stage.querySelector('.standby');
   const photo = stage.querySelector('.photo-travel');
+  const signalPath = stage.querySelector('.terminal-path');
   const clock = stage.querySelector('.time-travel');
   const confirmation = stage.querySelector('.confirm-symbol');
   const report = stage.querySelector('.report-card');
   const cell = stage.querySelector('.destination');
   const row = cell.closest('tr');
   const panels = [journey.querySelector('.home-intro'), ...journey.querySelectorAll('.home-step')];
-  const markers = [...journey.querySelectorAll('.demo-steps li')];
-  const compact = matchMedia('(max-width: 900px), (max-height: 650px)');
+  const compact = matchMedia('(max-width: 900px)');
+  const shortViewport = matchMedia('(max-width: 900px) and (max-height: 620px), (max-width: 350px) and (max-height: 650px), (max-height: 475px)');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const phases = { '#cadastro': .30, '#registro': .57, '#frequencia': .94 };
   const clamp = x => Math.max(0, Math.min(1, x));
@@ -29,11 +30,11 @@
   function reset() {
     cancelAnimationFrame(frame); frame = 0; geometry = null; current = null;
     document.body.classList.remove('motion-ready');
-    for (const element of [terminal, standby, photo, clock, confirmation, report, row, visual, ...panels]) element.removeAttribute('style');
+    for (const element of [terminal, standby, photo, signalPath, clock, confirmation, report, row, visual, ...panels]) element.removeAttribute('style');
     for (const panel of panels) { panel.inert = false; panel.removeAttribute('aria-hidden'); }
     cell.querySelector('span').style.visibility = '';
     stage.style.removeProperty('--scene-height');
-    markers.forEach((marker, i) => { marker.classList.toggle('is-active', i === 0); marker.style.removeProperty('border-image'); marker.querySelector('a')?.removeAttribute('aria-current'); });
+    stage.style.removeProperty('--field-scale');
   }
 
   function rawProgress() {
@@ -41,28 +42,36 @@
   }
 
   function measure() {
-    if (failed || reduced.matches) { reset(); return; }
+    if (failed || reduced.matches || shortViewport.matches) { reset(); return; }
     const nav = Math.ceil(document.querySelector('.site-nav').getBoundingClientRect().height);
     const bottom = document.querySelector('.mobile-bank-nav')?.getBoundingClientRect().height || 0;
     document.body.style.setProperty('--home-nav-height', `${nav}px`);
     document.body.style.setProperty('--home-bottom-nav', `${bottom}px`);
     document.body.classList.add('motion-ready');
-    if (compact.matches) {
+    const pin = layout.getBoundingClientRect();
+    const mobile = compact.matches;
+    const copyGap = 16;
+    const bottomGap = 8;
+    let openingY = 0;
+    visual.style.transform = 'none';
+    stage.style.removeProperty('--scene-height');
+    if (mobile) {
+      openingY = panels[0].offsetTop + panels[0].getBoundingClientRect().height + 12;
       const tallestCopy = Math.max(...panels.slice(1).map(panel => panel.getBoundingClientRect().height));
-      const overflow = visual.getBoundingClientRect().height + tallestCopy + 20 - layout.getBoundingClientRect().height;
-      if (overflow > 1) stage.style.setProperty('--scene-height', `${Math.max(145, stage.getBoundingClientRect().height - overflow)}px`);
-    } else stage.style.removeProperty('--scene-height');
+      const stageHeight = stage.getBoundingClientRect().height;
+      const footerHeight = visual.getBoundingClientRect().height - stageHeight;
+      const availableHeight = Math.floor(pin.height - footerHeight - tallestCopy - copyGap - bottomGap);
+      if (availableHeight < stageHeight) stage.style.setProperty('--scene-height', `${Math.max(120, availableHeight)}px`);
+    }
     terminal.style.transform = 'none';
     report.style.transform = 'none';
-    visual.style.transform = 'none';
     const box = stage.getBoundingClientRect();
     const display = screen.getBoundingClientRect();
     const target = cell.getBoundingClientRect();
     const bounds = journey.getBoundingClientRect();
-    const pin = layout.getBoundingClientRect();
     const width = Math.min(display.width * .82, display.height * .64);
     const visualHeight = visual.getBoundingClientRect().height;
-    document.body.style.setProperty('--mobile-copy-top', `${visualHeight + 20}px`);
+    if (mobile) document.body.style.setProperty('--mobile-copy-top', `${visualHeight + copyGap}px`);
     geometry = {
       start: bounds.top + scrollY - nav,
       distance: Math.max(1, bounds.height - pin.height),
@@ -74,7 +83,8 @@
       photoScale: width / 144,
       cellX: target.left - box.left + target.width / 2,
       cellY: target.top - box.top + target.height / 2,
-      openingY: compact.matches ? panels[0].getBoundingClientRect().height + 40 : 0
+      openingY,
+      openingScale: mobile ? clamp((pin.height - openingY - bottomGap) / visualHeight) : 1
     };
     current = rawProgress();
     paint(current);
@@ -97,23 +107,36 @@
       if (panel.inert !== hidden) panel.inert = hidden;
       if (panel.getAttribute('aria-hidden') !== String(hidden)) panel.setAttribute('aria-hidden', String(hidden));
     });
-    visual.style.transform = compact.matches ? `translateY(${g.openingY * (1 - mobileTravel)}px)` : 'none';
+    visual.style.transform = compact.matches
+      ? `translateY(${g.openingY * (1 - mobileTravel)}px) scale(${mix(g.openingScale, 1, mobileTravel)})`
+      : 'none';
     const dock = ease(range(p, .17, .34));
     const photoOut = ease(range(p, .41, .49));
     const shift = ease(range(p, .64, .73)) * -g.width * .17;
     const transfer = ease(range(p, .73, .90));
-    terminal.style.transform = `translateX(${shift}px)`;
+    const tilt = (1 - ease(range(p, 0, .16))) * (compact.matches ? -3 : -10);
+    terminal.style.transform = `translateX(${shift}px) rotateY(${tilt}deg)`;
+    stage.style.setProperty('--field-scale', String(1 + .075 * Math.sin(Math.PI * p)));
     standby.style.opacity = String(1 - ease(range(p, .14, .22)));
     photo.style.opacity = String(ease(range(p, .15, .21)) * (1 - photoOut));
     photo.style.transform = `translate(${mix(g.width * .04, g.photoX, dock)}px, ${mix(g.width * .24, g.photoY, dock)}px) scale(${mix(1.02, g.photoScale, dock)})`;
     photo.style.clipPath = `inset(${dock * 7}px round 6px)`;
     photo.querySelector('.photo-corners').style.transform = `scale(${mix(1.12, 1, dock)})`;
+    photo.style.setProperty('--scan-offset', `${100 * range(p, .33, .45)}%`);
+    photo.style.setProperty('--scan-opacity', String(ease(range(p, .33, .36)) * (1 - ease(range(p, .42, .45)))));
     confirmation.style.opacity = String(ease(range(p, .52, .57)) * (1 - ease(range(p, .66, .72))));
     const card = ease(range(p, .65, .73));
     report.style.opacity = String(card);
     report.style.transform = `translateY(${(1 - card) * 22}px)`;
     const x = mix(g.screenX + shift, g.cellX, transfer) - 60;
     const y = mix(g.screenY, g.cellY, transfer) - 29 - Math.sin(transfer * Math.PI) * 28;
+    const trailX = x + 60 - (g.screenX + shift);
+    const trailY = y + 29 - g.screenY;
+    signalPath.style.left = `${g.screenX + shift}px`;
+    signalPath.style.top = `${g.screenY}px`;
+    signalPath.style.width = `${Math.hypot(trailX, trailY)}px`;
+    signalPath.style.transform = `rotate(${Math.atan2(trailY, trailX)}rad)`;
+    signalPath.style.setProperty('--wire-opacity', String(ease(range(p, .73, .77)) * (1 - ease(range(p, .87, .93)))));
     clock.style.transform = `translate(${x}px, ${y}px) scale(${mix(1, 16 / 33.6, transfer)})`;
     const tint = ease(range(transfer, .05, .55));
     clock.style.color = `rgb(${mix(234, 45, tint)}, ${mix(248, 125, tint)}, ${mix(250, 224, tint)})`;
@@ -121,17 +144,6 @@
     clock.style.opacity = arrived ? '0' : String(ease(range(p, .46, .51)));
     cell.querySelector('span').style.visibility = arrived ? 'visible' : 'hidden';
     row.style.backgroundColor = `rgba(45, 125, 224, ${ease(range(p, .88, .93)) * .075})`;
-    const active = p < .44 ? 0 : p < .70 ? 1 : 2;
-    markers.forEach((marker, i) => {
-      const progress = range(p, [.15, .46, .73][i], [.40, .66, .94][i]);
-      marker.classList.toggle('is-active', i === active);
-      const link = marker.querySelector('a');
-      if (link) {
-        if (i === active) link.setAttribute('aria-current', 'step');
-        else link.removeAttribute('aria-current');
-      }
-      marker.style.borderImage = `linear-gradient(to right, #2d7de0 ${progress * 100}%, #eee ${progress * 100}%) 1`;
-    });
   }
 
   function tick(time) {
@@ -157,7 +169,7 @@
 
   try {
     addEventListener('scroll', schedule, { passive: true });
-    addEventListener('resize', () => { stage.style.removeProperty('--scene-height'); measure(); }, { passive: true });
+    addEventListener('resize', measure, { passive: true });
     addEventListener('pageshow', measure);
     addEventListener('load', () => { measure(); if (!interacted) requestAnimationFrame(() => toHash()); }, { once: true });
     addEventListener('hashchange', () => requestAnimationFrame(() => { measure(); toHash(); }));
@@ -172,9 +184,11 @@
       toHash('smooth');
     });
     compact.addEventListener('change', measure);
+    shortViewport.addEventListener('change', measure);
     reduced.addEventListener('change', measure);
     const observer = new ResizeObserver(measure);
     observer.observe(layout); observer.observe(stage); observer.observe(document.querySelector('.site-nav'));
+    panels.forEach(panel => observer.observe(panel));
     document.fonts?.ready.then(measure);
     const failMedia = () => { failed = true; reset(); };
     for (const image of [stage.querySelector('.terminal-image'), photo.querySelector('img')]) {
