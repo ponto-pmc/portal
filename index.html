@@ -22,7 +22,6 @@
   <noscript><link rel="stylesheet" href="home-static.css" /></noscript>
   <script src="home.js" defer></script>
   <script src="home-highlights.js" defer></script>
-<link rel="stylesheet" href="portal-design.css" />
 </head>
 <body class="portal-home">
   <a class="skip-link" href="#main-content">Ir para o conteúdo principal</a>
@@ -82,7 +81,6 @@
           <div class="visual-sticky">
             <div class="demo-stage" aria-hidden="true">
               <div class="demo-orbit"></div>
-              <div class="terminal-path"></div>
               <div class="terminal">
                 <img class="terminal-image" src="assets/home/terminal.webp" srcset="assets/home/terminal-mobile.webp 430w, assets/home/terminal.webp 814w" sizes="(max-width: 900px) 220px, (max-height: 650px) 220px, 46vw" width="814" height="1086" alt="" fetchpriority="high" />
                 <div class="terminal-screen">
@@ -90,7 +88,7 @@
                   <span class="confirm-symbol">✓</span>
                 </div>
               </div>
-              <div class="photo-travel"><img src="assets/home/retrato-ficticio.webp" width="240" height="300" alt="" loading="lazy" /><span class="photo-corners"></span><span class="portrait-scan"></span></div>
+              <div class="photo-travel"><img src="assets/home/retrato-ficticio.webp" width="240" height="300" alt="" loading="lazy" /><span class="photo-corners"></span></div>
               <div class="time-travel">08:00</div>
               <div class="report-card"><p class="report-label">Exemplo fictício</p><h3>Espelho de ponto</h3><table><thead><tr><th>Data</th><th>Marcação</th><th>Tipo</th></tr></thead><tbody><tr><td>05/11</td><td class="destination"><span>08:00</span></td><td>Entrada</td></tr></tbody></table><p class="report-foot">Uma marcação na sua frequência.</p></div>
             </div>
@@ -136,74 +134,88 @@
         </div>
       </section>
 
-      <!-- SERVIÇOS E ORIENTAÇÕES -->
-      <section class="scroll-highlights" id="informacoes" aria-labelledby="highlights-title">
-        <header class="highlights-heading"><h2 id="highlights-title">Serviços e orientações</h2><p>Documentos, aplicativo e suporte para acompanhar seu ponto.</p></header>
-        <div class="highlights-stories">
+      <!-- CAROUSEL -->
+      <section class="modern-carousel scroll-highlights" id="informacoes" aria-labelledby="highlights-title"><div class="highlights-pin"><div class="highlights-heading"><span class="step-label">Serviços e orientações</span><h2 id="highlights-title">Informações para sua rotina.</h2></div>
+        <div class="carousel-wrapper">
+          <div class="carousel-track" id="carouselTrack">
 
-            <article class="highlight-story">
-                <div class="highlight-image">
+            <div class="carousel-item active">
+              <div class="carousel-content">
+                <div class="carousel-image">
                   <img src="https://lh3.googleusercontent.com/d/1boR5geD3cC2OT7HCd71V7aV7h6JuxRzr" alt="Sistema de Ponto Eletrônico" loading="lazy"/>
                 </div>
-                <div class="highlight-copy">
+                <div class="carousel-text">
                   <span class="eyebrow">Digital &amp; Seguro</span>
                   <h3>Sistema de Ponto Moderno</h3>
                   <p>Controle de frequência digital seguro e eficiente para todos os servidores da Prefeitura de Contagem.</p>
                 </div>
-            </article>
+              </div>
+            </div>
 
-            <article class="highlight-story">
-                <div class="highlight-image">
+            <div class="carousel-item">
+              <div class="carousel-content">
+                <div class="carousel-image">
                   <a href="https://drive.google.com/uc?id=19SWZsRNQ-8Bsw2WJKbl1MmO6sEXyFOXp" target="_self">
                     <img src="https://lh3.googleusercontent.com/d/1CUlh1LubDzA6FD3umnxBwYyg--aT_yEx" alt="Legislação do Ponto Eletrônico" loading="lazy"/>
                   </a>
                 </div>
-                <div class="highlight-copy">
+                <div class="carousel-text">
                   <span class="eyebrow">Legislação</span>
                   <h3>Marco Legal do Controle de Ponto</h3>
                   <p>Decreto Nº 1237, de 06 de Junho de 2024</p>
                   <p>Portaria SEAD Nº. 13, de 04 de Junho de 2025</p><a class="home-link" href="https://drive.google.com/uc?id=19SWZsRNQ-8Bsw2WJKbl1MmO6sEXyFOXp">Consultar legislação</a>
                 </div>
-            </article>
+              </div>
+            </div>
 
-            <article class="highlight-story">
-                <div class="highlight-image">
+            <div class="carousel-item">
+              <div class="carousel-content">
+                <button type="button" class="carousel-image app-download-image" onclick="redirectToAppStore()" aria-label="Baixar aplicativo Forponto">
                   <img src="https://lh3.googleusercontent.com/d/1h_pU8L-ES1XYBt2Xg-W1vllGnlDdbgXD" alt="" loading="lazy"/>
-                </div>
-                <div class="highlight-copy">
+                  <div class="download-overlay">
+                    <i class="fas fa-download" aria-hidden="true"></i>
+                    <span>Baixar App</span>
+                  </div>
+                </button>
+                <div class="carousel-text">
                   <span class="eyebrow">Mobile</span>
                   <h3>Acesso via Smartphone</h3>
                   <p>Consulte registros, baixe relatórios e acompanhe sua frequência diretamente pelo celular.</p>
-                  <div class="highlight-downloads" aria-label="Baixar Forponto">
-                    <a class="btn btn-outline" href="https://apps.apple.com/br/app/forponto-mobile/id6754690842" target="_blank" rel="noopener noreferrer">App Store</a>
-                    <a class="btn btn-outline" href="https://play.google.com/store/apps/details?id=br.com.tasksistemas.forpontomobile" target="_blank" rel="noopener noreferrer">Google Play</a>
-                  </div>
+                  <div class="os-detection" id="osDetection"><small>Detectando plataforma...</small></div>
                 </div>
-            </article>
+              </div>
+            </div>
 
-            <article class="highlight-story">
-                <div class="highlight-image">
+            <div class="carousel-item">
+              <div class="carousel-content">
+                <div class="carousel-image">
                   <img src="https://lh3.googleusercontent.com/d/1dtRwEeJxICbb_ubb5tHD4nhTMYv47X8U" alt="Suporte Técnico" loading="lazy"/>
                 </div>
-                <div class="highlight-copy">
+                <div class="carousel-text">
                   <span class="eyebrow">Suporte</span>
                   <h3>Atendimento Especializado</h3>
                   <p>Nossa equipe está pronta para ajudar com dúvidas, problemas técnicos e orientações sobre o sistema.</p><a class="home-link" href="#suporte-title">Encontrar atendimento</a>
                 </div>
-            </article>
+              </div>
+            </div>
 
-            <article class="highlight-story">
-                <div class="highlight-image">
+            <div class="carousel-item">
+              <div class="carousel-content">
+                <div class="carousel-image">
                   <img src="https://lh3.googleusercontent.com/d/1odnmFB0usfYO13DNaLhBCLWtjs7AmWb0" alt="Relatórios" loading="lazy"/>
                 </div>
-                <div class="highlight-copy">
+                <div class="carousel-text">
                   <span class="eyebrow">Relatórios</span>
                   <h3>Histórico Detalhado</h3>
                   <p>Acesso completo ao histórico de frequência com relatórios organizados e fáceis de entender.</p><a class="home-link" href="https://forponto.contagem.mg.gov.br/ForpontoWeb/login.aspx" target="_blank" rel="noopener noreferrer">Consultar no Forponto</a>
                 </div>
-            </article>
+              </div>
+            </div>
+
+          </div>
         </div>
-      </section>
+
+      </div></section>
 
       <!-- ÚLTIMAS NOTÍCIAS -->
       <section class="section-sm latest-news" aria-label="Últimas notícias">
