@@ -6,7 +6,7 @@
   <title>Envio de Foto</title>
   <link rel="icon" type="image/png" href="https://i.ibb.co/fVRw238j/Ponto-removebg-preview.png" />
   <link rel="stylesheet" href="foto.css" />
-  <link rel="stylesheet" href="foto-form.css" />
+  <link rel="stylesheet" href="foto-form.css?v=orientacoes" />
   <link rel="stylesheet" href="feedback.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" />
@@ -138,6 +138,9 @@
 
             <h2 id="photoHeading" style="margin-top:var(--sp-10)"><span class="ico-box"><i class="fas fa-image"></i></span> Sua foto</h2>
 
+            <details id="mobilePhotoTips" hidden>
+              <summary>Como tirar a foto</summary>
+            </details>
             <div class="drop" id="drop" tabindex="0" role="button" aria-label="Selecionar foto">
               <i class="fas fa-cloud-upload-alt"></i>
               <strong>Toque para escolher ou arraste a foto</strong>
@@ -182,7 +185,7 @@
 
           <!-- COLUNA DIREITA: orientações -->
           <div id="photoTipsContainer">
-            <div class="side-card">
+            <div class="side-card" id="photoCaptureTips">
               <div class="side-head"><span class="ico-box"><i class="fas fa-lightbulb"></i></span><h3>Como tirar a foto</h3></div>
               <ul class="tips">
                 <li><i class="fas fa-check"></i> <span>Fundo <b>liso e claro</b> (parede branca ou clara), sem quadros, móveis ou outras pessoas.</span></li>
@@ -336,7 +339,7 @@
 </div>
 
 <script src="vendor/pica.min.js"></script>
-<script type="module" src="foto.js"></script>
+<script type="module" src="foto.js?v=orientacoes"></script>
   <script type="module" src="feedback.js"></script>
   <script src="pwa.js"></script>
   <script src="accessibility.js" defer></script>

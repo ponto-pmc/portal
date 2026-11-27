@@ -973,6 +973,36 @@ const wizardLabels = {
 };
 const wizardPhotoIds = ['drop', 'camRow', 'modelStatus', 'result', 'previewBox'];
 let wizardStep = 'fNome';
+const photoTipsMobile = matchMedia('(max-width: 640px)');
+const mobilePhotoTips = $('mobilePhotoTips');
+const photoCaptureTips = $('photoCaptureTips');
+let autoClosePhotoTips = false;
+
+function syncPhotoCaptureTips() {
+  const show = photoTipsMobile.matches && wizardStep === 'photo';
+  if (show === !mobilePhotoTips.hidden) return;
+  mobilePhotoTips.hidden = !show;
+  autoClosePhotoTips = show;
+  if (show) {
+    mobilePhotoTips.append(photoCaptureTips);
+    mobilePhotoTips.open = true;
+  } else {
+    $('photoTipsContainer').prepend(photoCaptureTips);
+  }
+}
+
+photoTipsMobile.addEventListener('change', syncPhotoCaptureTips);
+window.addEventListener('scroll', () => {
+  if (!autoClosePhotoTips || !mobilePhotoTips.open || mobilePhotoTips.contains(document.activeElement)) return;
+  const drop = $('drop');
+  const before = drop.getBoundingClientRect().top;
+  const navBottom = document.querySelector('.site-nav').getBoundingClientRect().bottom;
+  if (mobilePhotoTips.getBoundingClientRect().bottom > Math.max(0, navBottom) || before >= innerHeight) return;
+  autoClosePhotoTips = false;
+  mobilePhotoTips.open = false;
+  window.scrollBy({ top: drop.getBoundingClientRect().top - before, behavior: 'instant' });
+}, { passive: true });
+
 function wizardSteps() {
   const matriculasPreenchidas = autoSelectedMat
     && normMatricula($('matricula').value) === autoMatricula
@@ -994,6 +1024,7 @@ function wizardRender() {
     $(id).classList.toggle('wizard-step-hidden', id !== wizardStep && !(wizardStep === 'photo' && wizardPhotoIds.includes(id)));
   });
   $('photoTipsContainer').classList.toggle('wizard-step-hidden', wizardStep !== 'photo');
+  syncPhotoCaptureTips();
   $('send').parentElement.classList.toggle('wizard-step-hidden', wizardStep !== 'fConsent');
   $('sendMsg').classList.toggle('wizard-step-hidden', wizardStep !== 'fConsent');
   $('wizardControls').classList.toggle('wizard-step-hidden', wizardStep === 'fConsent');

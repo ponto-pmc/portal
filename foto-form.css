@@ -9,6 +9,26 @@
   border-radius: 25px;
   background: var(--surface-2);
 }
+#mobilePhotoTips {
+  margin-bottom: var(--sp-4);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  overflow-anchor: none;
+}
+#mobilePhotoTips summary {
+  padding: var(--sp-4);
+  color: var(--text-primary);
+  font-weight: 700;
+  cursor: pointer;
+}
+#mobilePhotoTips .side-card {
+  margin: 0;
+  padding: 0 var(--sp-4) var(--sp-4);
+  border: 0;
+  background: transparent;
+}
+#mobilePhotoTips .side-head { display: none; }
 #photoFormCard .ico-box { border-radius: 13px; background: var(--surface-2); }
 #photoFormCard .field input[type=text],
 #photoFormCard .field select,
