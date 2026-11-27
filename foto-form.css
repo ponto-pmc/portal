@@ -29,6 +29,9 @@
   background: transparent;
 }
 #mobilePhotoTips .side-head { display: none; }
+@media (max-width: 640px) {
+  #photoCaptureActions { margin-block-start: var(--photo-capture-offset, 0px); }
+}
 #photoFormCard .ico-box { border-radius: 13px; background: var(--surface-2); }
 #photoFormCard .field input[type=text],
 #photoFormCard .field select,

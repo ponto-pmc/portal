@@ -6,7 +6,7 @@
   <title>Envio de Foto</title>
   <link rel="icon" type="image/png" href="https://i.ibb.co/fVRw238j/Ponto-removebg-preview.png" />
   <link rel="stylesheet" href="foto.css" />
-  <link rel="stylesheet" href="foto-form.css?v=orientacoes" />
+  <link rel="stylesheet" href="foto-form.css?v=centralizar-foto" />
   <link rel="stylesheet" href="feedback.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" />
@@ -141,16 +141,18 @@
             <details id="mobilePhotoTips" hidden>
               <summary>Como tirar a foto</summary>
             </details>
-            <div class="drop" id="drop" tabindex="0" role="button" aria-label="Selecionar foto">
-              <i class="fas fa-cloud-upload-alt"></i>
-              <strong>Toque para escolher ou arraste a foto</strong>
-              <span>JPG, PNG, HEIC, TIFF e outros formatos de imagem · saída em JPG</span>
-              <input type="file" id="file" accept="image/*,.heic,.heif,.tif,.tiff,.jfif,.jpe" hidden />
-            </div>
-            <div class="cam-row" id="camRow">
-              <span>ou</span>
-              <button class="btn btn-outline" id="btnCam" type="button"><i class="fas fa-camera"></i> Tirar foto agora</button>
-              <input type="file" id="fileCam" accept="image/*,.heic,.heif,.tif,.tiff,.jfif,.jpe" capture="user" hidden />
+            <div id="photoCaptureActions">
+              <div class="drop" id="drop" tabindex="0" role="button" aria-label="Selecionar foto">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <strong>Toque para escolher ou arraste a foto</strong>
+                <span>JPG, PNG, HEIC, TIFF e outros formatos de imagem · saída em JPG</span>
+                <input type="file" id="file" accept="image/*,.heic,.heif,.tif,.tiff,.jfif,.jpe" hidden />
+              </div>
+              <div class="cam-row" id="camRow">
+                <span>ou</span>
+                <button class="btn btn-outline" id="btnCam" type="button"><i class="fas fa-camera"></i> Tirar foto agora</button>
+                <input type="file" id="fileCam" accept="image/*,.heic,.heif,.tif,.tiff,.jfif,.jpe" capture="user" hidden />
+              </div>
             </div>
             <div class="loading-model" id="modelStatus" role="status" aria-live="polite"><i class="fas fa-circle-notch fa-spin" aria-hidden="true"></i> Preparando o verificador de fotos…</div>
 
@@ -339,7 +341,7 @@
 </div>
 
 <script src="vendor/pica.min.js"></script>
-<script type="module" src="foto.js?v=orientacoes"></script>
+<script type="module" src="foto.js?v=centralizar-foto"></script>
   <script type="module" src="feedback.js"></script>
   <script src="pwa.js"></script>
   <script src="accessibility.js" defer></script>
