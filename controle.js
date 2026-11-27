@@ -83,6 +83,7 @@ let activeMonth = '';
 let monthRevision = 0;
 const DEFAULT_TARGET = '08:00';
 const LUNCH_THRESHOLD = 360;
+const PDFJS_BASE = new URL('./assets/pdfjs-4.4.168/', document.currentScript.src);
 // Mantém a quantidade de cada horário encontrado no PDF. Usar apenas um Set
 // fazia com que qualquer horário igual ao do PDF fosse tratado como importado,
 // mesmo quando era digitado manualmente em uma célula extra.
@@ -813,7 +814,15 @@ function textFromPdfContent(content) {
 
 async function loadPdfLibrary() {
   if (!pdfLibraryPromise) {
-    pdfLibraryPromise = import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs');
+    pdfLibraryPromise = import(new URL('pdf.min.js', PDFJS_BASE).href)
+      .then((pdfjs) => {
+        pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdf.worker.min.js', PDFJS_BASE).href;
+        return pdfjs;
+      })
+      .catch((cause) => {
+        pdfLibraryPromise = undefined;
+        throw new Error('Não foi possível carregar o leitor de PDF. Recarregue a página e tente novamente.', { cause });
+      });
   }
   return pdfLibraryPromise;
 }
@@ -823,10 +832,7 @@ async function loadOcrLibrary() {
   return ocrLibraryPromise;
 }
 
-async function extractPdfText(file, onProgress) {
-  const pdfjs = await loadPdfLibrary();
-  pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
-  const pdf = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise;
+async function extractPdfText(pdf, onProgress) {
   const pages = [];
   for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
     onProgress(`Lendo página ${pageNumber} de ${pdf.numPages}…`);
@@ -834,10 +840,10 @@ async function extractPdfText(file, onProgress) {
     const content = await page.getTextContent();
     pages.push({ page, text: textFromPdfContent(content) });
   }
-  return { pdfjs, pages };
+  return pages;
 }
 
-async function recognizePdfPages(pdfData, onProgress) {
+async function recognizePdfPages(pages, onProgress) {
   const { createWorker } = await loadOcrLibrary();
   const worker = await createWorker('por', 1, {
     logger: (message) => {
@@ -848,8 +854,7 @@ async function recognizePdfPages(pdfData, onProgress) {
   });
   let text = '';
   try {
-    for (let index = 0; index < pdfData.pages.length; index += 1) {
-      const { page } = pdfData.pages[index];
+    for (const [index, { page }] of pages.entries()) {
       onProgress(`Preparando página ${index + 1} para leitura…`);
       const viewport = page.getViewport({ scale: 2 });
       const canvas = document.createElement('canvas');
@@ -931,16 +936,20 @@ async function importFile(file) {
 
   chooseFile.disabled = true;
   setImportStatus(`Analisando ${file.name}…`, 'working');
+  let pdfTask;
   try {
     let text = '';
     if (isPdf) {
-      const pdfData = await extractPdfText(file, (message) => setImportStatus(message, 'working'));
-      text = pdfData.pages.map((page) => page.text).join('\n');
+      const pdfjs = await loadPdfLibrary();
+      pdfTask = pdfjs.getDocument({ data: await file.arrayBuffer(), isEvalSupported: false });
+      const onProgress = (message) => setImportStatus(message, 'working');
+      const pages = await extractPdfText(await pdfTask.promise, onProgress);
+      text = pages.map((page) => page.text).join('\n');
       checkMonth();
       let rows = extractRowsFromText(text);
       const hasReadableDay = [...rows.values()].some((values) => values.length >= 2);
       if (!hasReadableDay) {
-        text = await recognizePdfPages(pdfData, (message) => setImportStatus(message, 'working'));
+        text = await recognizePdfPages(pages, onProgress);
         checkMonth();
         rows = extractRowsFromText(text);
       }
@@ -964,8 +973,12 @@ async function importFile(file) {
     }
   } catch (error) {
     console.error('Falha ao importar espelho:', error);
-    setImportStatus(error.message || 'Não foi possível reconhecer este arquivo. Confira a qualidade e tente novamente.', 'error');
+    let message = error.message || 'Não foi possível reconhecer este arquivo. Confira a qualidade e tente novamente.';
+    if (error.name === 'InvalidPDFException') message = 'O arquivo PDF é inválido ou está corrompido. Gere uma nova cópia do espelho e tente novamente.';
+    if (error.name === 'PasswordException') message = 'O PDF é protegido por senha. Importe uma cópia do espelho sem senha.';
+    setImportStatus(message, 'error');
   } finally {
+    if (pdfTask) await pdfTask.destroy().catch((error) => console.warn('Falha ao liberar o leitor de PDF:', error));
     chooseFile.disabled = false;
     fileInput.value = '';
   }
