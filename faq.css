@@ -14,10 +14,54 @@
 [data-theme="dark"] .hero-band.faq-hero { background: var(--bg); }
 .hero-band.faq-hero .display-1 { color: var(--white); }
 [data-theme="dark"] .hero-band.faq-hero .display-1 { color: var(--text-primary); }
-.hero-band.faq-hero .lead { color: rgba(255,255,255,0.6); margin: var(--sp-5) 0 var(--sp-12); }
+.hero-band.faq-hero .lead { color: rgba(255,255,255,0.6); margin: var(--sp-5) 0 var(--sp-6); }
 [data-theme="dark"] .hero-band.faq-hero .lead { color: var(--text-secondary); }
 .hero-band.faq-hero .eyebrow { color: rgba(255,255,255,0.4); }
 [data-theme="dark"] .hero-band.faq-hero .eyebrow { color: var(--text-muted); }
+
+.help-whatsapp {
+  --whatsapp-text: #175738;
+  --whatsapp-surface: #effbf2;
+  --whatsapp-hover: #ddf5e5;
+  --whatsapp-border: #b9dfc5;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-3);
+  max-width: 560px;
+  min-height: 48px;
+  padding: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-6);
+  border: 1px solid var(--whatsapp-border);
+  border-radius: var(--radius-lg);
+  background: var(--whatsapp-surface);
+  color: var(--whatsapp-text);
+  line-height: 1.35;
+  text-decoration: none;
+}
+[data-theme="dark"] .help-whatsapp {
+  --whatsapp-text: #b6f3c9;
+  --whatsapp-surface: #173026;
+  --whatsapp-hover: #214235;
+  --whatsapp-border: #42745a;
+}
+.help-whatsapp:hover { background: var(--whatsapp-hover); color: var(--whatsapp-text); }
+.help-whatsapp:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.help-whatsapp-icon {
+  width: 26px;
+  height: 26px;
+  background: currentColor;
+  mask: url('assets/whatsapp.svg') center / contain no-repeat;
+}
+.help-whatsapp-description { display: block; margin-top: 2px; font-size: var(--text-sm); }
+.help-whatsapp-arrow { justify-self: end; font-size: 1.2rem; }
+.chat-whatsapp {
+  flex-shrink: 0;
+  margin: var(--sp-3) var(--sp-3) 0;
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--text-sm);
+}
+.chat-whatsapp .help-whatsapp-icon { width: 22px; height: 22px; }
 
 /* PROFILE GRID */
 .profile-grid {
