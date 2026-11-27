@@ -977,63 +977,56 @@ const photoTipsMobile = matchMedia('(max-width: 640px)');
 const mobilePhotoTips = $('mobilePhotoTips');
 const photoCaptureTips = $('photoCaptureTips');
 const photoCaptureActions = $('photoCaptureActions');
-let autoClosePhotoTips = false;
-let photoTipsScrollTimer;
+const photoScrollHint = $('photoScrollHint');
+let photoHintFrame = 0;
 
 function syncPhotoCaptureTips() {
   const show = photoTipsMobile.matches && wizardStep === 'photo';
   if (show === !mobilePhotoTips.hidden) return;
   mobilePhotoTips.hidden = !show;
-  autoClosePhotoTips = show;
   if (show) {
     mobilePhotoTips.append(photoCaptureTips);
     mobilePhotoTips.open = true;
   } else {
-    clearTimeout(photoTipsScrollTimer);
-    photoCaptureActions.style.removeProperty('--photo-capture-offset');
     $('photoTipsContainer').prepend(photoCaptureTips);
   }
+  schedulePhotoScrollHint();
 }
 
-function closePhotoTipsAndCenterActions() {
-  if (!autoClosePhotoTips || !mobilePhotoTips.open || mobilePhotoTips.contains(document.activeElement)) return;
-  const before = photoCaptureActions.getBoundingClientRect();
+function updatePhotoScrollHint() {
+  photoHintFrame = 0;
+  if (mobilePhotoTips.hidden) {
+    photoScrollHint.hidden = true;
+    return;
+  }
+  const actions = photoCaptureActions.getBoundingClientRect();
   const viewport = window.visualViewport;
   const viewportTop = viewport?.offsetTop ?? 0;
   const top = Math.max(viewportTop, document.querySelector('.site-nav').getBoundingClientRect().bottom);
   const dock = document.querySelector('.mobile-bank-nav')?.getBoundingClientRect();
   let bottom = viewportTop + (viewport?.height ?? innerHeight);
   if (dock?.height && dock.top > top) bottom = Math.min(bottom, dock.top);
-  if (mobilePhotoTips.getBoundingClientRect().bottom > top || before.top >= bottom || before.bottom <= top) return;
+  const direction = actions.top >= bottom - 8 ? 'down' : actions.bottom <= top + 8 ? 'up' : '';
+  photoScrollHint.hidden = !direction || !actions.height || bottom - top < 60;
+  if (photoScrollHint.hidden) return;
+  photoScrollHint.dataset.direction = direction;
+  const inset = direction === 'up' ? top : Math.max(0, innerHeight - bottom);
+  photoScrollHint.style.setProperty('--photo-hint-inset', `${inset + 8}px`);
+}
 
-  autoClosePhotoTips = false;
-  mobilePhotoTips.open = false;
-  const actions = photoCaptureActions.getBoundingClientRect();
-  const centeredTop = top + Math.max(0, (bottom - top - actions.height) / 2);
-  const destination = window.scrollY + actions.top - centeredTop;
-  // On tall screens, the centered position can be above the page's scroll limit.
-  if (destination < 0) photoCaptureActions.style.setProperty('--photo-capture-offset', `${-destination}px`);
-
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    window.scrollTo({ top: Math.max(0, destination), behavior: 'instant' });
-    return;
-  }
-
-  // Keep the controls in place while the disclosure changes height.
-  const after = photoCaptureActions.getBoundingClientRect();
-  window.scrollBy({ top: after.top - before.top, behavior: 'instant' });
-  window.scrollTo({ top: Math.max(0, destination), behavior: 'smooth' });
+function schedulePhotoScrollHint() {
+  if (!photoHintFrame) photoHintFrame = requestAnimationFrame(updatePhotoScrollHint);
 }
 
 photoTipsMobile.addEventListener('change', syncPhotoCaptureTips);
-mobilePhotoTips.addEventListener('toggle', () => {
-  if (mobilePhotoTips.open) photoCaptureActions.style.removeProperty('--photo-capture-offset');
-});
-window.addEventListener('scroll', () => {
-  if (!autoClosePhotoTips || !mobilePhotoTips.open) return;
-  clearTimeout(photoTipsScrollTimer);
-  photoTipsScrollTimer = setTimeout(closePhotoTipsAndCenterActions, 120);
-}, { passive: true });
+mobilePhotoTips.addEventListener('toggle', schedulePhotoScrollHint);
+window.addEventListener('scroll', schedulePhotoScrollHint, { passive: true });
+window.addEventListener('resize', schedulePhotoScrollHint);
+window.visualViewport?.addEventListener('resize', schedulePhotoScrollHint);
+window.visualViewport?.addEventListener('scroll', schedulePhotoScrollHint);
+const photoScrollObserver = new ResizeObserver(schedulePhotoScrollHint);
+photoScrollObserver.observe(photoCaptureActions);
+photoScrollObserver.observe(mobilePhotoTips);
 
 function wizardSteps() {
   const matriculasPreenchidas = autoSelectedMat

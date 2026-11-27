@@ -14,7 +14,6 @@
   border: 1px solid var(--border-mid);
   border-radius: var(--radius-lg);
   background: var(--surface-2);
-  overflow-anchor: none;
 }
 #mobilePhotoTips summary {
   padding: var(--sp-4);
@@ -29,8 +28,27 @@
   background: transparent;
 }
 #mobilePhotoTips .side-head { display: none; }
+#photoScrollHint { display: none; }
 @media (max-width: 640px) {
-  #photoCaptureActions { margin-block-start: var(--photo-capture-offset, 0px); }
+  #photoScrollHint:not([hidden]) {
+    position: fixed;
+    left: 50%;
+    z-index: 990;
+    transform: translateX(-50%);
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--border-mid);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--accent);
+    box-shadow: var(--shadow-sm);
+    pointer-events: none;
+  }
+  #photoScrollHint[data-direction="down"] { bottom: var(--photo-hint-inset); }
+  #photoScrollHint[data-direction="up"] { top: var(--photo-hint-inset); }
+  #photoScrollHint[data-direction="up"] svg { transform: rotate(180deg); }
 }
 #photoFormCard .ico-box { border-radius: 13px; background: var(--surface-2); }
 #photoFormCard .field input[type=text],
